@@ -1,0 +1,13 @@
+{
+    "mcpServers": {
+        "openapi-json-bridge": {
+            "command": "node",
+            "args": [
+                "/Users/rdgztorres19/Documents/Projects/mcp-api/dist/index.js"
+            ],
+            "env": {
+                "API_BASE": "http://localhost:8087/mcp"
+            }
+        }
+    }
+}
