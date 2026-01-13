@@ -31,7 +31,7 @@ class HmacRequestSigner:
         ).decode()
 
         return {
-            "X-Api-Key": self.api_key,
+            "X-Service": self.api_key,
             "X-Timestamp": timestamp,
             "X-Signature": signature,
         }

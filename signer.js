@@ -36,7 +36,7 @@ class HmacRequestSigner {
     #deriveSecret(offsetSeconds = 0) {
         // slice = número que cambia cada periodo (p. ej., cada minuto)
         const slice = Math.floor((Date.now() / 1000 + offsetSeconds) / this.period);
-        
+
         return crypto.createHmac("sha256", this.baseSecret)
             .update(String(slice))
             .digest();
@@ -47,7 +47,7 @@ class HmacRequestSigner {
      * Creates a canonical string representation of the request and signs it
      * @param {string} method - HTTP method (GET, POST, etc.)
      * @param {string} url - Full URL of the request
-     * @returns {Object} Headers object with X-Api-Key, X-Timestamp, and X-Signature
+     * @returns {Object} Headers object with x-service, X-Timestamp, and X-Signature
      */
     sign(method, url) {
         const parsed = new URL(url);
@@ -55,7 +55,8 @@ class HmacRequestSigner {
 
         const timestamp = new Date().toISOString();
         const derivedSecret = this.#deriveSecret();
-        console.log("Derived secret", derivedSecret);
+
+        console.log(derivedSecret.toString('base64'), "derivedSecret");
 
         const canonical = `${method.toUpperCase()}\n${path}\n${this.apiKey}\n${timestamp}`;
 
@@ -65,7 +66,7 @@ class HmacRequestSigner {
             .digest("base64");
 
         return {
-            "X-Api-Key": this.apiKey,
+            "x-service": this.apiKey,
             "X-Timestamp": timestamp,
             "X-Signature": signature,
         };
@@ -110,7 +111,7 @@ class TimeBasedHmacVerifier {
      */
     verifyRequest(req) {
         console.time("verifyRequest");
-        const apiKey = req.headers["x-api-key"];
+        const apiKey = req.headers["x-service"];
         const timestamp = req.headers["x-timestamp"];
         const signature = req.headers["x-signature"];
 
@@ -184,21 +185,51 @@ const receiver = () => {
  */
 const consumer = () => {
     const signer = new HmacRequestSigner({
-        apiKey: "svc-b",
+        apiKey: "core",
         baseSecret: "super-secret-b",
     });
 
     // Send signed request every 5 minutes (300000000ms seems like a typo - should be 300000ms for 5min)
     setInterval(async () => {
         try {
-            const url = "http://localhost:3009/internal/status?timestamp=" + new Date().toISOString();
+            const url = `http://localhost:8089/api/v2/nodes?fields=["id", "label"]&params=["temp"]&filter={"type": "tag-v4"}`;
+            // const url = `http://localhost:8089/api/v2//nodes/1227866527542272/filter-subtree-by-types?types=["tag-v4"]&fields=["id", "label", "parent"]&params=["type", "temp"]&includePath=true`;
             const headers = signer.sign("GET", url);
             const response = await axios.get(url, { headers });
-            console.log(response.status);
+            //console.log(response.data.data);
+
+            // POST request to node-type-list endpoint
+            const postUrl = `http://localhost:8089/node-type-list/1227866527542272`;
+            const postHeaders = signer.sign("POST", postUrl);
+            const postResponse = await axios.post(postUrl, {
+                type: "tag-v4",
+                includePath: true
+            }, {
+                headers: postHeaders
+            });
+            console.log(postResponse.data[0]);
+
+
+            // const postUrl = `http://localhost:8089/api/v2/service-resource-nodes`;
+            // const postHeaders = signer.sign("POST", postUrl);
+            // const responsePost = await axios.post(postUrl, {
+            //     source: "core",
+            //     action: "loadResources",
+            //     types: ["tag-v4"],
+            //     fields: ["id", "label"],
+            //     params: ["icon", "type", "temp"],
+            //     filter: {"params.enabled": 1},
+            //     includeAbsolutePath: true
+            // }, {
+            //     headers: postHeaders
+            // });
+
+            // console.log(responsePost.data.data);
+            process.exit(0);
         } catch (error) {
             console.log(error.response.status);
         }
-    }, 300000000);
+    }, 100);
 };
 
 

@@ -37,7 +37,7 @@ public:
         std::string signature = toBase64(sig_bin);
 
         std::ostringstream out;
-        out << "X-Api-Key: " << apiKey_ << "\n"
+        out << "X-Service: " << apiKey_ << "\n"
             << "X-Timestamp: " << timestamp << "\n"
             << "X-Signature: " << signature;
         return out.str();

@@ -14,14 +14,14 @@ import fitz  # PyMuPDF
 from pathlib import Path
 
 # ====== Ajusta aquí ======
-ORIG = "/Users/rdgztorres19/Library/CloudStorage/OneDrive-Personal/Interview & Documents/ALL/Solid Typescript Architecture.pdf"   # ← tu PDF origen
+ORIG = "/Users/rdgztorres19/Library/CloudStorage/OneDrive-Personal/_OceanofPDF.com_ASPNET_Core_in_Action_Third_Edition_-_Andrew_Lock.pdf"   # ← tu PDF origen
 OUT  = None                       # ← None = "archivo__solo-resaltado.pdf"
 MARGIN = 0.5                      # Expande levemente cada highlight (pts)
 MERGE_Y_TOL = 2.0                 # Tolerancia para agrupar en la misma línea
 MERGE_X_GAP = 10.0                # Hueco horizontal máximo para unir trozos
 # =========================
 
-def nombre_salida(path_in: Path, sufijo="__solo-resaltado") -> Path:
+def nombre_salida(path_in: Path, sufijo="__resume") -> Path:
     return path_in.with_name(f"{path_in.stem}{sufijo}{path_in.suffix}")
 
 def get_highlight_rects(page: fitz.Page, margin=MARGIN):
