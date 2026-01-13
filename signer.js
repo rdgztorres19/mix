@@ -192,22 +192,21 @@ const consumer = () => {
     // Send signed request every 5 minutes (300000000ms seems like a typo - should be 300000ms for 5min)
     setInterval(async () => {
         try {
-            const url = `http://localhost:8089/api/v2/nodes?fields=["id", "label"]&params=["temp"]&filter={"type": "tag-v4"}`;
+            const url = `http://192.168.1.245:8089/api/v2/nodes?fields=["id", "label", "params"]&params=["temp", "driverParams"]&filter={"type": "channel"}`;
             // const url = `http://localhost:8089/api/v2//nodes/1227866527542272/filter-subtree-by-types?types=["tag-v4"]&fields=["id", "label", "parent"]&params=["type", "temp"]&includePath=true`;
-            const headers = signer.sign("GET", url);
-            const response = await axios.get(url, { headers });
-            //console.log(response.data.data);
+            // const headers = signer.sign("GET", url);
+            // const response = await axios.get(url, { headers });
+            // console.log(response.data.data);
 
             // POST request to node-type-list endpoint
-            const postUrl = `http://localhost:8089/node-type-list/1227866527542272`;
+            const postUrl = `http://192.168.1.245:8089/node-type-list/6160739584360448`;
             const postHeaders = signer.sign("POST", postUrl);
             const postResponse = await axios.post(postUrl, {
-                type: "tag-v4",
-                includePath: true
+                type: "channel"
             }, {
                 headers: postHeaders
             });
-            console.log(postResponse.data[0]);
+            console.log(postResponse.data[0].params);
 
 
             // const postUrl = `http://localhost:8089/api/v2/service-resource-nodes`;

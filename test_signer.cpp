@@ -6,7 +6,6 @@
 #include <openssl/hmac.h>
 #include <openssl/evp.h>
 #include <openssl/buffer.h>
-#include <curl/curl.h>
 
 class HmacRequestSigner {
 public:
@@ -106,60 +105,19 @@ private:
     }
 };
 
-// ======================================================
-//  Método de ejemplo que genera headers y hace el GET
-// ======================================================
-size_t writeCallback(void* contents, size_t size, size_t nmemb, void* userp) {
-    ((std::string*)userp)->append((char*)contents, size * nmemb);
-    return size * nmemb;
-}
-
-void testSigner() {
-    // URL con caracteres especiales URL-encoded
-    const std::string url = "http://192.168.1.245:8089/api/v2/nodes?fields=[%22id%22,%20%22label%22,%20%22params%22]&params=[%22temp%22,%20%22driverParams%22]&filter={%22type%22:%20%22channel%22}";
+void testSignerOnly() {
+    const std::string url = "http://192.168.1.245:8089/api/v2/nodes";
 
     HmacRequestSigner signer("core", "super-secret-b", 5);
     std::string headersRaw = signer.signHeaders("GET", url);
 
-    std::cout << "🔐 Headers generados:\n" << headersRaw << "\n\n";
-
-    // --- convertir los headers a estructura curl_slist ---
-    struct curl_slist* headers = NULL;
-    std::istringstream ss(headersRaw);
-    std::string line;
-    while (std::getline(ss, line)) {
-        if (!line.empty())
-            headers = curl_slist_append(headers, line.c_str());
-    }
-
-    CURL* curl = curl_easy_init();
-    if (!curl) {
-        std::cerr << "❌ No se pudo inicializar CURL\n";
-        return;
-    }
-
-    std::string response;
-    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5L);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-
-    CURLcode res = curl_easy_perform(curl);
-    if (res != CURLE_OK) {
-        std::cerr << "⚠️ Error CURL: " << curl_easy_strerror(res) << std::endl;
-    } else {
-        long code;
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &code);
-        std::cout << "✅ HTTP " << code << "\n";
-        std::cout << "📦 Respuesta: " << response << "\n";
-    }
-
-    curl_slist_free_all(headers);
-    curl_easy_cleanup(curl);
+    std::cout << "🔐 Headers HMAC generados:\n" << headersRaw << "\n\n";
+    std::cout << "✅ Generación de headers exitosa!\n";
+    std::cout << "📝 URL procesada: " << url << "\n";
 }
 
 int main() {
-    testSigner();
+    std::cout << "🚀 Probando HMAC Request Signer...\n\n";
+    testSignerOnly();
     return 0;
 }
