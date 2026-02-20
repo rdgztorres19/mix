@@ -1,0 +1,1337 @@
+{
+    "models": [
+        {
+            "label": "Backup",
+            "path": "",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "Macro",
+            "path": "",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "Instances",
+            "path": "Macro",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "Recorder",
+            "path": "Macro",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "MOTOR_AD1",
+            "path": "",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "UdtInstance",
+            "subTypeId": "MOTOR_AD1",
+            "attributes": []
+        },
+        {
+            "label": "Parameters",
+            "path": "MOTOR_AD1",
+            "type": "Document",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": 1073742080
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Node",
+            "attributes": []
+        },
+        {
+            "label": "CONFIG",
+            "path": "MOTOR_AD1",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "RUNTIME",
+            "path": "MOTOR_AD1/CONFIG",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "autolearning_status",
+            "path": "MOTOR_AD1/CONFIG/RUNTIME",
+            "type": "String",
+            "currentValue": "Standby",
+            "rawValue": {
+                "value": "Standby",
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": [
+                {
+                    "id": "override"
+                }
+            ]
+        },
+        {
+            "label": "autolearning_time_range(min)",
+            "path": "MOTOR_AD1/CONFIG/RUNTIME",
+            "type": "Int4",
+            "currentValue": "10",
+            "rawValue": {
+                "value": 10,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "autolearning_trigger",
+            "path": "MOTOR_AD1/CONFIG/RUNTIME",
+            "type": "Boolean",
+            "currentValue": "true",
+            "rawValue": {
+                "value": true,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "TRAINING",
+            "path": "MOTOR_AD1/CONFIG",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "algorithm_type",
+            "path": "MOTOR_AD1/CONFIG/TRAINING",
+            "type": "String",
+            "currentValue": "clustering",
+            "rawValue": {
+                "value": "clustering",
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "DATASET",
+            "path": "MOTOR_AD1/CONFIG/TRAINING",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "discard_nulls",
+            "path": "MOTOR_AD1/CONFIG/TRAINING/DATASET",
+            "type": "Boolean",
+            "currentValue": "false",
+            "rawValue": {
+                "value": false,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "replace_with_last_value",
+            "path": "MOTOR_AD1/CONFIG/TRAINING/DATASET",
+            "type": "Boolean",
+            "currentValue": "false",
+            "rawValue": {
+                "value": false,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "replace_with_value",
+            "path": "MOTOR_AD1/CONFIG/TRAINING/DATASET",
+            "type": "Float4",
+            "currentValue": "0.0",
+            "rawValue": {
+                "value": 0.0,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "end_date",
+            "path": "MOTOR_AD1/CONFIG/TRAINING",
+            "type": "DateTime",
+            "currentValue": "Mon Feb 09 12:29:21 EST 2026",
+            "rawValue": {
+                "value": "Feb 9, 2026, 12:29:21 PM",
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Feb 9, 2026, 12:29:26 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": [
+                {
+                    "id": "override"
+                }
+            ]
+        },
+        {
+            "label": "history_storage_provider",
+            "path": "MOTOR_AD1/CONFIG/TRAINING",
+            "type": "String",
+            "currentValue": "[default]",
+            "rawValue": {
+                "value": "[default]",
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "initialize_training",
+            "path": "MOTOR_AD1/CONFIG/TRAINING",
+            "type": "Boolean",
+            "currentValue": "true",
+            "rawValue": {
+                "value": true,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Feb 9, 2026, 12:30:01 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": [
+                {
+                    "id": "override"
+                }
+            ]
+        },
+        {
+            "label": "output_message",
+            "path": "MOTOR_AD1/CONFIG/TRAINING",
+            "type": "String",
+            "currentValue": "Training is in process for model: MOTOR_AD1",
+            "rawValue": {
+                "value": "Training is in process for model: MOTOR_AD1",
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Feb 9, 2026, 1:56:38 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": [
+                {
+                    "id": "override"
+                }
+            ]
+        },
+        {
+            "label": "start_date",
+            "path": "MOTOR_AD1/CONFIG/TRAINING",
+            "type": "DateTime",
+            "currentValue": "Mon Feb 09 00:00:00 EST 2026",
+            "rawValue": {
+                "value": "Feb 9, 2026, 12:00:00 AM",
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Feb 9, 2026, 12:29:11 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": [
+                {
+                    "id": "override"
+                }
+            ]
+        },
+        {
+            "label": "SYNTHETIC_TAGS",
+            "path": "MOTOR_AD1/CONFIG/TRAINING",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "INPUTS",
+            "path": "MOTOR_AD1",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "TAG1",
+            "path": "MOTOR_AD1/INPUTS",
+            "type": "Float4",
+            "currentValue": "70.368034",
+            "rawValue": {
+                "value": 70.368034,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Feb 9, 2026, 2:14:34 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "reference",
+            "attributes": []
+        },
+        {
+            "label": "TAG2",
+            "path": "MOTOR_AD1/INPUTS",
+            "type": "Float4",
+            "currentValue": "-4.2903223",
+            "rawValue": {
+                "value": -4.2903223,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Feb 9, 2026, 2:14:34 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "reference",
+            "attributes": []
+        },
+        {
+            "label": "TAG3",
+            "path": "MOTOR_AD1/INPUTS",
+            "type": "Float4",
+            "currentValue": "101.00305",
+            "rawValue": {
+                "value": 101.00305,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Feb 9, 2026, 2:14:34 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "reference",
+            "attributes": []
+        },
+        {
+            "label": "OUTPUTS",
+            "path": "MOTOR_AD1",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "MOTOR_AD2",
+            "path": "",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "UdtInstance",
+            "subTypeId": "MOTOR_AD1",
+            "attributes": []
+        },
+        {
+            "label": "Parameters",
+            "path": "MOTOR_AD2",
+            "type": "Document",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": 1073742080
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Node",
+            "attributes": []
+        },
+        {
+            "label": "CONFIG",
+            "path": "MOTOR_AD2",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "RUNTIME",
+            "path": "MOTOR_AD2/CONFIG",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "autolearning_status",
+            "path": "MOTOR_AD2/CONFIG/RUNTIME",
+            "type": "String",
+            "currentValue": "Standby",
+            "rawValue": {
+                "value": "Standby",
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": [
+                {
+                    "id": "override"
+                }
+            ]
+        },
+        {
+            "label": "autolearning_time_range(min)",
+            "path": "MOTOR_AD2/CONFIG/RUNTIME",
+            "type": "Int4",
+            "currentValue": "10",
+            "rawValue": {
+                "value": 10,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "autolearning_trigger",
+            "path": "MOTOR_AD2/CONFIG/RUNTIME",
+            "type": "Boolean",
+            "currentValue": "true",
+            "rawValue": {
+                "value": true,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "TRAINING",
+            "path": "MOTOR_AD2/CONFIG",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "algorithm_type",
+            "path": "MOTOR_AD2/CONFIG/TRAINING",
+            "type": "String",
+            "currentValue": "clustering",
+            "rawValue": {
+                "value": "clustering",
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "DATASET",
+            "path": "MOTOR_AD2/CONFIG/TRAINING",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "discard_nulls",
+            "path": "MOTOR_AD2/CONFIG/TRAINING/DATASET",
+            "type": "Boolean",
+            "currentValue": "false",
+            "rawValue": {
+                "value": false,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "replace_with_last_value",
+            "path": "MOTOR_AD2/CONFIG/TRAINING/DATASET",
+            "type": "Boolean",
+            "currentValue": "false",
+            "rawValue": {
+                "value": false,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "replace_with_value",
+            "path": "MOTOR_AD2/CONFIG/TRAINING/DATASET",
+            "type": "Float4",
+            "currentValue": "0.0",
+            "rawValue": {
+                "value": 0.0,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "end_date",
+            "path": "MOTOR_AD2/CONFIG/TRAINING",
+            "type": "DateTime",
+            "currentValue": "Mon Feb 09 13:30:29 EST 2026",
+            "rawValue": {
+                "value": "Feb 9, 2026, 1:30:29 PM",
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Feb 9, 2026, 1:30:31 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": [
+                {
+                    "id": "override"
+                }
+            ]
+        },
+        {
+            "label": "history_storage_provider",
+            "path": "MOTOR_AD2/CONFIG/TRAINING",
+            "type": "String",
+            "currentValue": "[default]",
+            "rawValue": {
+                "value": "[default]",
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "initialize_training",
+            "path": "MOTOR_AD2/CONFIG/TRAINING",
+            "type": "Boolean",
+            "currentValue": "true",
+            "rawValue": {
+                "value": true,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Feb 9, 2026, 1:29:04 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": [
+                {
+                    "id": "override"
+                }
+            ]
+        },
+        {
+            "label": "output_message",
+            "path": "MOTOR_AD2/CONFIG/TRAINING",
+            "type": "String",
+            "currentValue": "Training is in process for model: MOTOR_AD2",
+            "rawValue": {
+                "value": "Training is in process for model: MOTOR_AD2",
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Feb 9, 2026, 1:56:39 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": [
+                {
+                    "id": "override"
+                }
+            ]
+        },
+        {
+            "label": "start_date",
+            "path": "MOTOR_AD2/CONFIG/TRAINING",
+            "type": "DateTime",
+            "currentValue": "Mon Feb 09 13:20:11 EST 2026",
+            "rawValue": {
+                "value": "Feb 9, 2026, 1:20:11 PM",
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Feb 9, 2026, 1:30:18 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": [
+                {
+                    "id": "override"
+                }
+            ]
+        },
+        {
+            "label": "SYNTHETIC_TAGS",
+            "path": "MOTOR_AD2/CONFIG/TRAINING",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "INPUTS",
+            "path": "MOTOR_AD2",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "TAG1",
+            "path": "MOTOR_AD2/INPUTS",
+            "type": "Float4",
+            "currentValue": "70.368034",
+            "rawValue": {
+                "value": 70.368034,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Feb 9, 2026, 2:14:34 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "reference",
+            "attributes": []
+        },
+        {
+            "label": "TAG2",
+            "path": "MOTOR_AD2/INPUTS",
+            "type": "Float4",
+            "currentValue": "-4.2903223",
+            "rawValue": {
+                "value": -4.2903223,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Feb 9, 2026, 2:14:34 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "reference",
+            "attributes": []
+        },
+        {
+            "label": "TAG3",
+            "path": "MOTOR_AD2/INPUTS",
+            "type": "Float4",
+            "currentValue": "101.00305",
+            "rawValue": {
+                "value": 101.00305,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Feb 9, 2026, 2:14:34 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "reference",
+            "attributes": []
+        },
+        {
+            "label": "OUTPUTS",
+            "path": "MOTOR_AD2",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "MOTOR_AD3",
+            "path": "",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "UdtInstance",
+            "subTypeId": "MOTOR_AD1",
+            "attributes": []
+        },
+        {
+            "label": "Parameters",
+            "path": "MOTOR_AD3",
+            "type": "Document",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": 1073742080
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Node",
+            "attributes": []
+        },
+        {
+            "label": "CONFIG",
+            "path": "MOTOR_AD3",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "RUNTIME",
+            "path": "MOTOR_AD3/CONFIG",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "autolearning_status",
+            "path": "MOTOR_AD3/CONFIG/RUNTIME",
+            "type": "String",
+            "currentValue": "Standby",
+            "rawValue": {
+                "value": "Standby",
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": [
+                {
+                    "id": "override"
+                }
+            ]
+        },
+        {
+            "label": "autolearning_time_range(min)",
+            "path": "MOTOR_AD3/CONFIG/RUNTIME",
+            "type": "Int4",
+            "currentValue": "10",
+            "rawValue": {
+                "value": 10,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "autolearning_trigger",
+            "path": "MOTOR_AD3/CONFIG/RUNTIME",
+            "type": "Boolean",
+            "currentValue": "true",
+            "rawValue": {
+                "value": true,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "TRAINING",
+            "path": "MOTOR_AD3/CONFIG",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "algorithm_type",
+            "path": "MOTOR_AD3/CONFIG/TRAINING",
+            "type": "String",
+            "currentValue": "clustering",
+            "rawValue": {
+                "value": "clustering",
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "DATASET",
+            "path": "MOTOR_AD3/CONFIG/TRAINING",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "discard_nulls",
+            "path": "MOTOR_AD3/CONFIG/TRAINING/DATASET",
+            "type": "Boolean",
+            "currentValue": "false",
+            "rawValue": {
+                "value": false,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "replace_with_last_value",
+            "path": "MOTOR_AD3/CONFIG/TRAINING/DATASET",
+            "type": "Boolean",
+            "currentValue": "false",
+            "rawValue": {
+                "value": false,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "replace_with_value",
+            "path": "MOTOR_AD3/CONFIG/TRAINING/DATASET",
+            "type": "Float4",
+            "currentValue": "0.0",
+            "rawValue": {
+                "value": 0.0,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "end_date",
+            "path": "MOTOR_AD3/CONFIG/TRAINING",
+            "type": "DateTime",
+            "currentValue": "Mon Feb 09 13:41:47 EST 2026",
+            "rawValue": {
+                "value": "Feb 9, 2026, 1:41:47 PM",
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Feb 9, 2026, 1:41:50 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": [
+                {
+                    "id": "override"
+                }
+            ]
+        },
+        {
+            "label": "history_storage_provider",
+            "path": "MOTOR_AD3/CONFIG/TRAINING",
+            "type": "String",
+            "currentValue": "[default]",
+            "rawValue": {
+                "value": "[default]",
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Jan 27, 2026, 12:44:51 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "initialize_training",
+            "path": "MOTOR_AD3/CONFIG/TRAINING",
+            "type": "Boolean",
+            "currentValue": "true",
+            "rawValue": {
+                "value": true,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Feb 9, 2026, 1:41:54 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": [
+                {
+                    "id": "override"
+                }
+            ]
+        },
+        {
+            "label": "output_message",
+            "path": "MOTOR_AD3/CONFIG/TRAINING",
+            "type": "String",
+            "currentValue": "Model MOTOR_AD3 is already trained",
+            "rawValue": {
+                "value": "Model MOTOR_AD3 is already trained",
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Feb 9, 2026, 1:42:46 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": [
+                {
+                    "id": "override"
+                }
+            ]
+        },
+        {
+            "label": "start_date",
+            "path": "MOTOR_AD3/CONFIG/TRAINING",
+            "type": "DateTime",
+            "currentValue": "Mon Feb 09 13:35:22 EST 2026",
+            "rawValue": {
+                "value": "Feb 9, 2026, 1:35:22 PM",
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Feb 9, 2026, 1:41:31 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "memory",
+            "attributes": [
+                {
+                    "id": "override"
+                }
+            ]
+        },
+        {
+            "label": "SYNTHETIC_TAGS",
+            "path": "MOTOR_AD3/CONFIG/TRAINING",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "INPUTS",
+            "path": "MOTOR_AD3",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "TAG1",
+            "path": "MOTOR_AD3/INPUTS",
+            "type": "Float4",
+            "currentValue": "70.368034",
+            "rawValue": {
+                "value": 70.368034,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Feb 9, 2026, 2:14:34 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "reference",
+            "attributes": []
+        },
+        {
+            "label": "TAG2",
+            "path": "MOTOR_AD3/INPUTS",
+            "type": "Float4",
+            "currentValue": "-4.2903223",
+            "rawValue": {
+                "value": -4.2903223,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Feb 9, 2026, 2:14:34 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "reference",
+            "attributes": []
+        },
+        {
+            "label": "TAG3",
+            "path": "MOTOR_AD3/INPUTS",
+            "type": "Float4",
+            "currentValue": "101.00305",
+            "rawValue": {
+                "value": 101.00305,
+                "quality": {
+                    "code": 192
+                },
+                "timestamp": "Feb 9, 2026, 2:14:34 PM"
+            },
+            "objectType": "AtomicTag",
+            "subTypeId": "reference",
+            "attributes": []
+        },
+        {
+            "label": "OUTPUTS",
+            "path": "MOTOR_AD3",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "MQTT Tags",
+            "path": "",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "PLC 1",
+            "path": "MQTT Tags",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "SORBA",
+            "path": "",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "Themes",
+            "path": "",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "Dark",
+            "path": "Themes",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        },
+        {
+            "label": "Light",
+            "path": "Themes",
+            "type": "String",
+            "currentValue": "null",
+            "rawValue": {
+                "quality": {
+                    "code": -2147483120
+                },
+                "timestamp": "Jan 26, 2026, 7:14:08 PM"
+            },
+            "objectType": "Folder",
+            "subTypeId": "memory",
+            "attributes": []
+        }
+    ],
+    "assets": []
+}

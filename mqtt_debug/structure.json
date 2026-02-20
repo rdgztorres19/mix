@@ -1,0 +1,70 @@
+[
+    {
+        "path": "MOTOR_AD3/CONFIG/TRAINING/output_message",
+        "value": "Model MOTOR_AD3 is already trained"
+    },
+    {
+        "path": "MOTOR_AD3/OUTPUTS/Anomaly_Score__Percent",
+        "value": 56.498116
+    },
+    {
+        "path": "MOTOR_AD3/OUTPUTS/Anomaly_Detection__Boolean",
+        "value": 0
+    },
+    {
+        "path": "MOTOR_AD3/OUTPUTS/Anomaly_Detection__Analog",
+        "value": -5.04343106
+    },
+    {
+        "path": "MOTOR_AD3/OUTPUTS/Notification__Warning",
+        "value": 0
+    },
+    {
+        "path": "MOTOR_AD3/OUTPUTS/Notification__Critical",
+        "value": 0
+    },
+    {
+        "path": "MOTOR_AD3/OUTPUTS/TAG1_Tag_Ranking__Percent",
+        "value": 13.00827208
+    },
+    {
+        "path": "MOTOR_AD3/OUTPUTS/TAG2_Tag_Ranking__Percent",
+        "value": 19.3596875
+    },
+    {
+        "path": "MOTOR_AD3/OUTPUTS/TAG3_Tag_Ranking__Percent",
+        "value": 67.63204042
+    },
+    {
+        "path": "MOTOR_AD3/OUTPUTS/TAG1_Tag_Ranking__p_value",
+        "value": 0.52905917
+    },
+    {
+        "path": "MOTOR_AD3/OUTPUTS/TAG2_Tag_Ranking__p_value",
+        "value": 0.00338519
+    },
+    {
+        "path": "MOTOR_AD3/OUTPUTS/TAG3_Tag_Ranking__p_value",
+        "value": 0.92905473
+    },
+    {
+        "path": "MOTOR_AD3/OUTPUTS/TAG3_Data_Drift",
+        "value": 0
+    },
+    {
+        "path": "MOTOR_AD3/OUTPUTS/TAG2_Data_Drift_Score",
+        "value": 0.00006791
+    },
+    {
+        "path": "MOTOR_AD3/OUTPUTS/TAG3_Data_Drift_Score",
+        "value": 0.09160402
+    },
+    {
+        "path": "MOTOR_AD3/OUTPUTS/Dataset_Drift",
+        "value": 0
+    },
+    {
+        "path": "MOTOR_AD3/OUTPUTS/Prediction_Drift_Score",
+        "value": 0.00726414
+    }
+]

@@ -192,22 +192,48 @@ const consumer = () => {
     // Send signed request every 5 minutes (300000000ms seems like a typo - should be 300000ms for 5min)
     setInterval(async () => {
         try {
-            const url = `http://192.168.1.245:8089/api/v2/nodes?fields=["id", "label", "params"]&params=["temp", "driverParams"]&filter={"type": "channel"}`;
+            const url = `http://localhost:8089/nodes/4371514210785280`;
+            const headers = signer.sign("GET", url);
+            const response = await axios.get(url, { headers });
+            console.log(JSON.stringify(response.data, null, 4));
+
+            // const url = `http://192.168.1.245:8089/api/v2/nodes?fields=["id", "label", "params"]&params=["temp", "driverParams"]&filter={"type": "channel"}`;
             // const url = `http://localhost:8089/api/v2//nodes/1227866527542272/filter-subtree-by-types?types=["tag-v4"]&fields=["id", "label", "parent"]&params=["type", "temp"]&includePath=true`;
             // const headers = signer.sign("GET", url);
             // const response = await axios.get(url, { headers });
             // console.log(response.data.data);
 
             // POST request to node-type-list endpoint
-            const postUrl = `http://192.168.1.245:8089/node-type-list/6160739584360448`;
-            const postHeaders = signer.sign("POST", postUrl);
-            const postResponse = await axios.post(postUrl, {
-                type: "channel"
+            // const postUrl = `http://192.168.1.245:8089/node-type-list/6160739584360448`;
+            // const postHeaders = signer.sign("POST", postUrl);
+            // const postResponse = await axios.post(postUrl, {
+            //     type: "channel"
+            // }, {
+            //     headers: postHeaders
+            // });
+            // console.log(postResponse.data[0].params);
+
+
+            // const postUrl = `http://localhost:8089/api/v2/credentials/render`;
+            // const postHeaders = signer.sign("POST", postUrl);
+            // const postResponse = await axios.post(postUrl, {
+            //     input: "{{760f723a-a43c-4da0-ab7b-6e78460ed7db}} Hola como estan"
+            // }, {
+            //     headers: postHeaders
+            // });
+
+            const postResponse1 = await axios.post(postUrl, {
+                input: [
+                    {
+                        "cat": "{{760f723a-a43c-4da0-ab7b-6e78460ed7db1}} Hola como estan",
+                        "dog": "No tiene credenciales"
+                    }
+                ]
             }, {
                 headers: postHeaders
             });
-            console.log(postResponse.data[0].params);
 
+            console.log(JSON.stringify(postResponse1.data, null, 4));
 
             // const postUrl = `http://localhost:8089/api/v2/service-resource-nodes`;
             // const postHeaders = signer.sign("POST", postUrl);

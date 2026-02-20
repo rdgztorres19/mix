@@ -1,0 +1,982 @@
+[
+    {
+        "name": "Agitator",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Agitator"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Applikon EZ-Control",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Applikon EZ-Control"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "ARC Analog",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "ARC Analog"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "ARC Commands",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "ARC Commands"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "ARC CP Status",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "ARC CP Status"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "ARC pH",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "ARC pH"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Bioreactor",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Bioreactor"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Calibrate_DO",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Calibrate_DO"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Digital Alarm",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Digital Alarm"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "DO",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "DO"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "DO Config",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "DO Config"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "DO Slave",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "DO Slave"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Ext Digital Out",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Ext Digital Out"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Ext Transmitter",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Ext Transmitter"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "External",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "External"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "FoamDetect",
+        "objectType": "UdtType",
+        "subTypeId": "",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "FoamDetect"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "GatewayIPs",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "GatewayIPs"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Jobst",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Jobst"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Jobst Sensor",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Jobst Sensor"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "LabOwl",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "LabOwl"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Macro Instance",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Macro Instance"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Macro Remote",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Macro Remote"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "MFC",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "MFC"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "MOTOR_AD1",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "MOTOR_AD1"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "pH",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "pH"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "pH 1",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "pH 1"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "PID",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "PID"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "PLC",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "PLC"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Pressure",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Pressure"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Probe Details",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Probe Details"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Pump",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Pump"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Pump Charge",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Pump Charge"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Pump Scale",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Pump Scale"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Pump SP Ramp",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Pump SP Ramp"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Pump_AntiFoam",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Pump_AntiFoam"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Pyroscience",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Pyroscience"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Radar_Params",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Radar_Params"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "ROC",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "ROC"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Scale",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Scale"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Sensor Probe",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Sensor Probe"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "SP Ramp",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "SP Ramp"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "TecnicServo",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "TecnicServo"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Temperature",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Temperature"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Temperature Cal",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Temperature Cal"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Temperature Params",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Temperature Params"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Valve",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Valve"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Valve Table Entry",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Valve Table Entry"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Analog Alarm",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Base",
+                "Analog Alarm"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Calibrate_DO",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Base",
+                "Calibrate_DO"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "Digital Alarm",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Base",
+                "Digital Alarm"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "DO Config",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Base",
+                "DO Config"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "PID",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Base",
+                "PID"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "ROC",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Base",
+                "ROC"
+            ],
+            "source": "LabOwl"
+        }
+    },
+    {
+        "name": "SP Ramp",
+        "objectType": "UdtType",
+        "hasChildren": true,
+        "currentValue": {
+            "quality": {
+                "code": -2147483120
+            },
+            "timestamp": "Jan 26, 2026, 7:14:08 PM"
+        },
+        "fullPath": {
+            "pathParts": [
+                "_types_",
+                "Base",
+                "SP Ramp"
+            ],
+            "source": "LabOwl"
+        }
+    }
+]
