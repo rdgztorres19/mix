@@ -1,0 +1,11 @@
+Crea el proyecto en https://ai.azure.com
+Select Models from the left-hand menu, and then select Deploy a base model.
+Enter gpt-4.1 in the search box, and then select the gpt-4.1 model from the search results.
+
+pip3 install -r requirements.txt --upgrade
+brew install azure-cli
+
+PROJECT_ENDPOINT="https://rdgztorres19-1990-resource.services.ai.azure.com/api/projects/rdgztorres19-1990"
+MODEL_DEPLOYMENT_NAME=gpt-4.1
+az login //esto es para poder usar Default Credentials
+python agent.py

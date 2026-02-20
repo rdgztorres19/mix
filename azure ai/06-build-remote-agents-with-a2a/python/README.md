@@ -56,29 +56,62 @@ Un sistema completo de agentes distribuidos que pueden comunicarse entre sí usa
 
 ---
 
-## 📁 Estructura de Archivos
+## 📁 **ESTRUCTURA DE ARCHIVOS TÉCNICA**
 
 ```
 python/
-├── 📄 requirements.txt          # Dependencias de Python
-├── 📄 env.example              # Variables de entorno de ejemplo
-├── 📄 client.py                # Cliente para interactuar con el sistema
-├── 📄 run_all.py               # Script para ejecutar todos los servicios
+├── 📄 requirements.txt          # Dependencias: fastapi, azure-ai-agents, httpx, etc.
+├── 📄 env.example              # Variables: PROJECT_ENDPOINT, MODEL_DEPLOYMENT_NAME, puertos
+├── 📄 client.py                # Cliente CLI para testing - envía requests HTTP al routing
+├── 📄 run_all.py               # Orquestador: inicia todos los servers concurrentemente
 ├── 
-├── 🚦 routing_agent/
-│   ├── 📄 agent.py             # Lógica principal del agente de enrutamiento
-│   └── 📄 server.py            # Servidor FastAPI del routing agent
+├── 🚦 routing_agent/           # COORDINADOR PRINCIPAL
+│   ├── 📄 agent.py             # RoutingAgent class - lógica de descubrimiento y delegación
+│   │                           # • _async_init_components(): descubre agentes vía HTTP GET /agent-card
+│   │                           # • send_message(): envía tareas a agentes remotos via A2A
+│   │                           # • create_agent(): crea Azure AI Agent con send_message como tool
+│   │                           # • process_user_message(): maneja tool calling loop de Azure AI
+│   └── 📄 server.py            # FastAPI server (puerto 3000) - expone endpoint POST /message
 ├── 
-├── 📝 title_agent/
-│   ├── 📄 agent.py             # Agente especializado en generar títulos
-│   ├── 📄 agent_executor.py    # Ejecutor que maneja las tareas A2A
-│   └── 📄 server.py            # Servidor FastAPI del title agent
+├── 📝 title_agent/             # ESPECIALISTA EN TÍTULOS 
+│   ├── 📄 agent.py             # TitleAgent class - wrapper de Azure AI Foundry
+│   │                           # • create_agent(): crea agente con instrucciones de title generation
+│   │                           # • run_conversation(): ejecuta conversación con Azure AI
+│   ├── 📄 agent_executor.py    # TitleAgentExecutor class - implementa protocolo A2A
+│   │                           # • execute(): procesa MessageSendParams y retorna Task
+│   │                           # • _process_request(): convierte A2A request a Azure AI call
+│   └── 📄 server.py            # Starlette server (puerto 3001) - expone A2AStarletteApplication
+│                               # • GET /agent-card: devuelve capacidades y skills
+│                               # • POST /message: recibe tareas A2A y ejecuta con agent_executor
 ├── 
-└── 📋 outline_agent/
-    ├── 📄 agent.py             # Agente especializado en generar outlines
-    ├── 📄 agent_executor.py    # Ejecutor que maneja las tareas A2A
-    └── 📄 server.py            # Servidor FastAPI del outline agent
+└── 📋 outline_agent/           # ESPECIALISTA EN OUTLINES
+    ├── 📄 agent.py             # OutlineAgent class - similar a TitleAgent pero para outlines
+    ├── 📄 agent_executor.py    # OutlineAgentExecutor class - implementa protocolo A2A
+    │                           # • Mismo patrón que TitleAgentExecutor pero para outline tasks
+    └── 📄 server.py            # Starlette server (puerto 3002) - A2AStarletteApplication
+                                # • Expone mismos endpoints A2A que title_agent
 ```
+
+### 🔍 **EXPLICACIÓN DE CADA COMPONENTE**
+
+#### 📄 **agent.py** (TitleAgent/OutlineAgent)
+- **Propósito**: Wrapper de Azure AI Foundry para especialización
+- **Responsabilidad**: Crear agente Azure AI con instrucciones específicas
+- **Métodos clave**: `create_agent()`, `run_conversation()`
+
+#### 📄 **agent_executor.py** 
+- **Propósito**: Implementa protocolo A2A para recibir tareas remotas
+- **Responsabilidad**: Convierte `MessageSendParams` → Azure AI call → `Task` response
+- **Interface**: Implementa `AgentExecutor` del framework A2A
+- **Métodos**: `execute()`, `cancel()`, `_process_request()`
+
+#### 📄 **server.py** 
+- **Propósito**: Servidor HTTP que expone el agente via protocolo A2A
+- **Framework**: Starlette + A2AStarletteApplication
+- **Endpoints**:
+  - `GET /agent-card` → retorna `AgentCard` con skills y capacidades
+  - `POST /message` → recibe `MessageSendParams`, ejecuta con `agent_executor`
+  - `GET /health` → health check
 
 ---
 
@@ -178,61 +211,165 @@ curl http://127.0.0.1:3000/health  # Routing Agent
 
 ---
 
-## 🔄 Comunicación Entre Agentes
+## 🔄 **FLUJO TÉCNICO COMPLETO A2A**
 
-### 📡 Protocolo A2A
+### 📡 **1. PROCESO DE DESCUBRIMIENTO DE AGENTES**
 
-Los agentes se comunican usando el protocolo A2A sobre HTTP/REST:
+#### **Al inicializar el Routing Agent:**
 
-#### 1. **Descubrimiento de Agentes**
-```http
-GET /agent-card
+```python
+# routing_agent/server.py - Al arrancar el servidor
+routing_agent = await RoutingAgent.create([
+    "http://127.0.0.1:3001",  # Title Agent URL
+    "http://127.0.0.1:3002",  # Outline Agent URL  
+])
 ```
-Devuelve información sobre las capacidades del agente.
 
-#### 2. **Envío de Mensajes**
+#### **Descubrimiento HTTP automático:**
+
+```python
+# routing_agent/agent.py - _async_init_components()
+async with httpx.AsyncClient(timeout=30) as client:
+    for address in remote_agent_addresses:
+        # 🔍 HTTP GET: {address}/agent-card
+        card_resolver = A2ACardResolver(client, address)
+        card = await card_resolver.get_agent_card()  # ← HTTP call!
+        
+        # 💾 Almacena capacidades del agente
+        self.remote_agent_connections[card.name] = RemoteAgentConnections(card, address)
+        self.cards[card.name] = card
+```
+
+**Lo que devuelve `/agent-card`:**
+```json
+{
+  "name": "AI Foundry Title Agent",
+  "description": "An intelligent title generator agent...",
+  "url": "http://127.0.0.1:3001/",
+  "skills": [
+    {
+      "id": "generate_title",
+      "name": "Generate Title",
+      "description": "Generates compelling titles",
+      "examples": ["Can you generate a title for this article?"]
+    }
+  ]
+}
+```
+
+### 🧠 **2. CREACIÓN DEL AGENTE AZURE CON HERRAMIENTAS**
+
+```python
+# routing_agent/agent.py - create_agent()
+functions = FunctionTool({self.send_message})  # ← Registra send_message como tool
+
+self.azure_agent = self.agents_client.create_agent(
+    model=os.environ["MODEL_DEPLOYMENT_NAME"],
+    instructions=f"""
+    You are a Routing Delegator.
+    Available Agents: {self.list_remote_agents()}  # ← Ve las capacidades!
+    Route requests to appropriate agents using send_message tool.
+    """,
+    tools=functions.definitions  # ← send_message disponible como herramienta
+)
+```
+
+### 🎯 **3. PROCESO DE DECISIÓN - ¿Cómo sabe el LLM a quién delegar?**
+
+```python
+# Cuando llega mensaje del usuario
+async def process_user_message(self, user_message: str):
+    # 1. Envía mensaje a Azure AI
+    self.agents_client.messages.create(
+        thread_id=self.current_thread.id,
+        content=user_message  # "Generate a title for my AI article"
+    )
+    
+    # 2. Azure AI ejecuta y DECIDE usar herramientas
+    run = self.agents_client.runs.create(...)
+    
+    # 3. Azure AI retorna: requires_action con tool_call
+    if run.status == "requires_action":
+        tool_calls = run.required_action.submit_tool_outputs.tool_calls
+        # tool_call.function.name = "send_message"  
+        # tool_call.function.arguments = {"agent_name": "AI Foundry Title Agent", "task": "..."}
+```
+
+**🧠 Azure AI analiza:**
+- Ve instrucciones: "Available Agents: [AI Foundry Title Agent: title generator...]"
+- Ve mensaje: "Generate a title for my AI article" 
+- **DECIDE**: "Usar send_message con agent_name='AI Foundry Title Agent'"
+
+### 📨 **4. COMUNICACIÓN HTTP ENTRE AGENTES**
+
+```python
+# routing_agent/agent.py - send_message()
+async def send_message(self, agent_name: str, task: str):
+    # 1. Obtiene conexión HTTP del agente
+    remote_connection = self.remote_agent_connections[agent_name]
+    client = remote_connection.agent_client  # A2AClient
+    
+    # 2. Construye payload A2A
+    message_params = MessageSendParams(
+        id=str(uuid.uuid4()),
+        task_context_id=str(uuid.uuid4()),
+        text=task  # "Generate a title for my AI article"
+    )
+    
+    # 3. HTTP POST /message al agente especializado
+    request_payload = SendMessageRequest(message=message_params)
+    send_response = await client.send_message(request_payload)  # ← HTTP POST!
+    
+    return send_response.root.result
+```
+
+### 🔗 **5. PROTOCOLO HTTP A2A**
+
+#### **POST /message** (Envío de tarea)
 ```http
-POST /message
+POST http://127.0.0.1:3001/message
 Content-Type: application/json
 
 {
   "message": {
-    "id": "uuid",
-    "task_context_id": "uuid", 
-    "text": "Genera un título para: contenido aquí"
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "task_context_id": "550e8400-e29b-41d4-a716-446655440001",
+    "text": "Generate a title for my AI article about machine learning in healthcare"
   }
 }
 ```
 
-#### 3. **Respuesta del Agente**
+#### **Respuesta del Agente**
 ```json
 {
   "result": {
-    "id": "task-uuid",
+    "id": "task-550e8400-e29b-41d4-a716-446655440000",
     "state": "completed",
     "messages": [
       {
-        "text": "Título generado aquí",
-        "context_id": "uuid"
+        "text": "AI Médica: Cómo el Machine Learning Revoluciona la Salud",
+        "context_id": "550e8400-e29b-41d4-a716-446655440001"
       }
     ]
   }
 }
 ```
 
-### 🔗 Clases de Comunicación
+### 🔧 **COMPONENTES TÉCNICOS**
 
-#### **A2AClient**
-Cliente que maneja la comunicación HTTP con otros agentes.
+#### **A2AClient** 
+- Maneja comunicación HTTP con agentes remotos
+- Envía requests POST /message 
+- Deserializa responses JSON
 
-#### **A2ACardResolver**  
-Resuelve y obtiene las "tarjetas" (capabilities) de agentes remotos.
+#### **A2ACardResolver**
+- Hace HTTP GET /agent-card para descubrimiento
+- Parse de capacidades y skills de agentes
 
-#### **MessageSendParams**
-Parámetros del mensaje a enviar a otro agente.
-
-#### **SendMessageRequest/Response**
-Request/Response wrapper para el protocolo A2A.
+#### **RemoteAgentConnections**
+- Mantiene conexión HTTP persistente (httpx.AsyncClient)
+- Cache de AgentCard con capacidades
+- Wrapper para envío de mensajes A2A
 
 ---
 
@@ -294,62 +431,127 @@ Output:
 
 ---
 
-## 🔍 Clases y Componentes
+## 🔍 **CLASES Y COMPONENTES TÉCNICOS**
 
-### 🚦 **RoutingAgent Class**
+### 🚦 **RoutingAgent Class** (`routing_agent/agent.py`)
 
-**Ubicación**: `routing_agent/agent.py`
+**Responsabilidad**: Coordinador maestro que descubre agentes y delega tareas
 
-**Propiedades**:
-- `agents_client`: Cliente para Azure AI Foundry
-- `remote_agent_connections`: Diccionario de conexiones a agentes remotos
-- `cards`: Información de capacidades de cada agente
-- `azure_agent`: Instancia del agente de Azure
-- `current_thread`: Hilo de conversación actual
+**Propiedades Clave**:
+```python
+self.agents_client: AgentsClient                    # Cliente Azure AI Foundry  
+self.remote_agent_connections: dict[str, RemoteAgentConnections]  # Pool de conexiones HTTP
+self.cards: dict[str, AgentCard]                    # Cache de capacidades por agente
+self.azure_agent: Agent                             # Instancia Azure AI con tools
+self.current_thread: Thread                         # Thread de conversación Azure AI
+```
 
-**Métodos Principales**:
-- `create(remote_agent_addresses)`: Factory method asíncrono
-- `list_remote_agents()`: Lista agentes remotos disponibles
-- `send_message(agent_name, task)`: Envía tarea a agente específico
-- `create_agent()`: Crea agente Azure AI con herramientas
-- `process_user_message(message)`: Procesa mensaje del usuario
+**Flujo de Inicialización**:
+1. `create(remote_agent_addresses)` → Factory method asíncrono
+2. `_async_init_components()` → HTTP GET /agent-card a cada URL
+3. `RemoteAgentConnections()` → Crea pool de conexiones httpx
+4. `create_agent()` → Crea Azure AI Agent con `send_message` como tool
 
-### 📝 **TitleAgent Class**
+**Métodos Críticos**:
+- `list_remote_agents()` → String con capacidades para Azure AI prompt
+- `send_message(agent_name, task)` → HTTP POST /message via A2A protocol
+- `process_user_message()` → Tool calling loop con Azure AI
 
-**Ubicación**: `title_agent/agent.py`
+### 📝 **TitleAgent/OutlineAgent Classes** (`*_agent/agent.py`)
 
-**Propiedades**:
-- `client`: Cliente de Azure AI Foundry
-- `agent`: Instancia del agente especializado
+**Responsabilidad**: Wrapper especializado de Azure AI Foundry
 
-**Métodos Principales**:
-- `create_agent()`: Crea agente especializado en títulos
-- `run_conversation(message)`: Ejecuta conversación con el agente
+**Patrón de Implementación**:
+```python
+class TitleAgent:
+    def __init__(self):
+        self.client = AgentsClient(...)  # Azure AI client
+        self.agent = None                # Azure AI Agent instance
 
-### 🔧 **AgentExecutor Classes**
+    async def create_agent(self):
+        self.agent = self.client.create_agent(
+            model=os.environ["MODEL_DEPLOYMENT_NAME"],
+            instructions="You are a title generation expert..."  # ← Especialización
+        )
+    
+    async def run_conversation(self, message: str):
+        # Ejecuta thread + run pattern con Azure AI
+        return assistant_response
+```
 
-**Ubicación**: `*_agent/agent_executor.py`
+### 🔧 **AgentExecutor Classes** (`*_agent/agent_executor.py`)
 
-Cada agente tiene un **AgentExecutor** que implementa el protocolo A2A:
+**Responsabilidad**: Adapter que convierte protocolo A2A → Azure AI calls
 
-**Métodos Principales**:
-- `execute(context, event_queue)`: Ejecuta la tarea A2A
-- `cancel(context, event_queue)`: Cancela ejecución
-- `_process_request(parts, context_id, updater)`: Procesa solicitud
+**Interface A2A**:
+```python
+class TitleAgentExecutor(AgentExecutor):
+    async def execute(
+        self, 
+        context: RequestContext,           # Contexto de la request A2A
+        event_queue: EventQueue           # Cola de eventos para streaming
+    ):
+        # 1. Parse MessageSendParams de context
+        # 2. Llama a self.agent.run_conversation() 
+        # 3. Retorna Task con resultado
+```
 
-### 🌐 **RemoteAgentConnections Class**
+**Flujo interno**:
+1. `execute()` → entry point del protocolo A2A
+2. `_process_request()` → extrae texto de MessageSendParams 
+3. `agent.run_conversation()` → ejecuta Azure AI Foundry
+4. Construye `Task` con estado completed y respuesta
 
-**Ubicación**: `routing_agent/agent.py`
+### 🌐 **RemoteAgentConnections Class** (`routing_agent/agent.py`)
 
-**Propósito**: Mantiene conexiones HTTP persistentes con agentes remotos.
+**Responsabilidad**: Pool de conexiones HTTP persistentes a agentes remotos
 
-**Propiedades**:
-- `agent_client`: Cliente A2A para comunicación
-- `card`: Tarjeta con capacidades del agente
+**Arquitectura**:
+```python
+class RemoteAgentConnections:
+    def __init__(self, agent_card: AgentCard, agent_url: str):
+        self._httpx_client = httpx.AsyncClient(timeout=30)  # ← Conexión persistente
+        self.agent_client = A2AClient(self._httpx_client, agent_card, url=agent_url)
+        self.card = agent_card  # Cache de capacidades
+```
 
 **Métodos**:
-- `get_agent()`: Obtiene información del agente
-- `send_message(request)`: Envía mensaje al agente remoto
+- `get_agent()` → Retorna AgentCard desde cache
+- `send_message(request)` → HTTP POST via A2AClient
+
+### 📡 **A2A Framework Classes**
+
+#### **A2AClient**
+- Abstrae HTTP communication con agentes remotos
+- Serializa/deserializa MessageSendParams ↔ JSON
+- Maneja timeouts y errores HTTP
+
+#### **A2ACardResolver** 
+- HTTP GET /agent-card para descubrimiento
+- Parse AgentCard JSON → Python objects
+- Cache de capacidades por URL
+
+#### **A2AStarletteApplication**
+- Wrapper Starlette que expone protocolo A2A
+- Auto-registra rutas GET /agent-card y POST /message  
+- Integra AgentExecutor con HTTP endpoints
+
+### 🔗 **INTEGRACIÓN CON AZURE AI**
+
+**Tool Calling Pattern**:
+```python
+# Azure AI ve esto como herramientas disponibles:
+functions = FunctionTool({self.send_message})
+
+# En las instrucciones del agente:
+instructions = f"""
+Available Agents: {self.list_remote_agents()}
+Use send_message tool to delegate tasks.
+"""
+
+# Azure AI automáticamente decide cuándo llamar send_message
+# basado en el análisis del mensaje del usuario
+```
 
 ---
 

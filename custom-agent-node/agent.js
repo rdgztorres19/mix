@@ -4,6 +4,10 @@ import { createAgent } from "langchain";
 import { z } from "zod";
 import os from "os";
 import { execSync } from "child_process";
+import dotenv from "dotenv";
+
+// Cargar variables de entorno
+dotenv.config();
 
 
 /*
