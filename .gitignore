@@ -13,3 +13,4 @@ node_modules/*
 *.pem
 config/secrets.json
 credentials.json
+*.env

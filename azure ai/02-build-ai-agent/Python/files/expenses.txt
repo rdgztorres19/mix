@@ -1,0 +1,6 @@
+Business Trip Expenses:
+Hotel: $150.00
+Meals: $85.50  
+Transportation: $25.00
+Office supplies: $15.75
+Total: $276.25
