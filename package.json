@@ -2,7 +2,7 @@
   "name": "copy",
   "version": "1.0.0",
   "main": "csv-to-mqtt.js",
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "start": "node helper.js",
     "proxy": "node proxy-middleware.js",
