@@ -5,7 +5,7 @@ endpoint = "https://rdgztorres19-1990-resource.cognitiveservices.azure.com/"
 model_name = "gpt-4.1-mini"
 deployment = "gpt-4.1"
 
-subscription_key = ""
+subscription_key = "7AGlxmLpLpGdWhVsfLEsOslFZJJSVEkYlB1fdPmPC2PqydwwDF6UJQQJ99CBACHYHv6XJ3w3AAAAACOGtErt"
 api_version = "2024-12-01-preview"
 
 client = AzureOpenAI(
