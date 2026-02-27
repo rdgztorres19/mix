@@ -3,6 +3,7 @@ azure-identity
 azure-ai-projects
 azure-ai-agents
 python-dotenv
+azure-cognitiveservices-speech>=1.42.0
 debugpy
 # Agent development CLI tool (preview)
 agent-dev-cli
