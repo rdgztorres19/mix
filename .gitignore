@@ -14,3 +14,5 @@ node_modules/*
 config/secrets.json
 credentials.json
 *.env
+
+node_modules

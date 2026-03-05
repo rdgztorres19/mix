@@ -1,0 +1,2236 @@
+Small Caps
+
+Techniques
+El Pattern Day Trader Rule (PDT) establece que cualquier persona que realice 4 o más operaciones intradía en un período de 5 días hábiles es considerada pattern day trader. Para poder operar bajo esta condición en Estados Unidos, se exige un capital mínimo de $25,000 en la cuenta antes de iniciar las operaciones. Si el saldo baja de ese monto, no se permite seguir operando hasta reponerlo.
+
+Esta regla, aplicada estrictamente por los brokers regulados por FINRA en EE.UU., busca proteger a los pequeños traders de pérdidas excesivas y comisiones altas.
+
+Sin embargo, los brokers offshore (fuera de EE.UU.), como SureTrader (Bahamas), Capital Markets Elite Group (Trinidad y Tobago) y Alliance Trader (Jamaica), no están sujetos a esta regulación y permiten operar con cuentas menores a $25,000. A cambio, suelen aplicar comisiones más altas que los brokers estadounidenses.
+
+brokers offshore = More commission
+
+Los brokers offshore permiten evitar la regla PDT y operar con menos de $25,000, pero conllevan mayor riesgo. Aunque ofrecen más flexibilidad, no están regulados en EE.UU., por lo que muchos traders prefieren no mantener grandes cantidades de dinero en esas cuentas. Por ejemplo, se considera razonable tener entre $5,000 y $10,000, pero no sumas mayores como $50,000, debido a la falta de protección y seguridad frente a los brokers regulados por FINRA.
+
+Los brokers online convencionales suelen enviar las órdenes de los clientes a market makers y proveedores de liquidez mediante acuerdos de flujo de órdenes. Este proceso puede tardar varios segundos o incluso minutos, lo que limita la rapidez de ejecución. Estos brokers se enfocan más en ofrecer investigación y análisis fundamental que en velocidad, por lo que son adecuados para inversores y swing traders minoristas, pero no para day traders.
+
+En contraste, los direct-access brokers se centran en la velocidad y ejecución directa de órdenes. Usan software especializado que conecta a los traders con bolsas como Nasdaq y NYSE o con redes de comunicación electrónica (ECNs). Sus transacciones se ejecutan en fracciones de segundo, mostrando confirmación inmediata en la pantalla del trader.
+
+Sin embargo, tienen desventajas: requieren conocimiento técnico, a menudo exigen volúmenes mínimos de operaciones, y algunos aplican tarifas por inactividad si no se cumple con ese volumen.
+
+Los direct-access brokers suelen ofrecer sus propias plataformas de trading propietarias, pero también permiten usar plataformas externas enfocadas en velocidad y ejecución. Por ejemplo:
+	•	Interactive Brokers (IB) → ofrece Trader Workstation (TWS), aunque no se recomienda para day trading. Permite usar DAS Trader, una de las cuatro plataformas Nasdaq Platinum Partner con ejecución altamente eficiente.
+	•	Lightspeed Trading → plataforma propia Lightspeed Trader.
+	•	TD Ameritrade → plataforma propia thinkorswim.
+	•	CenterPoint Securities → utiliza DAS Trader.
+	•	CMEG → también compatible con DAS Trader.
+
+El flujo típico es: el trader coloca su orden en la plataforma (ej. DAS Trader), esta se envía a los centros de datos de Nasdaq, y el broker de compensación (ej. Interactive Brokers) ejecuta y liquida la orden. El trader paga las comisiones al broker y una tarifa mensual por la plataforma y el feed de datos en tiempo real con Level 2.
+
+En opinión del autor, las mejores combinaciones para day trading son:
+	•	Broker: Interactive Brokers o CenterPoint Securities.
+	•	Plataforma: DAS Trader.
+
+
+📊 Your Core Chart Setup
+	0.	Candlesticks (white/red)→ Direct, fast view of price action and intraday sentiment. Candlestick patterns often show momentum shifts faster than lagging indicators.
+	0.	Volume + Average Volume Line→ Volume confirms price moves. The average line helps you see whether a breakout/pullback is supported by stronger-than-normal activity.
+	0.	9 EMA & 20 EMA→ Short-term momentum gauges. Crossovers and the “space” between them often guide entries/exits. Day traders often use the 9 EMA as a dynamic support/resistance intraday.
+	0.	50 SMA & 200 SMA→ Longer-term context. Even if you’re trading intraday, these levels often act like magnets (support/resistance zones that institutions respect).
+	0.	VWAP→ One of the most critical intraday tools. Tells you where the average participant is positioned. Stocks above VWAP = buyers in control; below VWAP = sellers in control.
+	0.	Previous Day’s Close→ Key reference level. Market makers and algorithms often react at this price. Gaps relative to the prior close can drive strategy.
+	0.	Last Sale Price (tape)→ Lets you see micro-momentum in real time. Useful for scalping and confirming whether bids/asks are being hit aggressively.
+
+🎯 Support & Resistance (S/R) Levels
+	•	Why critical?Price reacts more predictably at prior S/R zones than to any single indicator. Institutions, algos, and retail traders all anchor their decisions around them.
+	•	How you’re using them:
+	•	Pre-market → Identify gaps, overnight highs/lows, prior day high/low, and pre-market extremes.
+	•	Intraday → Update as fresh highs/lows form, or when volume spikes at a certain level.
+	•	Practical effect:Gives you “decision zones” where you plan entries, exits, and stop-losses.
+
+🖥️ The Montage Window
+	•	Why it’s the “heart and brain”:It’s the control center where you see everything that matters for executing and managing trades.
+	•	Key info inside Montage:
+	•	Price & Position Info → Current stock price, last sale, unrealized P/L.
+	•	Level 2 (Market Depth) → Bid/Ask columns showing how many shares are sitting at each price level (liquidity).
+	•	Time & Sales (Tape) → Prints of actual executed orders, showing buying/selling pressure.
+	•	Order Entry → Place, modify, or cancel trades instantly.
+
+📊 Level 2 (Market Depth)
+	•	What it shows:
+	•	Bid side (buyers) on the left → green/blue depending on platform.
+	•	Ask side (sellers) on the right → red/orange.
+	•	Why important:
+	•	Lets you “read the book” and see where hidden support/resistance might form.
+	•	Helps spot large buyers/sellers (icebergs, stacked bids/asks).
+	•	Combines with the tape to confirm whether those orders are real or getting pulled.
+
+Market Orders
+	•	Se ejecutan de inmediato a cualquier precio disponible (“at ANY cost”).
+	•	Compran al ask (lado alto) y venden al bid (lado bajo).
+	•	Riesgo de slippage: el spread puede cambiar en milisegundos y terminar con un llenado muy malo.
+	•	Ejemplo: esperabas comprar a $10.97, pero se movió a $11.15 → pérdida de 18¢.
+	•	Los market makers y traders profesionales ganan dinero aprovechando estos malos llenados.
+
+Limit Orders
+	•	Una limit order fija el precio máximo que estás dispuesto a pagar (compra) o el mínimo que aceptas recibir (venta).
+	•	Tú defines número de acciones y precio exacto.
+	•	La orden aparece en el Level 2 (market depth) y espera ser ejecutada.
+	•	No hay garantía de llenado:
+	•	Si el precio se mueve más arriba (en compras) o más abajo (en ventas), tu orden puede quedarse pendiente.
+	•	Solo se ejecutará si el mercado regresa a tu nivel.
+
+Marketable Limit Orders (Mas recomendada)
+	•	Son el tercer tipo de orden más importante para day traders.
+	•	Funcionan como una mezcla:
+	•	Se ejecutan de inmediato (como un market order).
+	•	Pero con un límite de precio máximo o mínimo (como un limit order).
+	•	Tú decides cuántas acciones quieres y el rango de precio aceptado.
+	•	Ejemplo:
+	•	Acción TEVA → ask en $34.77.
+	•	Colocas una orden de compra en ask + 5¢ = $34.82.
+	•	El broker intentará llenarte en $34.77, pero si el precio sube, podrá llenarte hasta un máximo de $34.82 (nunca peor).
+	•	Ventaja → ejecución inmediata sin riesgo de slippage extremo.
+	•	Estrategia común →
+	•	Comprar en “ask + 5¢”.
+	•	Vender en “bid – 5¢”.
+👉 En resumen: las marketable limit orders combinan velocidad de ejecución con protección de precio, por eso muchos traders las prefieren para el day trading.
+
+Stop Loss Orders
+	•	Objetivo:
+	•	Limitar pérdidas cuando una operación va en contra.
+	•	Proteger ganancias cuando la operación ya está a favor.
+	•	Cómo funcionan según la posición:
+	•	🔹 Posición Larga (comprado):
+	•	Se coloca un stop sell por debajo del precio actual.
+	•	Razón: si el precio cae hasta ese nivel, indica que el movimiento esperado al alza falló → mejor salir antes de mayores pérdidas.
+	•	🔹 Posición Corta (vendido):
+	•	Se coloca un stop buy por encima del precio actual.
+	•	Razón: si el precio sube hasta ese nivel, invalida la expectativa de caída → se cierra la posición para evitar más pérdidas.
+	•	En DAS Trader Pro:
+	•	Existen 4 tipos de stop orders (cada uno con diferente mecánica de activación y ejecución).
+
+Hotkey para Stop Market en posición larga
+Comando completo:
+Share=Pos;ROUTE=STOP;StopType=Market;StopPrice=AvgCost-1;TIF=DAY+;SELL=Send;
+Ejemplo práctico:
+	•	Compras 100 acciones de AAPL a un costo promedio (AvgCost) de $150.
+	•	Si el precio baja a $149, se ejecuta una orden de venta de las 100 acciones al mercado, cerrando tu posición y limitando la pérdida.
+
+Stop Limit Order:
+	◦	Un Stop Limit Order se activa al llegar al precio disparador (trigger).
+	◦	Una vez activado, se convierte en una orden límite al precio que tú defines (o mejor).
+	◦	Ventaja: evitas malos llenados si el mercado cae muy rápido (a diferencia de un Stop Market).
+	◦	Desventaja: si el precio cae más rápido que tu límite, la orden puede no ejecutarse y quedar sin llenar (te quedas atrapado en la posición).
+
+Ejemplo práctico (del texto)
+	•	Posición: 100 acciones de FB con costo promedio $160.
+	•	Precio actual: $166.
+	•	Quiero proteger ganancias:
+	•	Si cae a $163 → se activa el stop.
+	•	Pero solo vendo si puedo salir a $162.75 o mejor.
+	•	Resultado:
+	•	Si FB cae a $163 → se manda orden limit sell $162.75.
+	•	Si el precio baja directo a $162.50 → no me llena (riesgo de stop limit).
+
+Share=Pos;ROUTE=STOP;StopType=Limit;StopPrice=AvgCost*.98;StopPrice=Round2;Price=StopPrice-0.25;TIF=DAY+;SELL=Send;
+
+Ejemplo del Hotkey
+	•	Supongamos que compraste 200 acciones de MSFT a $250 (AvgCost).
+	•	StopPrice=AvgCost*.98 → 2% debajo de $250 = $245.
+	•	Price=StopPrice-0.25 → límite en $244.75.
+	•	Resultado:
+	•	Si MSFT cae a $245 → se activa tu stop.
+	•	Se envía orden limit sell a $244.75.
+	•	Se ejecutará solo si alguien compra tus acciones a $244.75 o mejor.
+
+Trailing Stop
+Concepto clave
+	•	Un Trailing Stop es un stop loss dinámico que sube con el precio, pero no baja nunca.
+	•	Se define un trailing amount (margen fijo por debajo del precio de mercado).
+	•	Si el precio sube → el stop se ajusta hacia arriba manteniendo la misma distancia.
+	•	Si el precio baja → el stop se queda fijo.
+	•	Cuando el precio toca el stop → la orden se convierte en Market Order y ejecuta la salida.
+
+Ejemplo práctico (del texto)
+	•	Posición: 100 acciones de FB a $165.
+	•	Colocas un Trailing Stop de $2 → stop inicial en $163.
+	•	El precio sube a $167 → el stop sube a $165.
+	•	El precio baja a $166 → el stop se mantiene en $165.
+	•	Si FB cae a $165 → se ejecuta un market sell cerrando tu posición.
+	•	Si sigue subiendo hasta $175 → tu stop siempre irá $2 por debajo (en $173).
+
+
+Share=Pos;ROUTE=STOP;StopType=Trailing;TrailPrice=0.50;TIF=DAY+;SELL=Send;
+
+Stop Range / OCO / Bracket Order:
+
+Concepto clave
+	•	Un Stop Range Order (también llamado One-Cancels-the-Other — OCO o Bracket Order) permite definir:
+	•	Un stop loss → para limitar la pérdida.
+	•	Un target price → para tomar ganancias.
+	•	Cuando una de las dos órdenes se ejecuta → la otra se cancela automáticamente.
+
+Hotkeys en trading profesional
+	•	Profesionales no usan el mouse para entrar, salir o modificar órdenes → usan Hotkeys para eliminar retrasos.
+	•	La velocidad es clave: muchas estrategias de day trading requieren ejecución en milisegundos.
+	•	Hotkeys típicos:
+	•	Comprar en bloques fijos (ej. 400, 200 y 100 acciones).
+	•	Órdenes de compra: marketable limit order al ask + 0.05 → asegura ejecución rápida.
+	•	Órdenes de venta: marketable limit order al bid - 0.05 → asegura salida inmediata aceptando hasta 5¢ peor que el bid.
+	•	Hotkeys calculan automáticamente:
+	•	El tamaño de la posición (para vender la mitad o todo).
+	•	El precio de bid/ask al momento de ejecutar.
+	•	Factor diferenciador: el uso correcto de hotkeys muchas veces separa a los traders ganadores de los perdedores.
+
+Short Selling Restriction (SSR)
+	•	Definición:
+	•	La SSR se activa cuando una acción cae 10% o más respecto al cierre del día anterior.
+	•	Reguladores y bolsas limitan las ventas en corto para proteger a los accionistas actuales.
+	•	Cómo funciona:
+	•	Bajo SSR, solo puedes vender en corto en el ask (esperando a que un comprador acepte tu orden).
+	•	No puedes vender directamente al bid → prioridad es para los vendedores “reales” que ya poseen acciones.
+	•	Resultado: si quieres hacer short, debes colocarte en la cola del ask y esperar.
+	•	Propósito:
+	•	Dar prioridad a los accionistas que ya tienen el papel y quieren vender, frente a los short sellers que buscan beneficiarse de la caída.
+	•	Impacto en la operativa:
+	•	No puedes usar marketable limit orders para entrar en corto bajo SSR.
+	•	Las ventas en corto bajo SSR son más lentas y menos seguras de llenarse.
+
+Level 2 (Market Depth)
+	•	Proporciona visión intradía en tiempo real del flujo de órdenes.
+	•	Es un indicador adelantado (leading indicator) → muestra intención de compra/venta antes de que ocurra la transacción.
+	•	Otros indicadores como medias móviles o gráficos son rezagados (lagging indicators) → muestran info después de la ejecución.
+	•	Muestra la lista ordenada de mejores bids (compras) y mejores asks (ventas) de distintos participantes (market makers, ECNs, etc.).
+
+📌 Bid–Ask Spread
+	•	Bid: precio que compradores están dispuestos a pagar.
+	•	Ask: precio que vendedores piden para vender.
+	•	Spread = Ask – Bid.
+	•	Características:
+	•	En acciones con alto volumen → spreads pequeños (a veces de 1 centavo).
+	•	En acciones con poco volumen → spreads más amplios.
+	•	En momentos de fuerte movimiento → spreads pueden ampliarse drásticamente (incluso hasta $2 en caídas o rallies violentos).
+
+Stock Selection Before Market Open
+	•	Traders must create a watchlist of stocks before the market opens.
+	•	Chosen stocks should have sufficient movement and trading volume.
+	•	Consistent profits require stocks with a clear directional trend.
+	•	Large intraday moves (e.g., $5) don’t always guarantee good risk/reward opportunities.
+
+Stocks in Play and Risk/Reward Efficiency
+	•	If you can’t make money consistently, you might be trading the wrong stock.
+	•	Retail traders have limited capital, so efficiency in stock selection is crucial.
+	•	A Stock in Play provides strong risk/reward setups (e.g., risking $0.05 to make $0.25 or risking $0.20 to make $1 → a 1:5 ratio).
+	•	These stocks show predictable and frequent moves that can be exploited.
+	•	The best intraday stocks consistently offer multiple high-quality trading opportunities.
+
+Identifying Stocks in Play
+	•	Trading the right Stocks in Play helps retail traders compete with algorithmic programs.
+	•	Stocks in Play may include:
+	•	Stocks with fresh news.
+	•	Stocks moving ±2% or more before market open.
+	•	Stocks showing unusual pre-market activity.
+	•	Stocks forming important intraday levels to trade from.
+
+Importance of High Relative Volume and Alpha Stocks
+	•	If a stock’s trading volume is not higher than normal, it is likely dominated by institutions or high-frequency trading (HFT) algorithms → best to avoid it.
+	•	High relative volume stocks are valuable because they move independently from their sector and the overall market.
+	•	Example: even if the Dow Jones or SPY are red (weak) or green (strong), these stocks can follow their own direction.
+	•	Only a small number of stocks each day trade independently in this way.
+	•	These are often called “Alpha” stocks, also known as Stocks in Play, since market and HFT activity cannot control them.
+
+Fundamental Catalysts for Stocks in Play
+	•	Stocks in Play are often triggered by the release of fundamental news either the day before or during the trading session.
+	•	These news/events act as catalysts that drive significant price action.
+	•	Common catalysts include:
+	•	Earnings reports, warnings, pre-announcements, surprises
+	•	FDA approvals/disapprovals
+	•	Mergers, acquisitions, partnerships, major product releases
+	•	Major contract wins/losses
+	•	Restructurings, layoffs, management changes
+	•	Stock splits, buybacks, or debt offerings
+	•	Traders should check all stocks up or down more than 2% pre-market and create a Gappers watchlist.
+	•	Stocks in Play can often remain active for several days after the initial catalyst.
+
+Float, Market Cap, and Low Float Stocks
+	•	Float = number of shares available for trading.
+	•	Market Cap = total market value of a company’s shares (float × share price).
+	•	Low float stocks (e.g., KOOL with 1.2M shares):
+	•	Limited supply → high demand can cause rapid price moves.
+	•	Tend to be volatile and move very fast.
+	•	Most are under $10, usually early-stage and unprofitable companies.
+	•	They often issue more shares over time, raising capital and possibly growing into large-cap stocks.
+	•	Categories:
+	•	Low float stocks under $10: extremely volatile (10%–1,000% daily moves possible).
+	•	Often highly manipulated and very risky.
+	•	Recommended only for experienced and well-equipped traders.
+	•	The author personally avoids trading these stocks.
+
+Trading Low vs. Medium Float Stocks
+	•	Low Float Stocks (< $10)
+	•	Best strategies: Bull Flag & Fallen Angel.
+	•	Not suitable for most other strategies.
+	•	Short selling is difficult since brokers rarely lend such volatile shares.
+	•	New traders should avoid them: highly volatile, unpredictable, and hard to manage risk.
+	•	Best left to professional traders.
+	•	Medium Float Stocks ($10–$100, 20M–500M shares)
+	•	More stable and suitable for day trading.
+	•	Effective strategies: VWAP and ABCD Pattern.
+	•	Stocks priced over $100 are less popular among retail traders because of their high cost and limited affordability.
+	•	The author also avoids high-priced medium float stocks for these reasons.
+
+Risk in Low Float Stocks ("Runners")
+	•	In low float stocks ($1 per share), every 1 cent move = 1% fluctuation, making risk management extremely difficult.
+	•	In comparison, for a $40 stock, a 1 cent move = only 0.025% fluctuation.
+	•	Because of this volatility, low float stocks are much harder to trade safely.
+	•	Traders often call them “runners” or, when reviewing past performance, “former runners”.
+
+Consistency and Stock Selection for New Traders
+	•	A major reason for inconsistent results in new traders is mixing different stock types.
+	•	Pattern:
+	•	Lose big on low float stocks.
+	•	Win small on medium float stocks.
+	•	Occasionally win big on a low float stock.
+	•	This cycle causes portfolios to swing up and down, often leading to a gradual (or rapid) capital loss.
+	•	Recommendation:
+	•	Avoid low float stocks at the start of a trading career.
+	•	Focus on building skills with medium float stocks, which are safer and more consistent.
+
+Stocks in Play
+Nuestros Stocks in Play se pueden encontrar de dos maneras:
+	•	Pre-market morning watchlist
+	•	Real time intraday scans
+Pre-market Gappers Scanner – Criterios
+El escáner de gappers en el pre-market está configurado con las siguientes condiciones:
+	0.	Gap: Acciones que en el pre-market hayan subido o bajado al menos un 2%.
+	0.	Volumen pre-market: Que hayan negociado al menos 100,000 acciones antes de las 9 a.m.
+	0.	Volumen diario promedio: Superior a 500,000 acciones.
+	0.	Volatilidad (ATR): Tener un ATR (Average True Range) de al menos 50 centavos (es decir, cuánto se mueve en promedio una acción cada día).
+	0.	Catalizador fundamental: Que exista un catalizador fundamental para el movimiento (ejemplo: resultados financieros, noticias, upgrade/downgrade de analistas, aprobación de FDA, etc.).
+
+When there is a fundamental catalyst, there will be unusual pre-market activity and a Stock in Play will have gapped up or down before the market opens with a significant number of shares being traded (such as 100,000 shares).
+
+I look for highly liquid stocks, so that buying and selling 1,000 shares will not be a problem. That is why I am looking at stocks with an average daily volume of over 500,000 shares.
+I also am looking for stocks that usually move in a good range for trading. That is why I look at the ATR. As mentioned above, ATR means how large of a range a stock has on average every day.
+If ATR is $1, then you can expect the price of the stock to move around $1 daily. That is a good number. If you have 1,000 shares, you may profit $1,000 from the trade.
+But if ATR is only 10 cents, then that trading range is not attractive for me.
+
+Pre-Market Selection and Buyout Gaps
+When selecting stocks in the pre-market, two conditions must be present:
+	0.	Clean and uniform price action,
+	0.	Clear trading levels (support/resistance).
+On the other hand, if pre-market price action is almost flat with no swings, even with high volume, it is not good for trading. This often indicates a buyout:
+	•	The stock has gapped to the agreed acquisition price, but since the price is fixed, there will be no volatility during the day.
+	•	Buyout gaps are common in the market, but they are not tradeable.
+Key indicators of a buyout:
+	0.	Flat pre-market price action, very close to the acquisition price (e.g., HAWK at $44.95 vs. acquisition price $45.25).
+	0.	Heavy volume at a fixed price, usually representing institutional activity.
+
+Building a Gappers Watchlist without Paid Scanners
+If you don’t have access to premium scanners like Trade Ideas, you can use free tools (e.g., Finviz.com) to build your Gappers watchlist.
+Steps to identify Stocks in Play:
+	0.	Review price action on both the 5-minute chart and the daily chart, focusing on pre-market activity.
+	0.	Look for good pre-market activity:
+	•	Uniform volume in pre-market.
+	•	Clean price action on the 5-min chart (gradual moves up or down).
+	•	Clear pre-market levels.
+	•	Respect for VWAP and moving averages.
+	0.	Shortlist the best candidates based on these criteria.
+	0.	Check daily charts again to identify key trading levels.
+
+Finding Low Float Movers with a New High of the Day Scanner
+Not all stocks in play are known before the market opens; many appear after the open due to breaking news or sudden volatility. To capture these, traders use real-time scanners—ranging from free tools to advanced proprietary software.
+The author uses Trade Ideas with a custom New High of the Day Scanner, which alerts every time a qualifying stock makes a new intraday high. This is essential for spotting low float stocks suitable for the Bull Flag Strategy.
+Scanner filter criteria:
+	•	Price range: $1 – $10
+	•	Minimum daily volume: 200,000 shares
+	•	Float: ≤ 10,000,000 shares
+	•	5-minute relative volume: 400% – 2,000% of normal
+	•	Current volume: ≥ 2× average daily volume
+	•	15-minute price range: at least $0.30
+
+
+
+Top and Bottom Reversal Scanners
+Key idea:Unlike Gappers or stocks identified in the pre-market, Top and Bottom Reversal strategies require real-time intraday scanners. You cannot prepare these setups beforehand; they depend on intraday price action.
+Figures shown (3.17 & 3.18):The screenshots you provided are examples of the scanner settings used for detecting these reversals. They define filters that narrow down the candidates to only those stocks that are actively setting up for a potential reversal.
+Typical Scanner Settings:
+	•	Price range: $10 – $250
+	•	Volume Today: At least 500,000 or 1,000,000 shares (depending on setup)
+	•	Relative Volume: ≥ 1.25 (stock is trading at least 25% higher than normal activity)
+	•	Average True Range (ATR): ≥ 1 (ensures enough intraday movement)
+	•	Bollinger Band Position (5-min): Used to detect when price is extended away from mean.
+	•	30-minute Change: Small threshold (e.g., ±0.5 to ±0.75), to capture sharp moves.
+	•	2-Minute RSI: Minimums around 25 or Maximums around 75 (to catch overbought/oversold extremes).
+	•	Consecutive Candles: At least 4 (strong trend before potential reversal).
+	•	Average Daily Volume: ≥ 300,000 shares.
+	•	5, 15, and 5-min Volume Spikes: Configured to confirm momentum and liquidity.
+How it works:
+	•	These scanners continuously monitor intraday data.
+	•	They alert when a stock meets all the filters simultaneously (e.g., extended move, high relative volume, multiple strong candles in one direction).
+	•	The trader then watches for confirmation of a reversal pattern (e.g., hammer candle, rejection at support/resistance, RSI bounce).
+
+VWAP Breaking Out Scanner
+Purpose:This scanner is designed to alert when a Stock in Play crosses the VWAP (Volume Weighted Average Price) with strong volume, either upward or downward. These breakouts often signal momentum shifts and can present trading opportunities.
+Configuration (Figure 3.19):
+	•	Price: $5 – $250
+	•	Volume Today: ≥ 500,000 shares
+	•	Float: ≥ 1 million shares (ensures liquidity, avoids ultra-low floats)
+	•	Relative Volume: ≥ 1.5 (stock is trading at least 50% more than its average volume)
+	•	Change from the Close: ±2% (alerts only if stock is moving meaningfully from yesterday’s close)
+	•	1-Minute Volume Spike: ≥ 1,000%
+	•	5-Minute Volume Spike: ≥ 200%
+	•	Count: Alerts generated when all above conditions are met
+How it works:
+	•	The scanner runs intraday in real time.
+	•	When a stock crosses VWAP with unusual volume, it immediately alerts.
+	•	This helps the trader spot momentum continuation or rejection trades around VWAP.
+
+Circuit Breaker Halts and Scanner
+What are circuit breaker halts?
+	•	Triggered when extreme volatility occurs, often due to breaking news.
+	•	Defined by SEC’s limit-up/limit-down rules: if a stock moves too far outside acceptable bands, trading is paused.
+	•	Example: ~15% move within 5 minutes can cause a halt.
+Duration:
+	•	Usually 5 minutes per halt.
+	•	If volatility continues, trading may halt multiple times until price stabilizes.
+	•	Sometimes halts last longer if the exchange waits for an official press release from the company.
+Day trading relevance:
+	•	Halts are tied to high volatility, which traders look for.
+	•	Wild moves usually calm down after 2–3 halts.
+	•	A Circuit Breaker Scanner helps traders by alerting immediately when a halt occurs, so they can prepare for the reopening move.
+
+RSI Extreme Scanner
+Purpose:The RSI (Relative Strength Index) is a momentum indicator that measures the strength of recent price changes to identify overbought or oversold conditions.
+	•	RSI ≥ 70 → traditionally overbought, possible pullback.
+	•	RSI ≤ 30 → traditionally oversold, possible bounce.
+For day trading, using shorter timeframes (e.g., 5-minute RSI) allows spotting quick reversal opportunities.
+RSI Extreme Scanner settings (Figure 3.28):
+	•	Price: $10 – $100
+	•	5-Minute RSI: < 10 (extremely oversold) OR > 90 (extremely overbought)
+	•	Distance from VWAP: ±2%
+	•	Volume Today: ≥ 1,000,000 shares
+	•	Average Daily Volume (5D): ≥ 100,000 shares/day
+How it works:
+	•	Alerts only when a stock reaches extreme RSI levels (rare conditions beyond normal thresholds).
+	•	Combined with high volume and VWAP proximity, this makes it a high-probability reversal setup.
+	•	Useful for catching sharp intraday bounces or pullbacks.
+
+Trading Discipline: Gappers vs. Real-Time Scanners
+Preferred approach:
+	•	Focus on Stocks in Play from the Gappers watchlist (prepared before the market opens).
+	•	Allows time to review daily charts, levels, and pre-market price action.
+	•	At the open, monitor 3–5 shortlisted stocks across multiple screens and wait for setups.
+Real-time scanner stocks:
+	•	Provide new opportunities but are less familiar.
+	•	Require more time to analyze, which makes them harder to trade quickly.
+Risks of overtrading:
+	•	High costs: Many brokers charge ~$4.95 per trade → 40 trades = ~$200/day.
+	•	Exposure to risk: Being in unnecessary trades increases the chance of losses.
+	•	Overtrading makes the broker richer and the trader “broker.”
+Best practice:
+	•	Focus on quality setups, not trade quantity.
+	•	Profitable traders usually make only 2–3 solid trades per day, then walk away.
+
+Methods of Finding Support and Resistance
+	•	Traders use many methods to identify support and resistance.
+Diagonal Trend Lines
+	•	Very common among traders.
+	•	Highly subjective: you can draw them differently depending on whether you want to go long or short.
+	•	Example: the same chart can produce two opposite diagonal trend lines.
+	•	The market does not “know” diagonal levels.
+Horizontal Support and Resistance
+	•	The only levels the author relies on.
+	•	The market remembers price levels, not diagonal lines.
+	•	Horizontal levels based on past price points are the most reliable.
+
+What Are Support and Resistance Levels?
+Support
+	•	A price level where buyers step in or short sellers cover, stopping prices from falling further.
+	•	Traders usually wait to buy at support.
+	•	Short sellers also wait to cover at support, since they expect lower prices first.
+Resistance
+	•	A price level where sellers enter or previous buyers sell, stopping prices from rising higher.
+	•	Traders sell here to secure profit before a possible reversal.
+	•	Short sellers also add positions at resistance, expecting a drop.
+Key Insight
+	•	Old support can become resistance, and old resistance can become support.
+	•	The role depends on the direction from which price approaches the level.
+
+Finding Support and Resistance Levels
+Two Categories of Levels
+	0.	Predetermined Levels – automatically plotted by trading platforms, requiring no judgment.
+	0.	Discretionary Levels – identified manually by traders, requiring judgment and analysis.
+Important Predetermined Levels
+	•	Previous day close
+	•	Yesterday’s low and high
+	•	Two days ago low and high
+	•	All-time high and all-time low
+	•	52-week high and 52-week low
+Examples of Discretionary Levels
+	•	Extreme price levels on a daily chart
+	•	Moving averages on daily and 5-minute charts
+	•	Important pre-market levels
+
+Key Support and Resistance Levels
+Previous Day Close (PCL)
+	•	The most important level for day trading.
+	•	It’s the price where institutions and market makers closed the day, often with large block trades.
+	•	Platforms like DAS can plot it automatically.
+Yesterday’s & Two Days Ago’s High/Low
+	•	Always check these four levels: yesterday’s high/low and two days ago’s high/low.
+	•	Together with the PCL, you get five strong levels that guide intraday moves.
+Pre-Market Levels
+	•	The high and low of pre-market trading often act as key support and resistance during regular hours.
+	•	First step: just learn to find and observe these levels before trading.
+Moving Averages
+	•	50 SMA and 200 SMA are the strongest moving averages on daily charts.
+	•	200 SMA on a daily chart is one of the most powerful levels.
+	•	Moving averages on 5-min or 1-min charts also matter, but are weaker.
+	•	Rule: the higher the timeframe, the stronger the level.
+Reversals and Extremes on Daily Charts
+	•	For day trading, focus on extreme wicks (the highs/lows of candles).
+	•	For swing trading, focus more on congested areas where prices stayed longer.
+	•	The more times price touches a level, the more important it becomes.
+Tips for Drawing Levels
+	•	Don’t force levels if they’re not clear—use VWAP, moving averages, or other tools.
+	•	Sometimes you need to look back weeks or years for meaningful levels.
+	•	Remember: support and resistance are zones, not exact prices.
+	•	Example: if support is $145.90, expect action within 5–10 cents around that area.
+	•	Example: ZGNX failed to break a level around 11 a.m., then sold off and closed near VWAP.
+
+To summarize what I have discussed so far
+	0.	Previous day close is one of the most important levels on your charts.
+	0.	Previous day’s high and low (usually Y and YY: yesterday and the day before) are important and some platforms will automatically draw these lines for you. In DAS, the PriceMarker Study will do that for you.
+	0.	Clear pre-market levels (low and high) can often be important intraday levels.
+	0.	Moving averages on both daily charts and intraday charts are also often important levels.
+	•	The higher the moving average is, the stronger the level (for example, 200 SMA is a much more powerful level than 9 EMA).
+	•	The higher the time frame the moving average is in, the stronger the level it is. For example, a 20 EMA on a 5-minute chart is much stronger than a 20 EMA on a 1-minute chart.
+	0.	Extreme price levels on daily charts that the price has bounced back from are important levels.
+	•	The kangaroo tails (large wicks to the upside or downside) are extremely important levels.
+	0.	Always look at the most recent data to find levels, and try to find levels near the pre-market price.
+	•	There is no point in finding levels that would be unlikely to be in the price action range for that day.
+	0.	All-time highs, all-time lows, 52-week highs, and 52-week lows are also important levels that should be marked in the pre-market screening.
+
+Bullish and Bearish Candlesticks
+Day Trading Context
+	•	Day trading is the study of mass psychology during the day.
+	•	Candlesticks reflect the ongoing battle between buyers (bulls) and sellers (bears), showing who has the upper hand.
+Bullish Candles
+	•	Large-bodied candles to the upside = very bullish.
+	•	They show that buyers are in control and likely to push the price higher.
+	•	Candles don’t just show price—they reveal who has power in the market.
+Signs of Reversal
+	•	If the price gets very extended and candlesticks get smaller and smaller, momentum may be weakening.
+	•	This is a potential sign of reversal (time to take profit or adjust position).
+When to Stay Out
+	•	If bulls and bears are equally strong, wise traders stay out.
+	•	Wait for confirmation of which side is stronger before entering a trade.
+
+Indecision Candlesticks
+Dojis (Simple, Shooting Star, Hammer)
+	•	Defined by having no body or a very small body.
+	•	Called indecision candles because buyers and sellers have almost equal strength.
+	•	Usually form with lower volume, as traders wait to see who wins.
+Types of Dojis
+	•	Simple Doji – wicks on top and bottom are about the same size → pure indecision.
+	•	Shooting Star (top wick longer) – buyers tried to push higher but failed → suggests buyers are losing power, sellers may take control.
+	•	Hammer (bottom wick longer) – sellers tried to push lower but failed → suggests sellers are losing power, bulls may take control.
+Dojis in Trends
+	•	In a bullish trend: a Doji can mean bulls are exhausted, and bears are fighting back.
+	•	In a bearish trend: a Doji can mean bears are weakening, and bulls may step in.
+	•	Important: Dojis = indecision, not a guaranteed reversal.
+How to Use Dojis Effectively
+	•	Don’t trade every Doji → this leads to losses.
+	•	Always wait for confirmation candles.
+	•	Best used together with support/resistance analysis and other indicators.
+
+Candlestick Patterns
+General Note
+	•	Many candlestick patterns have fancy names but can be confusing or not very useful.
+	•	Focus on simple, meaningful patterns that reveal market psychology.
+Higher Highs and Higher Lows (HH & HL)
+	•	Pattern of two or more candlesticks.
+	•	The second candle’s high is higher than the previous high.
+	•	The second candle’s low is also higher than the previous low.
+	•	Shows that buyers are aggressive, making new highs, and sellers can’t push price lower.
+	•	Very bullish trend signal.
+Lower Lows and Lower Highs (LL & LH)
+	•	The opposite pattern.
+	•	Candlesticks form lower lows and lower highs compared to the previous ones.
+	•	Shows sellers are stronger and buyers can’t maintain higher prices.
+	•	Bearish downtrend signal.
+Key Insight
+	•	The color of the candlestick (red/white or green/red) is less important.
+	•	What matters most is the relative positioning of highs and lows compared to previous candles.
+
+
+Trading with Higher Highs / Higher Lows and Lower Highs / Lower Lows
+Avoiding Wrong Entries
+	•	Never go long when the stock is making lower lows and lower highs → bearish structure.
+	•	Never stay short when the stock is making higher highs and higher lows → bullish structure.
+Identifying the Uptrend
+	•	An uptrend can be identified early, as soon as candlestick B closes, because A + B already form a Higher Highs and Higher Lows pattern.
+	•	Professional traders enter after candlestick B closes → better entry and lower risk.
+	•	Amateur traders often enter late (candlestick D or E), when the move is extended and risk is higher.
+Misunderstanding the End of a Trend
+	•	Many new traders think the uptrend ends at candlestick F.
+	•	Reality: the uptrend continues until candlestick I, because the HH & HL pattern is still intact.
+	•	A red candle alone does not end the trend if highs and lows keep forming higher.
+Professional vs Amateur Behavior
+	•	Amateurs may exit too early (e.g., at candlestick G after a red Doji).
+	•	Professionals hold part of their position until the HH & HL pattern is broken (e.g., when a new 5-minute low forms).
+
+
+Engulfing Patterns
+Definition
+	•	Engulfing Patterns involve two candlesticks, not one.
+	•	Found often on 5-minute charts.
+	•	Can be Bullish or Bearish.
+Bullish Engulfing Pattern
+	•	The new candlestick opens lower than the previous close.
+	•	It then closes higher than the previous open.
+	•	Shows a strong shift of power:
+	•	At first, sellers push the price lower.
+	•	Then buyers step in aggressively, reversing direction and pushing prices above the sellers’ starting point.
+	•	Signals a major defeat for sellers/shorts.
+Why It’s Bullish
+	•	Buyers not only recover lost ground but overpower the sellers completely.
+	•	Indicates strong buying momentum and a potential reversal.
+Usage & Confirmation
+	•	Considered a powerful reversal signal.
+	•	Must always be confirmed with:
+	•	Subsequent price action
+	•	Other indicators (e.g., support/resistance, moving averages).
+	•	If price later falls below the engulfing candle, the pattern may have failed.
+
+Trade Management: The Real Difference Between Novice and Professional Traders
+Two traders take the same trade using the same strategy.
+	•	The first trader, fearing that the market will take away their profit, exits quickly and locks in a small gain.
+	•	The second trader takes advantage of the pullback, adds to the position, and ends up securing a much larger profit.
+👉 Same initial idea, but very different outcomes—all because of mindset and trade management style.
+Novice Trader Mentality
+	•	Believes trading is a passive process.
+	•	Once in a position, they wait for either the profit target or the stop loss to be hit.
+	•	They assume that nothing should be done after entry.
+Professional Trader Mentality
+	•	Understands that entering a trade is only the first step, based on limited information.
+	•	As the market moves, new price action provides feedback on whether the initial idea is being confirmed or invalidated.
+	•	Actively manages the trade: adjusts, scales in, or even exits early depending on how the market reacts.
+Core Insight
+The critical difference is not the entry strategy, but how the position is managed once it is open. Professionals treat trade management as a dynamic process, while novices treat it as something fixed.
+
+Trade Management: Scaling and Adapting to Market Reactions
+If you anticipate a break of a strong support level to the downside and want to profit with a short position, a smart approach is to start small:
+	•	Begin by shorting 100 shares.
+	•	When the stock makes a new low, scalpers and algorithms typically enter, aiming for quick profits of 5–10 cents.
+	•	After they exit, the price often pulls back to retest the broken support, which now may act as resistance.
+How to Manage This Trade
+	•	If the retest holds below support (now resistance), you can add to your short position as the stock continues downward.
+	•	If the retest fails (price goes back above support), you will get stopped out with only a small loss, since your initial entry was small (100 shares).
+Broader Lesson
+	•	Trade management is the most critical element in becoming a consistently profitable trader.
+	•	It is also one of the hardest skills to teach, especially in books.
+	•	Interestingly, in practice, even when two experienced traders take opposite positions (one long, one short) on the same stock, both can end the day profitable—because of how they manage their trades.
+
+Trade Management: Taking Partial Profits and Protecting Gains
+One of the most important trading rules is to take partial profits when a trade goes in your favor.
+	•	You should typically sell 1/2 or 1/4 of your position to lock in profit.
+	•	The remaining shares are left to continue moving in your direction, giving you the chance to maximize gains while reducing risk.
+	•	Example: The author takes 1/4 of the position at the next profit target, using a Hotkey that automatically exits 1/4 of the remaining shares.
+Two Core Fundamentals of Successful Trade Management
+	0.	Never let a winning trade turn into a loss.
+	•	Always secure part of your gains and protect yourself against reversals.
+	0.	Move your stop loss in the direction of your trade.
+	•	This practice, also known as a trailing stop, locks in profit while keeping you in the trade if momentum continues.
+
+Trade Management: Protecting Profits and Avoiding Costly Mistakes
+Locking in Early Profits
+	•	Example: If your profit target is $1,000, decide that $250 must be protected.
+	•	Once your open profit reaches $250:
+	•	Close a portion of your position (e.g., 1/4).
+	•	Move your stop loss to break-even.
+	•	After this adjustment, you are essentially trading with “house money”: you have nothing to lose.
+Scaling and Protecting
+	•	After booking the first partial profit, decide what percentage of future gains you’ll protect.
+	•	Example: Take another 1/4 profit at the next level.
+	•	These percentages are flexible, depending on confidence and risk tolerance.
+Common Mistake: Not Moving the Stop Loss
+	•	Scenario: You go long, price rises, then pulls back into negative territory toward your stop.
+	•	What should have happened?
+	•	Stop loss should have already been moved up to break-even.
+The Dangerous Temptation
+	•	Traders often face the urge to lower the stop loss to “give the trade more room.”
+	•	They justify it with thoughts like: “Just this once, I’ll make an exception.”
+	•	This is a critical error:
+	•	It violates discipline.
+	•	It risks turning a small, manageable loss into a much larger one.
+The Right Action
+	•	When a trade starts acting badly, the correct choice is:
+	•	Accept the small loss.
+	•	Re-evaluate the chart.
+	•	Be prepared to enter again if another opportunity arises.
+
+Professional Trade Management: Flexibility and Reading Market Signals
+Professional Trader Behavior
+	•	Accept small losses quickly and stay alert for the next opportunity.
+	•	Often take several small attempts (“quick stabs”) before catching the big profitable move.
+Example: ADBE Trade (June 21, 2017)
+	•	Entry: Short at 9:40 a.m., in two stages, average price: $145.25.
+	•	Profit Target: $144.25 (aligned with 50 SMA on the 5-minute chart).
+	•	Stop Loss: Above VWAP at $145.70.
+Trade Outcome:
+	0.	Price sold off quickly → Covered half the position at $144.25 (first target).
+	0.	Moved stop loss to break-even ($145.25) to protect against losses.
+	0.	Price failed to make a new low → Started forming higher highs and higher lows (a bullish pattern).
+	0.	Exited at break-even, booking a small profit.
+What happened afterward:
+	•	ADBE squeezed above VWAP, creating a VWAP False Breakout, and eventually reached the 50 SMA around 12 p.m.
+	•	At first glance, it may seem that holding the original trade plan would have made more money.
+	•	However, in most cases, such a reversal would result in a severe loss if the stop wasn’t adjusted.
+	•	The opportunity to re-enter was available later (around 10:30 a.m.) when the VWAP False Breakout occurred.
+Core Lessons
+	•	When entering a trade, you don’t know future price action—only the information available at the time.
+	•	Therefore, you must be ready to adapt your plan, moving stops or re-entering if a new setup appears.
+	•	Recognizing candlestick patterns (bullish or bearish) improves trade direction choices and reduces losing trades.
+
+
+
+Case Study: A Losing Trade on TEVA (October 5, 2017)
+Trade Setup
+	•	Stock: TEVA
+	•	Date: October 5, 2017
+	•	Opening Action:
+	•	TEVA sold off heavily at the Open, reaching a low of $15.59.
+	•	This was a textbook Opening Range Breakout short opportunity (but was missed).
+	•	Entry:
+	•	At 10:05 a.m., shorted at $15.75, just below VWAP.
+	•	Profit Target: Low of the day ($15.59) and lower.
+	•	Added more: Shorted again at $15.80 → New average price = $15.77.
+	•	Exit:
+	•	At 10:15 a.m., stock squeezed above VWAP.
+	•	Stopped out at $15.85, taking a loss of ~8 cents per share.
+
+Mistake Analysis
+	•	At first glance, the bounce back to VWAP seemed like a valid short entry.
+	•	However, the price action did not confirm a short setup:
+	0.	After the strong bearish candlestick at $15.59, a bullish candlestick appeared immediately.
+	0.	This was not a full Engulfing Pattern, but it was still a clear bullish signal.
+	0.	If sellers had remained in control, the expectation would have been a consolidation with smaller candles (or Dojis) followed by another sell-off.
+	0.	Instead, a Higher Highs and Higher Lows Pattern formed back to VWAP (a bullish trend reversal).
+	•	The trader failed to recognize the shift from bearish to bullish.
+	•	By ignoring the bullish signal, the short entry was taken against the new trend.
+	•	As shown on the chart, TEVA never traded below VWAP again for the rest of the morning.
+
+Lessons Learned
+	•	Always read candlestick signals carefully; a sudden bullish candle after heavy selling often signals seller exhaustion.
+	•	A Higher Highs and Higher Lows Pattern forming near VWAP is a bullish sign—not a place to add to shorts.
+	•	Avoid shorting in the face of a pattern change; either stay out or wait for stronger confirmation before entering.
+
+Case Study: JWN Losing Trade (September 13, 2017)
+Trade Setup
+	•	Stock: Nordstrom, Inc. (JWN)
+	•	Date: September 13, 2017
+	•	Opening Action: Heavy sell-off in the first 5 minutes.
+	•	Entry: Short at $47.45 for an Opening Range Breakout.
+	•	Stop Loss: Above VWAP.
+	•	Added More: Short at $47.30, targeting below the low of the day ($47.20).
+Trade Outcome
+	•	Between 9:35–9:40 a.m., the stock failed to make a new low.
+	•	Instead, it bounced back with a Higher Highs and Higher Lows Pattern toward VWAP.
+	•	Held the position until being stopped out at $47.67.
+
+Mistake Analysis
+	•	The initial trade idea was logical (heavy sell-off → short setup).
+	•	However, new information invalidated the plan:
+	•	No new low was made on the second 5-minute candlestick.
+	•	Price action shifted into a bullish Higher Highs and Higher Lows Pattern.
+	•	The trader ignored these signals and stuck with the original stop loss above VWAP.
+	•	Instead of adapting, the trade was held too long, resulting in a larger loss.
+
+Lessons Learned
+	•	Trade plans are not fixed. They must be adjusted as new price action reveals new information.
+	•	When a stock fails to continue in the expected direction (no new low in this case), it signals a potential reversal.
+	•	Sticking blindly to an original stop can turn a manageable loss into an unnecessary one.
+	•	The correct move: exit earlier at break-even or with a smaller loss once the bullish reversal pattern became clear.
+
+👉 Key Takeaway: Successful trade management requires flexibility. Respect candlestick signals, recognize when your thesis is invalidated, and exit before the market takes back more than necessary.
+
+
+Case Study: JD.com Trade (November 13, 2017)
+Trade Setup
+	•	Stock: JD.com, Inc. (JD)
+	•	Date: November 13, 2017
+	•	Opening Action:
+	•	Stock moved up initially on heavy volume.
+	•	Quickly reversed with a large bearish candlestick near resistance at $42.74.
+	•	Pattern resembled a Bearish Engulfing, signaling strong seller control.
+	•	Entry: Short at $41.80, with a stop loss at $42 (above VWAP).
+	•	Profit Targets:
+	0.	Daily level at $41.12.
+	0.	200 SMA on the 5-minute chart.
+
+Trade Outcome
+	•	Price sold off as expected:
+	•	Covered 1/4 at $41.12.
+	•	Covered another 1/4 at $40.80.
+	•	Stop Loss Adjustment: Moved stop to break-even after locking in profits.
+	•	At 9:45 a.m., stock failed to make a new low → instead bounced with a bullish candlestick back toward VWAP.
+	•	Decided to cover the rest at $41.13, before stop at break-even was triggered.
+
+Reasoning Behind Exit
+	•	Noticed no new low of the day was forming.
+	•	Presence of a bullish candlestick next to a bearish one indicated buyers regaining strength.
+	•	Although not a full Bullish Engulfing Pattern, the signal weakened confidence in further downside.
+	•	By exiting early, protected remaining profits instead of risking a stop-out at break-even ($41.80).
+	•	Indeed, after 10 a.m., JD trended back upward, confirming the decision.
+
+Key Lessons
+	0.	Use price action to adapt. New information (no new low + bullish candle) invalidated the original bearish expectation.
+	0.	Protect profits dynamically. Moving the stop to break-even was smart, but exiting earlier saved even more.
+	0.	Pre-market prices are not considered part of the “daily range.”
+	•	In this JD example, pre-market traded around $40.60 before 8:30 a.m.
+	•	“New low of the day” refers only to regular market hours after the open.
+
+👉 Key Takeaway: Consistently profitable traders don’t just rely on fixed targets—they adjust exits based on live price action. Protecting profits early can sometimes be wiser than waiting for a stop to hit
+
+
+Case Study: JD Trade (August 14, 2017)
+Trade Setup
+	•	Stock: JD.com (JD)
+	•	Date: August 14, 2017
+	•	Opening Action: Weak open with a heavy sell-off toward the daily level of $43.23.
+	•	Entry: Short at $44.10, just below VWAP, after first 5-minute candle closed under VWAP.
+	•	Stop Loss: $44.20.
+	•	Profit Targets: $43.23 and a lower level at $42.50 (not shown).
+
+Trade Outcome
+	0.	Stock sold off as expected toward $43.23.
+	•	Covered 1/4 position at this level.
+	•	Moved stop loss to break-even ($44.10).
+	0.	Price failed to make a new low after the first cover.
+	•	Covered another 1/4 position to protect gains.
+	0.	At 9:50 a.m., stock made a new low but then started a Lower Lows and Lower Highs Pattern.
+	•	Continued to watch for another intraday low.
+	0.	At 10:05 a.m., price again failed to make a new 5-minute low.
+	•	Decided to cover the remaining position at $43.50, expecting a bounce to VWAP.
+	0.	After final exit, the stock indeed bounced back to VWAP and moved higher during the day.
+
+Reflection & Lessons
+	•	Could have held until being stopped out at break-even ($44.10).
+	•	Instead, by analyzing the failure to make new lows, chose to book profits early at $43.50.
+	•	This decision preserved additional profit that otherwise would have been lost if the position was held longer.
+
+Key Lessons
+	0.	Adapt to price action. Failure to make new lows was a warning sign that sellers were losing control.
+	0.	Booking profit early can be smarter than waiting for a stop, especially when new information contradicts the original thesis.
+	0.	Flexibility beats rigidity. Sticking blindly to the plan (holding to break-even) would have reduced profits.
+
+👉 Key Takeaway: Trade management requires constant evaluation. Protecting profit by acting on real-time price signals often results in better outcomes than following the original plan mechanically.
+
+
+Case Study: FOLD Trade (September 13, 2017)
+Trade Setup
+	•	Stock: FOLD
+	•	Date: September 13, 2017
+	•	Opening Action:
+	•	Stock opened strong, moving higher.
+	•	Then sold off heavily back toward VWAP between 9:40–9:45 a.m.
+	•	Initially prepared to go short below VWAP.
+	•	Key Observation:
+	•	At 9:45–9:50 a.m., a very strong bullish candlestick appeared next to a bearish bar.
+	•	This resembled a Bullish Engulfing Pattern (not perfect, but close).
+	•	Strong buying near VWAP suggested institutional traders stepping in.
+	•	A resistance level at $14.04 (yesterday’s high) was nearby, marked automatically by DAS Trader Pro.
+
+Trade Execution
+	•	Entry: Went long at $13.80.
+	•	Exit: Sold the position toward the $14.06 resistance level.
+
+Reasoning Behind Entry
+	•	Signal: The bullish candlestick after a bearish one → sign of seller exhaustion.
+	•	Logic: Instead of shorting, decided to join the bulls because institutional traders seemed to be buying near VWAP.
+	•	Principle: As day traders, it’s best to trade alongside institutional momentum, not against it.
+
+Lessons Learned
+	0.	Candlestick context matters. A bullish bar after a bearish one can indicate a shift in control from sellers to buyers.
+	0.	VWAP is a key level. Strong institutional trading often occurs there; fighting it is risky.
+	0.	Align with big players. Following institutional buying pressure increases the probability of success.
+	0.	Adaptability is crucial. Instead of sticking to the original short idea, the trader switched bias and profited.
+
+👉 Key Takeaway: Flexibility and reading candlestick signals at critical levels (like VWAP + resistance) can turn a potential losing short idea into a profitable long trade
+
+
+
+Position Sizing – Summary
+Importance of Position Sizing
+	•	Position sizing is critical for consistency. Poor sizing leads to erratic results, regardless of how good the trade setup may be.
+	•	Golden Rule: Never risk more than 2% of your account on a single trade. The priority is to preserve capital and live to trade another day.
+
+Misconceptions of New Traders
+	•	Many beginners believe they must trade with huge size to make meaningful profits.
+	•	Reality: There is plenty of money to be made with modest size, especially in actively traded medium-float Stocks in Play.
+	•	Trading with too large a size not only magnifies profits but also magnifies losses, often wiping out accounts quickly.
+
+Experienced Traders’ Perspective
+	•	Professionals sometimes take large positions, but only when the risk/reward ratio strongly favors it.
+	•	The difference is that they can mentally and financially handle the risk.
+	•	A bad loss at the Open does not paralyze them—they can reset, reassess, and continue trading.
+
+Stock Characteristics and Sizing
+	•	Medium-float stocks: Move more moderately → easier to manage risk → safer for larger positions.
+	•	Low-float stocks ($1–$10): Can swing 10–20% within seconds → extremely risky → avoid taking large positions even if buying power allows it.
+
+Practical Guidelines for Beginners
+	•	Start with 100 shares:
+	•	Low risk, small reward, but ideal for learning discipline.
+	•	As you grow confidence in handling emotions and risk, increase share size gradually.
+	•	Focus on developing skills, building the account, and scaling size only when ready.
+
+Advanced Tactics – Scaling
+	•	Many experienced traders do not enter their full position at once.
+	•	Instead, they scale in:
+	•	Start small.
+	•	Add to the position only if the price action validates the trade idea.
+
+👉 Key Takeaway: Position sizing is the backbone of risk management. Start small, respect the 2% rule, adjust size depending on stock characteristics, and consider scaling in only when the market confirms your thesis.
+
+Scaling vs. Averaging Down – Summary
+Scaling Up (Adding to Winners)
+	•	The author rarely scales down into losing trades.
+	•	If scaling is used, it is for adding to winning positions, not losers.
+	•	Scaling is a double-edged sword: if used incorrectly, it becomes averaging down, which is dangerous.
+Averaging Down (Adding to Losers)
+	•	Beginners often confuse scaling with averaging down.
+	•	Averaging down = adding more to a losing position to lower the average entry price.
+	•	This is one of the most common and fatal mistakes for new traders.
+	•	Works about 85% of the time → small wins.
+	•	But the other 15% of the time → massive losses that can wipe out the account entirely.
+	•	One bad trade is enough to end a trading career.
+Key Lesson
+	•	Day traders should not average down.
+	•	Even if it seems profitable most of the time, the risk of catastrophic loss is far too high.
+	•	Focus instead on scaling into winners, never losers.
+
+👉 Key Takeaway: Averaging down is account suicide for day traders. Scaling should only be applied to trades already working in your favor.
+
+Understanding Level 2 Signals – Summary
+Role of the Montage / Level 2
+	•	The Montage window (Level 2) is one of the most important tools in trading platforms.
+	•	Most of the time, it doesn’t give clear answers, but occasionally it provides powerful signals to complement charts and indicators.
+
+Key Level 2 Signals
+	0.	Large Bid Order (big buyer on the bid):
+	•	Surprisingly, this is often a bearish sign.
+	•	Why? Because the buyer is waiting, not aggressive → price often drops.
+	0.	Large Ask Order (big seller on the ask):
+	•	Often a bullish sign.
+	•	Why? Because the seller is sitting and waiting → price can move higher.
+
+Psychology Behind It
+	•	Aggressive buyers:
+	•	Buy at the ask or above the ask.
+	•	Signal urgency, possibly covering shorts.
+	•	Willing to pay more → strong buying pressure.
+	•	Passive buyers:
+	•	Sit on the bid, hoping price comes down to them.
+	•	Not aggressive → “low-balling.”
+	•	Often forces price lower.
+	•	Aggressive sellers:
+	•	Hit the bid repeatedly → strong selling pressure.
+
+Time & Sales (Tape)
+	•	Shows where each transaction occurs:
+	•	At or above the ask: aggressive buying.
+	•	Between bid/ask: neutral.
+	•	Below bid: aggressive selling.
+	•	This reveals trader attitudes and urgency, which is critical for reading momentum.
+
+Final Note
+	•	A clear signal requires a very obvious, powerful bid or ask.
+	•	Random or scattered bids/asks do not provide reliable signals.
+
+👉 Key Takeaway: Large orders on Level 2 can be contrarian signals—a big bid can mean weakness, and a big ask can mean strength. The key is reading whether buyers/sellers are aggressive (hitting the market) or passive (waiting).
+
+Fake vs. Real Level 2 Signals
+NITF Orders (No Intention To Fill)
+	•	Market makers sometimes mislead traders by placing fake orders.
+	•	These are called NITF orders: they give the illusion of strong buyers or sellers but are never meant to be executed.
+	•	How to recognize them:
+	•	Real orders: placed close to current bid/ask → more likely to get filled.
+	•	Fake orders (NITF): placed far away from current price (e.g., stock at $24.56 but ask at $24.98).
+	•	They are quickly cancelled, especially once traders react.
+
+Should You Trade Every “Signal”?
+	•	No.
+	•	With the rise of algorithms and high-frequency trading, signals can appear and disappear in seconds.
+	•	Level 2 signals are useful but cannot be relied upon alone.
+
+Proper Use of Level 2
+	•	Always combine Level 2 with other indicators:
+	•	VWAP position (is price above or below?).
+	•	Daily chart (important support/resistance levels).
+	•	Volume (confirmation of strength).
+	•	Overall price action (candlestick patterns, trend).
+
+Example: MOMO (March 7, 2018)
+	•	MOMO was selling off below VWAP, looked like a short opportunity.
+	•	However, large sellers on the ask were not aggressive → they were waiting for higher prices, showing confidence.
+	•	Result: Instead of dropping, the stock squeezed up from $36.92 to $37.42 in just 40 seconds.
+	•	The Level 2 also showed a clear NITF order at $38.95 (fake ask).
+
+Lessons
+	0.	Big orders are not always what they seem—distinguish between genuine and fake interest.
+	0.	Never trade based on a single Level 2 signal.
+	0.	Context is king: VWAP, daily chart, volume, and candlesticks matter more than one flashing bid or ask.
+
+👉 Key Takeaway: Level 2 signals are powerful but deceptive if used in isolation. Always verify with other tools and remain alert to fake orders designed to mislead traders.
+
+***********************************************************************
+Fallen Angel Strategy – Summary
+	0.	Identify the Angel
+	•	A low-float Stock in Play that gaps up with heavy pre-market volume.
+	0.	At Market Open
+	•	The stock makes a new high of the day, then quickly sells off.
+	•	Do not enter yet. Wait until it consolidates around a key trading level (e.g., pre-market low, daily moving averages, or 5-minute moving averages).
+	•	This is where the Angel “falls.”
+	0.	Entry Signal
+	•	Enter long as the stock comes back up with heavy volume.
+	•	Look for a new 1-minute or 5-minute high after consolidation.
+	•	Only valid if the breakout has massive volume, significantly higher than previous candlesticks.
+	0.	Stop Loss
+	•	Place below the consolidation period.
+	0.	Profit Targets
+	•	(1) VWAP
+	•	(2) Current high of the day
+	•	(3) Pre-market high
+	•	(4) Other nearby levels (e.g., Y-High, Y-Low)
+	0.	Trade Avoidance Rules
+	•	If there is no obvious support level or consolidation, do not trade.
+	•	If a breakout occurs without strong volume, do not trade.
+
+Fallen Angel Strategy – Summary
+	•	High difficulty: This strategy is hard to trade because risk is difficult to manage. Drops are usually sharp, and if you don’t exit a losing trade quickly, you may get stuck with heavy losses.
+	•	Typical behavior:
+	•	These stocks usually open with large gaps.
+	•	They often lose most of that gap during the day.
+	•	If volume fades throughout the session, it’s a bad sign for holding.
+	•	Recommendations:
+	•	Practice first in a simulator before trading live.
+	•	When going live, use small size to limit risk.
+	•	Must have more 1 million share traded in the premarket
+	•	Trading volumen is the key
+	•	Entry signal: Look for a new 1-minute or 5-minute high after consolidation with massive volume, significantly higher than previous candles.
+	•	Avoid the first uptick at the Open—it’s usually a trap followed by a big sell-off.
+	•	The best opportunity is when the stock sells off, finds support, and then comes back above VWAP and the previous high of day
+
+
+
+
+
+
+
+=====
+ABCD Pattern:
+	0.	Identify the Stock
+	•	Find a Stock in Play from my Gappers watchlist, one of my scanners, or a tip from the chatroom.
+	•	When the stock surges up from point A and reaches a significant new high (point B), I wait to see if the price forms a support higher than point A.
+	•	I call this point C. I do not enter the trade right away.
+	0.	Watch Consolidation
+	•	Monitor the stock during its consolidation period.
+	•	Decide on my share size, stop loss, and profit target exit strategy.
+	0.	Enter at Point C
+	•	Once I see the price holding support at point C, I enter the trade close to the price of point C, aiming for a move toward point D or higher.
+	•	Point C can also be confirmed on a 1-minute chart.
+	•	It is important to use both time frames (1-min and 5-min) for better insight.
+	0.	Stop Loss
+	•	My stop is the loss of point C.
+	•	If the price drops below point C, I exit and accept the loss.
+	•	Buying close to point C minimizes risk.
+	•	Some traders prefer waiting to enter at point D for confirmation, but I believe this reduces reward while increasing risk.
+	0.	Take Partial Profit
+	•	If the price moves higher, I sell half of my position at point D.
+	•	I then raise my stop to my entry price (break-even).
+	0.	Exit Remaining Position
+	•	I sell the rest of my shares when:
+	•	My target is reached, OR
+	•	I notice the stock is losing steam or sellers are taking control.
+	•	A new low on the 5-minute chart is a strong signal that buyers are exhausted.
+
+ABCD Pattern – Beginner Summary
+	•	The ABCD Pattern is one of the easiest and most popular trading setups. It works well because many traders use it, and following the trend is often the safest path in the market.
+	•	How it forms:
+	•	Point A → B: The stock makes a strong move up with buyers pushing it to new highs.
+	•	Point B: The price is extended and risky. Don’t chase here—there’s no clear stop loss.
+	•	Point B → C: Early buyers take profits, so the stock pulls back. Wait for the stock to hold at a support (Point C).
+	•	Point C → D: If the price holds and then moves back up with high volume, that’s your signal to go long.
+	•	Rules to follow:
+	•	Never enter without a stop loss.
+	•	Place your stop just below Point C (the support).
+	•	Look for confirmation on both the 1-minute and 5-minute charts.
+	•	Volume is key:
+	•	You’ll often see big spikes in volume at Point B and Point D.
+	•	Entry should happen when the breakout from C to D has significant volume.
+	•	Example (Micron Technology – MU, March 12, 2018):
+	•	Stock went from $56.38 (A) to $57.75 (B), then pulled back to VWAP and consolidated (C).
+	•	A good entry was when it broke a new 5-min high above VWAP.
+	•	Stop loss: below VWAP ($57.13).
+	•	Partial profits were taken near the high, and the rest got stopped at break-even.
+
+
+====
+Bull Flag
+
+To Summarize My Trading Strategy
+	0.	When I see a stock surging up (either on my real-time New High of the Day Scanner or when advised by someone in our chatroom), I patiently wait until I can identify a clean consolidation period.
+	•	I do not jump into the trade right away (that would be “chasing the stock”) because I cannot place a proper stop loss if I chase.
+	0.	I watch the stock during the consolidation period.
+	•	I choose my share size, stop loss, and exit strategy.
+	0.	As soon as prices are moving over the high of the consolidation candlesticks, I enter the trade.
+	•	My stop loss is the break below the consolidation period.
+	•	The perfect entry is when both the 1-minute and 5-minute charts make a new high at the same time (compared to previous candlesticks).
+	•	It is important to look at both charts simultaneously when executing this strategy.
+	0.	I sell half of my position and take profit on the way up, usually with a break of the high of the day.
+	•	I then move my stop loss from the low of the consolidation period to my entry price (break-even).
+	0.	I sell my remaining positions as soon as my target is hit, or if I sense that the price is losing steam and sellers are gaining control of the price action.
+	0.	If there is no profit target, I look at the 1-minute or 5-minute chart and close my position when the price makes a new low.
+	•	This is ideally when the price will roll over and the trend will change.
+
+
+Bull Flag Strategy – Extended Summary
+	•	Concept:
+	•	The Bull Flag is essentially an ABCD Pattern, but most often applied to low float stocks under $10.
+	•	The tactics are similar to the ABCD, but the difference is in duration and volatility: Bull Flags form and resolve much faster, making them harder to manage.
+	•	Requires fast execution platforms and quick decision-making. Beginners are advised to avoid low float stocks early in their career.
+	•	Pattern Structure:
+	•	Resembles a flag on a pole:
+	•	Pole = one or several large candles going up.
+	•	Flag = sideways or slight downward consolidation (series of small candles).
+	•	During consolidation, early buyers take profits, but price holds because new buyers enter while sellers don’t fully control.
+	•	Many traders who missed the first move watch for this consolidation as an entry point.
+	•	Entry & Confirmation:
+	•	Entry occurs when price breaks above the consolidation area with heavy volume.
+	•	Best confirmation is when a new 1-minute high coincides with a new 5-minute high, both with strong volume.
+	•	Perfect entries are critical: bad entries create poor risk/reward ratios and often lead to losses.
+	•	If the chart looks unclear or choppy, avoid trading it.
+	•	Finding Bull Flags:
+	•	Use scanners (e.g., Trade Ideas) to spot low float stocks making new highs of the day with heavy relative volume.
+	•	The run-up (pole) phase usually aligns with these scanner alerts.
+	•	Important: don’t chase a stock when it’s “running up.” Instead, wait for quiet consolidation and plan the entry.
+	•	Risk Management:
+	•	Stop loss is the breakdown of the consolidation area.
+	•	Professional traders enter during quiet times and exit in volatility, opposite to amateurs who chase moves.
+	•	Most scanner alerts are not tradeable: only about 5% offer solid risk/reward setups.
+	•	Enter only during the first or second consolidation periods—later ones are risky because the stock is often overextended and buyers may lose control.
+	•	Scalping Aspect:
+	•	For low float stocks, the Bull Flag is often treated as a scalping strategy.
+	•	Scalpers prefer entering at or near the breakout, not during consolidation, to reduce exposure time.
+	•	The goal is to get in quickly when breakout is confirmed, take profit fast, and exit.
+	•	These stocks can drop quickly and brutally, so risk must be minimized.
+	•	Psychology & Philosophy:
+	•	Patience is key—wait for the setup, don’t chase.
+	•	Professionals profit by entering during low-volatility consolidation and exiting during volatility.
+	•	Amateurs tend to do the opposite, chasing spikes and exiting too late.
+	•	Momentum scalpers embrace the philosophy: get in on the breakout, scalp the move, and get out quickly.
+	•	Variations:
+	•	The Bull Flag is a long-bias strategy in an uptrend.
+	•	A Bear Flag exists as the mirror image for short selling in downtrends, but often impractical due to lack of shares available to short in low float stocks.
+
+
+
+
+====
+My ORB Strategy
+	0.	After I build my watchlist in the morning, I closely monitor the shortlisted stocks in the first five minutes after the Open.
+	•	I identify their opening range and their price action:
+	•	How many shares are being traded?
+	•	Is the stock jumping up and down, or does it have a directional upward or downward movement?
+	•	Is it high volume with large orders only, or are there many different orders going through?
+	•	I prefer stocks that have high volume with numerous different orders being traded.
+	•	If the stock has traded 1 million shares, but those shares were only ten orders of 100,000 shares each, it is not a liquid stock to trade.
+	•	Volume alone does not show liquidity; the number of orders being sent to the exchange is equally important.
+	0.	The opening range must be significantly smaller than the stock’s Average True Range (ATR).
+	•	I have ATR as a column in my Trade Ideas scanner.
+	0.	After the close of the first five minutes of trading:
+	•	The stock may continue to trade within that opening range during the next five minutes.
+	•	But, if I see the stock is breaking the opening range, I enter the trade according to the direction of the breakout:
+	•	Long for an upward breakout.
+	•	Short for a downward move.
+	0.	Stop Loss:
+	•	For long positions: a close below VWAP.
+	•	For short positions: a break above VWAP.
+	0.	Profit Target:
+	•	The next important technical level, such as:
+	0.	Important intraday daily levels that I identify in the pre-market.
+	0.	Moving averages on a daily chart.
+	0.	Previous day close.
+	0.	If there was no obvious technical level for the exit and profit target:
+	•	I exit when a stock shows signs of weakness (if I am long) or strength (if I am short).
+	•	For example:
+	•	If the price makes a new 5-minute low, that indicates weakness, and I consider selling my position if I am long.
+	•	If I am short and the stock makes a new 5-minute high, that could be a sign of strength and I consider covering my short position.
+
+Opening Range Breakout (ORB) – Beginner Summary
+	•	What ORB IsThe Opening Range Breakout is a popular strategy that gives you an entry signal, but it does not tell you where to take profits. To make it a full trading strategy, you must always define your own profit target and stop loss.
+	•	What Happens at Market Open (9:30 a.m. NY time)
+	•	Stocks in Play usually show violent price action because of heavy buy and sell orders.
+	•	If the stock gaps up:
+	•	Overnight traders may sell to take profits.
+	•	New traders may jump in to buy, expecting higher prices.
+	•	If the stock gaps down:
+	•	Some investors panic and sell immediately.
+	•	Institutions may see it as a discount and buy large positions.
+	•	This creates a battle between buyers and sellers. Smart traders wait and let the opening range form before making a move.
+	•	The Opening Range
+	•	Usually wait at least 5 minutes → the 5-minute ORB.
+	•	Some prefer 15-, 30-, or even 60-minute ORBs.
+	•	The longer the range, the less volatility, but the breakout signal is often more reliable.
+	•	Works best on mid- to large-cap stocks, not on volatile low-float stocks.
+	•	The range is defined by the high and low of the candlesticks in the chosen timeframe.
+	•	Ideally, the opening range should be smaller than the stock’s ATR (Average True Range).
+	•	How to Trade It
+	•	When the stock breaks above or below the opening range:
+	•	Go long if it breaks upward.
+	•	Go short if it breaks downward.
+	•	Stop loss:
+	•	For longs → a break below VWAP.
+	•	For shorts → a close above VWAP.
+	•	Profit target: the next important technical level (daily levels from pre-market, moving averages on the daily chart, or the previous day’s close).
+	•	If no clear technical level exists, exit if the stock shows weakness when long (e.g., new 5-min low) or strength when short (e.g., new 5-min high).
+	•	Example
+	•	A stock opened at $31, then sold off below $30 in the first 5 minutes after a 19% gap up.
+	•	That showed sellers taking profit.
+	•	After the first 5-minute battle settled, when the stock broke the 5-min opening range, the trade was to go short below VWAP.
+	•	The exit was set at the next technical level, with a stop loss above VWAP.
+
+👉 For beginners: ORB is all about waiting for the first battle to finish, then joining the winning side of the breakout with a clear plan (entry, stop, target).
+Do you want me to also make this into a step-by-step checklist (like: Wait 5 min → Mark range → Breakout entry → Stop at VWAP → Exit at levels) so it’s easy to use live?
+
+
+=====
+VWAP False Breakout – Beginner Summary
+	•	When it happens:
+	•	Usually in the late morning (after 10:30 a.m.) and into the early afternoon.
+	•	The idea:
+	•	A strong stock with institutional buying usually trades above VWAP.
+	•	If big buyers (like banks or funds) keep buying, the stock stays above VWAP and climbs higher.
+	•	But if those buyers finish their orders or lose interest, the stock often falls back to VWAP.
+	•	If it then drops below VWAP, it’s a sign of weakness → short sellers step in.
+	•	The analogy:
+	•	A stock that loses VWAP is like a buffalo running out of strength.
+	•	Short sellers (the “wolves”) wait for the right moment to attack once VWAP is lost.
+	•	Day traders “smell the blood” and short the stock when it breaks down under VWAP.
+	•	Other scenario:
+	•	If a weak stock below VWAP suddenly comes back up and breaks above VWAP, shorts are forced to cover (buy back).
+	•	This creates a short squeeze → smart traders go long to ride the momentum higher.
+
+AAOI – VWAP False Breakout Example (April 19, 2017)
+	•	The stock opened weak, trading below VWAP toward the daily level of $43.61.
+	•	It bounced off that level three times, then finally pushed above VWAP between 11:45 a.m. and 12:15 p.m.
+	•	But AAOI was not strong enough to hold above VWAP or build an uptrend.
+	•	It failed at the previous day close ($44.20), which acted as resistance, and then fell back below VWAP.
+	•	This created a VWAP False Breakout → signal to go short around $43.75, with a stop loss above VWAP.
+	•	Profit targets:
+	0.	The new low of the day.
+	0.	The next daily support level at $43.21.
+
+
+To Summarize My Trading Strategy for VWAP False Breakouts
+	0.	Once I’ve made my watchlist for the day, I monitor the price action around VWAP at the Open and during the morning session for the Stocks in Play.
+	•	A good Stock in Play shows respect toward VWAP.
+	0.	If the Stock in Play sells off below VWAP but then bounces back and breaks out above VWAP, it means:
+	•	Buyers are gaining control.
+	•	Short sellers may have to cover.
+	•	However, if it loses VWAP again in the Late-Morning (10:30 a.m. to 12 p.m.), it means buyers are weak or exhausted.
+	•	This situation provides a short opportunity, with a stop loss above VWAP.
+	0.	The profit target can be:
+	•	The low of the day at that time, OR
+	•	Any other important technical level.
+	0.	I try to go short when a Stock in Play has lost VWAP.
+	•	Sometimes I go short before the price loses VWAP, to get a good entry as it ticks down toward VWAP in anticipation of a VWAP loss.
+	•	⚠️ Be very careful: the job of a trader is identification, not anticipation.
+	•	If entering early:
+	•	Take small size.
+	•	Add more shares on the way down if you have truly identified a good trading setup.
+
+====
+VWAP Reversal Strategy
+	0.	Morning Watchlist
+	•	After I build my watchlist in the morning, I closely monitor the shortlisted stocks in the first five minutes after the Open.
+	•	I identify their opening range and their price action.
+	•	The stocks will either move higher or below VWAP.
+	•	Depending on the price action, I may be able to take an Opening Range Breakout (ORB) to the long or short side.
+	0.	Monitoring Price Behavior
+	•	I monitor the price when it moves away from VWAP and look for signs of weakness or strength:
+	•	If it is above VWAP, failing to make a new high of the day may signal that buyers are exhausted.
+	•	If it is below VWAP, failing to make a new low of the day or a new 5-minute low can signal that sellers are gone, and the stock may be ready for a squeeze back to VWAP.
+	0.	Entry Conditions
+	•	I only take the trade if I can get:
+	•	A good entry.
+	•	A good risk/reward ratio.
+	•	Most of the time, stocks move too fast without offering both.
+	0.	Managing the Trade
+	•	If I am short above VWAP → I cover my short at VWAP and bring my stop loss to break-even.
+	•	If I am long below VWAP → I sell part of my position at VWAP and keep the rest for a possible squeeze above VWAP (a “VWAP Pop”).
+	•	Always ensure to bring the stop loss to break-even, because sometimes the stock can bounce back from VWAP.
+
+
+
+
+VWAP Reversal Strategy – Beginner Summary
+	•	What it is
+	•	Stocks in Play often trade heavily at the Open. They may go to a new low of the day or stay strong above VWAP.
+	•	Very often, they reverse and test VWAP. This setup is called the VWAP Reversal and can be traded long or short.
+	•	How it works (example: JD.com, Nov 13, 2017)
+	•	JD opened strong but sold off heavily below VWAP.
+	•	At 9:50 a.m., it failed to make a new 5-min low → signal of reversal.
+	•	This failure made short sellers nervous. When they covered, the price squeezed back up to VWAP.
+	•	Trade idea: go long at $41.15, ride momentum back to and above VWAP.
+	•	Why reversals happen
+	•	If shorts expect the stock to keep falling but it doesn’t, they must cover fast → price shoots up.
+	•	If the stock is above VWAP but fails to make a new high, the opposite can happen: sellers take over, giving a short opportunity toward VWAP.
+	•	Signals of a reversal
+	•	Failing to make a new 5-minute low (when below VWAP).
+	•	Starting to make higher highs and higher lows on the 5-minute chart.
+	•	Failing to make a new 5-minute high (when above VWAP).
+	•	Risk management
+	•	Always use a stop loss:
+	•	If long → stop just below the low of the day or the last 5-min candle.
+	•	If short → stop just above the high of the day or the last 5-min candle.
+	•	Profit targets:
+	0.	VWAP.
+	0.	9 EMA or 20 EMA on the 5-min chart.
+	0.	50 SMA on the 5-min chart.
+	•	Best practice: take some profit at VWAP, move stop to break-even, and let the rest run.
+	•	Important notes
+	•	Not all VWAP reversals are tradeable. Many happen too fast with no good entry or risk/reward.
+	•	It’s better to skip the trade than to enter late with bad risk.
+	•	Even if you can predict the move, don’t trade without a good entry.
+	•	Example Trade Setup (SIG)
+	•	Long at $8.45 (failure to make new low).
+	•	Stop loss below the low of the day.
+	•	Targets:
+	•	1st: VWAP (~$8.55).
+	•	2nd: 9 EMA on the 5-min chart.
+	•	3rd: 20 EMA on the 5-min chart.
+
+VWAP Moving Average Trend
+Bull Flags, the ABCD Pattern and Opening Range Breakouts happen at the Open. VWAP Reversals happen later in the Open and in the Late-Morning, and VWAP False Breakouts mostly occur in the Late-Morning session and into the early afternoon. But what happens to Stocks in Play during the rest of the trading day following the morning session?
+
+The answer is that often Stocks in Play will find a trend and stay above the VWAP and move higher, or they will stay below it and move lower, using moving averages as their guide.
+
+VWAP Moving Average Trend Trading
+To summarize my trading strategy for VWAP Moving Average Trend trading:
+	0.	When I am monitoring a Stock in Play and notice a trend is establishing around a moving average (usually 9 EMA) in the Late-Morning session, I consider VWAP Moving Average Trend trading.
+	•	If the stock has already lost the VWAP (from a VWAP False Breakout), it most likely will stay below the VWAP.
+	•	Similarly, if the stock squeezed above the VWAP in the Late-Morning session, it is most likely that it will stay above the VWAP, as it means the buyers are in control.
+	0.	Once I learn that either 9 or 20 EMA are acting as either a support or resistance, I buy the stock after confirmation of moving averages as a support, but only if I can clearly see it “held” the VWAP.
+	•	Similarly, I go short below the moving averages if I have the confirmation that it has “lost” the VWAP in the Late-Morning session.
+	0.	I buy or sell short as close as possible to the moving average line (in order to have a small stop).
+	•	My stop will usually be 5 to 10 cents below the moving average line or, if a candlestick, close below the moving average (for long positions).
+	•	For short positions, a close above the moving average would stop me out.
+	0.	I ride the trend until the break of 9 or 20 EMA.
+	•	Usually, 20 EMA is a stronger support or resistance, so it is better to wait for that.
+	0.	I usually do not use trailing stops and I constantly monitor the trend with my eyes, but I know that many traders also use trailing stops.
+	0.	If the stock is moving really high away from the moving average, offering me an equally really nice unrealized profit, I may take some profit, usually at the 1/4 or half-position.
+	•	I do not always wait until the break of moving average for my exit.
+	•	Traders will say: “You can never go broke by taking good profits.”
+	•	If the price pulls back to the moving average, I may add again to my position and continue the VWAP Moving Average Trend trade.
+	0.	Remember, when you take profit, you should always bring your stop loss to break-even.
+	•	Never go red on a stock that you already booked some profit on.
+
+I usually do not trade the VWAP Moving Average Trend Strategy, primarily because most of the time I am not trading in the afternoon. Often VWAP Moving Average 
+Trend trades can last as long as several hours and that is too long for my personality. I prefer to take my profit in a matter of minutes. I rarely will wait even an hour
+
+Having said that, a VWAP Moving Average Trend Strategy is an excellent trading strategy, because it usually does not require a very fast decision-making process and trade execution. 
+It also often does not require the use of Hotkeys. You can enter the trades manually and still be successful. In addition, entry points and your stop loss can be clearly recognized from 
+the moving averages on the charts. 
+
+Day Trading Sessions & Best Strategies
+1. The Open (9:30 – 10:30 a.m. EST)
+	•	Duration: First 30–60 minutes.
+	•	Market: High volume, high volatility.
+	•	Best strategies:
+	•	Bull Flag
+	•	Opening Range Breakout (ORB)
+	•	ABCD Pattern
+	•	VWAP Reversals
+	•	Fallen Angel
+
+2. Late-Morning (10:30 a.m. – 12:00 p.m. EST)
+	•	Market slows, but volatility in Stocks in Play remains.
+	•	Easier session for new traders (less volume, less random moves).
+	•	Many traders perform better here than at the Open.
+	•	Best strategies:
+	•	VWAP Reversal
+	•	VWAP False Breakout
+	•	⚠️ Bull Flag is rarely effective here.
+
+3. Mid-day (12:00 – 3:00 p.m. EST)
+	•	Slowest part of the day: lower volume and volatility.
+	•	Stocks in Play often establish trends.
+	•	Best strategies:
+	•	VWAP Moving Average Trend
+	•	VWAP False Breakout
+	•	Key: Wait to confirm if VWAP is held or lost before entering.
+
+4. The Close (3:00 – 4:00 p.m. EST)
+	•	Market becomes directional.
+	•	Raise tier size compared to Mid-day (but not as high as the Open).
+	•	Closing price reflects Wall Street professionals’ sentiment:
+	•	Moving higher = bullish institutional outlook.
+	•	Moving lower = bearish institutional outlook.
+	•	Best strategy:
+	•	VWAP Moving Average Trend
+
+ This stock did a really nice Opening Range Breakout, then it did a VWAP False Breakout, and then it started a VWAP Moving Average
+Trend to the downside. Thus, this stock showed three strategies in just this one time interval. Some people might also have taken a reversal right at the Open
+
+
+———————————
+Trade Rules & Setups
+If it doesn’t start working in the first 5 minutes of entering the trade, I often just bail out on breakeven. I expect immediate resolution from these patterns!Don’t get caught in those bull traps!
+
+I will begin to sell if:
+	0.	I see heavy resistance on the level 2 in the form of a big seller, I bail out by selling on the bid.
+	0.	I stop seeing buying, and I’m just seeing a lot of selling on the time & sales, I bail out by selling on the bid.
+	0.	If my first profit target has touched, I sell half by selling on the ask, and adjust stop to breakeven for remainder.
+	0.	If 2nd or 3rd profit targets are hit, I continue to sell small pieces on the ask.
+	0.	If my entry is on the 5-min chart, typically I will sell on the first red candle on the 5-min chart unless I’m already up so much that I can afford to hold through the pullback.
+
+1. The First Pullback (1-min & 5-min)
+The first pullbacks often take the form of the bull flag or flat top breakout.
+
+
+
+Entry:The first candle to make a new high, the apex point of the bull flag / flat top pattern. Sometimes I’ll enter early to anticipate the breakout. If I’m entering early, what typically triggers that entry is either a break through a psychological level just below the apex point (half dollar/whole dollar), or a surge of buying on the level 2.
+I would always prefer to have an early entry because it offsets the risk of a bull trap/false breakout.
+Almost immediately upon entry I want to see the price moving up. If the price moves down immediately, my timing is wrong. If I have a starter position, I may hold with my stop at the low of the pattern and look to add near the support level of my stop, or add if the price returns to the breakout.
+However, when I go red on a trade almost immediately, I often change my perspective to getting out at breakeven, either through adding near support and selling when it comes back out, or simply trying to exit at the price I entered at.
+This is the type of trade that, when it works well, will work almost instantly, and the early entry allows me to start to accumulate a position as we see volume coming in. This is likely due to other trades also anticipating the breakout and perhaps short sellers covering as the stock shows increased strength.
+
+The First Pullback Setup
+Target:Target is a retest of high of day and a squeeze through the breakout price. Due to the inherent risk in any breakout trade of a false breakout, I will often take some profit into the first surge of momentum by selling on the ask a partial position and then adjusting my stop to breakeven on the balance. Sometimes when a stock holds through that first breakout, I will add back the position I sold for the next move up, and then again sell into that move up and continue adding and selling until the trend of pullbacks getting bought up changes.
+
+Risk Factors:This is one of the lower risk gap-and-go setups. Stops are tight and these flag patterns are typically strong. Additional risks are secondary offerings coming out. I can check for an active S3, but of course many stocks have a Shelf Registration and do not do secondary offerings, so that doesn’t really guarantee anything. The company can also file a shelf on the same day and that would have a negative impact as it puts traders on notice that an offering may be coming.
+
+Stop Loss:Stop can be low of last 5-min candle, or arbitrary stops at 5-10-20 cents.
+
+Profit Target:10-20-40 cents. I’m typically going to use breakout of bailout rather than identify an exact to the penny exit. In fact, for most of my trades, although I may acknowledge the correct stop (technical based on the low of the previous 5-min candle or 1-min pullback), I don’t actually plan to hold all the way back down to that level.
+If the stock doesn’t immediately break out and do what I think it will do, I’ll often try to get right back out at breakeven or for a small loss. The biggest problem with this approach is getting “chopped up.”
+If a stock starts popping up 5 cents, dropping 7 cents, then back up 8 cents, I’ll find myself getting stopped out repeatedly. This is a stock we’d call choppy, and although I may end up red on it, my best trades are ones where I get in, and the trade works very quickly. If it’s choppy, I’m out.
+
+————
+
+Buying the Break of Pre-Market Highs
+
+Entry:I enter based on the break of pre-market highs. If I take this trade pre-market, I’d be still buying based on the break of the current pre-market high, which is essentially a high of day breakout.
+I like buying stocks at highs because when they are really strong, and they are the obvious stock in the market, traders are watching for them to break through highs. This is where short sellers cover and it’s where new long traders come in as the stock provides confirmation of its strength. This fits within the “buy high sell higher” attitude of many day traders.
+As with all momentum and gap and go strategies, if I feel strongly that the stock will break through the highs and/or could make a large move higher (based on float, previous rate of change, former runner status, news, current market conditions, etc), then I’ll certainly try to anticipate the quick squeeze through the high by taking an early entry.
+That entry may line up with:
+	•	A half dollar or whole dollar, or
+	•	An aggressive early entry as I’m seeing green on the tape and no sign of big sellers.
+This setup will be typically the strongest on the leading gapper, and if the float is on the lower side (under 10mil).
+
+Target
+The target here is continuation and 15-25 cents of potential profit, depending on price of stock and market conditions.
+	•	I look for a quick squeeze through the highs and instant profit.
+	•	If the stock hesitates and is not giving me that instant winner, I may exit quickly to avoid being caught at the top for a false breakout.
+	•	During a hot market I may increase my position through high of day. If I do that, I really need to adjust stops up so I’m not increasing my risk for loss on a false breakout.
+👉 I’ll be more aggressive when the stock is the leading gapper, when the float is under 5mil shares, and when we’re in a hot market.👉 I’ll be more conservative when the opposite is true.
+Be mindful that when the leading gapper fails, it can set the tone for the rest of the day.
+
+Risk Factors
+Anytime a stock is on the gap scanner, we know it’s extended, but this is one of my preferred ways to enter a strong stock. False breakouts are not uncommon.
+
+Stop Loss
+	•	Stop is the low of the last 5-min candle, or
+	•	Arbitrary stops at 5-10-20 cents.
+
+Profit Target
+	•	10-20-40 cents.
+	•	As with all gap and go trades, breakout or bailout will be important.
+	•	Meaning if I get in and immediately it starts going the wrong way, I may simply exit rather than wait for the stock to come all the way down to the technical stop point.
+
+Notes
+This is probably the strategy I trade the most often, but false breakouts require me to take profits quickly, which is why my profit loss ratio is only about 1:1.
+——————
+Buying Pre-Market Pivot
+
+The Entry
+Entry Price:We can visualize pre-market pivots as being very similar to ABCD patterns, but sometimes they are just not as clean in that they have taken much longer to form than the typical short period of a strong ABCD pattern.
+But in any case, you will see a horizontal line on your chart based on a recent high, and visualize that if the stock can break that level, it should retest the pre-market highs.
+The entry here can be a little tricky because:
+	•	You can get in early to anticipate the break through this pivot.
+	•	It may not be as obvious to all traders, which means the follow-through initially may not be as strong.
+This is a setup where I’m typically more likely to:
+	•	Take a starter position right at the pivot.
+	•	Add into the nearest half / whole dollar if we see strength.
+	•	Add through high of day.
+👉 In a cold market, I may avoid this setup entirely.👉 In a hot market on a stock that is the leading gapper with a low float, I may trade it more aggressively.
+
+Target
+Target is a retest of the high of day, but expecting a big surge through high of day would only be common in a hot market.
+This is a bit more of a base hit setup:
+	•	Aim to generate a little profit while the stock starts to move back up.
+	•	Acknowledge that the long period of consolidation below the pivot already indicates some level of weakness.
+
+Risk Factors
+The biggest concern here is that the stock is already showing some weakness because of the fact that it is stair stepping down a little bit.
+
+Stop Loss
+	•	Stop is the low of the last 5-min candle, or
+	•	Arbitrary stops at 5-10-20 cents.
+
+Profit Target
+	•	10-20-40 cents.
+	•	As with all gap and go trades, breakout or bailout will be important.
+	•	If I get in and immediately it starts going the wrong way, I may simply exit rather than wait for the stock to come all the way down to the technical stop point.
+
+Notes
+This is another very common Gap and Go Strategy. In a lot of ways it’s buying a break of a flag pattern.
+
+———
+The Whole Dollar & ½ Dollar Setup
+
+
+
+The Entry
+Entry:Whole dollar and half dollar entries are a way of entering a strong gapper a bit earlier than the correct pattern-based entry might allow.
+Example:
+	•	If the first 5-min candle to make a new high is at 4.56, we may enter at 4.45–4.50, knowing that if the stock breaks the critical psychological resistance of the half dollar, it should shoot quickly to .56, giving us:
+	•	An early entry
+	•	An extra 5–10 cents of profit
+Then, if it continues to show strength, I can add again at .85–.95 to anticipate a quick break through 5.00 (whole dollar).
+⚠️ Be mindful: it’s not uncommon to see resistance at these levels. The only time I’ll be adding and adding is in a hot market on a stock that meets all criteria for having the potential to make a big move.
+
+Special Situations
+	•	When a stock is surging quickly (just broke out of a pattern, or had breaking news pre-market or intraday), an entry near a half dollar (e.g., 4.50) can be effective.
+	•	If it breaks that level → stop goes right below it (4.48–4.49).
+	•	If it immediately rejects → quick exit on breakout or bailout, usually out in the 4.30s–4.40s.
+	•	During parabolic price action, I’m likely to take positions near half/whole dollars with stops on the other side of that critical level.
+	•	(Discussed more in the momentum chapter.)
+
+Target
+	•	Typically continuation for a 15–25 cent move
+	•	Most important: it must hold over the half/whole dollar entry point
+	•	If it immediately rejects:
+	•	That’s where short sellers want to hold short with a stop back above the half or whole dollar
+	•	These prices can become a line in the sand for a tug of war
+	•	What we want is a clean and convincing break
+
+Risk Factors
+	•	Half dollars and whole dollars = psychological resistance levels
+	•	When they break → the break is quick
+	•	Sometimes there’s a lot of buying but price doesn’t break → false breakout risk
+	•	On higher-priced stocks, false breakouts can be dramatic
+	•	Best used on stocks under $20
+
+Notes
+This is a great setup during a hot market, but I must be more careful during a choppy or slow market.
+—————
+Opening Range Breakout Setup
+
+The Entry
+Entry:The opening range breakout is a strategy that works a bit better on stocks that have more of a grinding pattern and/or higher floats.
+	•	The fact that the stock didn’t make a big move in the first 1–15 minutes of trading already indicates some sluggishness.
+	•	The fact that it didn’t fall to create a red/green setup means short sellers aren’t likely to be trapped.
+👉 This is not a setup I trade as often as the others, but it’s worth noting because occasionally we will see stocks churning in a choppy opening range, only to really open up when they break through that range.
+Correct entry point:
+	•	A break through high of day, which is the high of the opening range.
+
+Target
+	•	The target of a 1-min ORB is typically:
+	•	A retest of the high of day, or
+	•	At least 15–20 cents.
+	•	Depending on overall market conditions and the characteristics of the stock being traded, expectations will be adjusted accordingly.
+
+Risk Factors
+	•	If the 1-min candle has a big range, getting stopped out or seeing a reversal is not uncommon.
+	•	An additional risk factor is the inherent weakness in the fact that the stock didn’t rip right at the open.
+
+Stop Loss
+	•	The low of the opening 1-min candle, or
+	•	Arbitrary stops at 5–10–20 cents.
+
+Profit Target
+	•	10–20–40 cents
+	•	Breakout or bailout is still the rule of thumb.
+
+Notes
+	•	This is not a setup I trade a lot, however it can be good when it shows up.
+	•	Sometimes the best gappers are too far off the pre-market highs to buy at high of day.
+	•	In these cases, I wait for the first 1-min candle to close, and I:
+	•	Buy the high of that candle
+	•	Set stop at the low of that candle
+
+——
+
+Red to Green Setup
+
+
+
+The Entry
+Entry:This can be a truly powerful setup.
+	•	This is where short sellers get trapped going short (perhaps on early weakness in the first few minutes of trading into a bear trap).
+	•	Then, a sudden explosive rip through the open price and into the highs forces them to cover, while long traders jump in.
+⚠️ Caution: I’ve seen this become a bull trap — it pops up through the open then immediately rejects and goes all the way back to the lows! If that’s the case:
+	•	The stock is choppy
+	•	It has a large range
+	•	It’s understandable to feel frustrated
+👉 However, when this setup works well, we can see very powerful moves through, as:
+	•	Momentum traders continue to buy pullbacks
+	•	Short sellers either continue covering into squeezes higher, or
+	•	Sit on the sidelines feeling defeated
+
+Target
+	•	First, the stock goes through high of day
+	•	Then continues through the pre-market highs
+	•	The ultimate target will depend on the pre-market chart
+	•	We want to see strong moves from this pattern
+
+Risk Factors
+	•	The fact that the stock already went red shows weakness → biggest risk factor
+	•	Be careful of getting caught in a bull trap
+	•	If you’ve accumulated a starter position to anticipate the red/green move, you’ll be in the best position — but this also means:
+	•	You’ve been buying near the lows
+	•	Without confirmation
+	•	Which is risky
+
+Stop Loss
+	•	Keep tight stops since the early weakness is a warning indicator
+	•	Stops at 5–10–20 cents
+
+Profit Target
+	•	10–20–40 cents
+	•	Breakout or bailout!
+
+Notes
+This setup can work really well because early short sellers get stopped out as the stock squeezes through high of day.
+⚠️ But remember: the early weakness is always a cause for caution.
+———————
+Pre-Market Gap and Go Trades
+Market Conditions
+For years, I would almost never trade pre-market. Sometimes we would see a big move pre-market and I would just accept that I missed it, but they weren’t a daily occurrence so I didn’t feel too bad.
+In 2020, the market was extremely hot for momentum trading.
+	•	We had been seeing multiple 100–200% gap-and-go stocks each day for several weeks.
+	•	More and more were squeezing up pre-market.
+	•	Traders didn’t want to wait until 9:30 to start buying; when they saw a stock moving pre-market, they’d buy early to anticipate the squeeze at the bell.
+Eventually, stocks started making their big moves pre-market, and sometimes by the opening bell they were already fading back down!
+At this point, I recognized the need to adapt to the current market and begin trading earlier on a more regular basis.
+Trading pre-market continues to depend heavily on the strength of the current market and the current gap scanners.
+The nice thing is:
+	•	If I go red pre-market, there’s still time in the day to recover (as long as I haven’t hit my max loss).
+
+Entry
+The entry on a pre-market trade would be based on any of the previously discussed strategies, except:
+	•	Red to Green
+	•	Opening Range Breakout
+
+Target
+	•	Often looking for a squeeze to the nearest half or whole dollar.
+
+Risk Factors
+	0.	Trading a low volume stock that suddenly drops.
+	0.	A stock announcing a secondary offering pre-market.
+
+Stop Loss
+	•	Stop at nearest half or whole dollar, or
+	•	10–20 cents away
+	•	Note: only mental stops, no live stops pre-market
+
+Notes
+	•	Generally, I will only trade pre-market during an extremely hot market (multiple 100% gappers each day).
+	•	There are currently no circuit breaker halts pre-market, so you can sometimes see incredible 100–200% squeezes with nothing to slow them down.
+	•	Pre-market trading isn’t a specific setup — it’s simply the time of day where I might use:
+	•	VWAP breakout
+	•	First pullback
+	•	ABCD patterns
+	•	But only in a hot market.
+
+
+—————————
+Success in Day Trading – Extended Summary
+The Three Pillars of Success
+	0.	Master proven strategies – Focus on one or a few strategies that you know work (e.g., ORB, VWAP setups, Fallen Angel).
+	0.	Excellent risk management – Proper share sizing, clear entries, exits, and stop losses.
+	0.	Control of emotions and psychology – Discipline is just as important as technical knowledge.
+
+The Real Reason New Traders Fail
+	•	Many beginners wrongly believe failure comes from lack of knowledge or strategies.
+	•	They seek more indicators, new chatrooms, or other traders to follow.
+	•	The truth: most failures come from poor discipline and psychology, not lack of information.
+	•	Common problems:
+	•	Impulsive decisions.
+	•	Weak risk and money management.
+	•	Lack of self-control.
+	•	Core truth: You are both the problem and the solution in your trading career.
+
+Trading Mindset
+	•	“Live to play another day” – Protect capital, limit losses, survive to trade tomorrow.
+	•	Don’t hold onto hope: “I’ll just give it more room.” Hope is not a strategy.
+	•	Your goal is not to be right, but to make money.
+	•	Every trade must have a defined stop loss level. If the stock invalidates your plan, exit.
+
+Discipline Defines a Good Day
+	•	A good trading day isn’t one with green P&L—it’s one where you followed your rules and stayed disciplined.
+	•	Never turn a day trade into a swing trade by holding overnight.
+	•	The hardest part for beginners: cutting losses quickly instead of waiting for break-even.
+
+Risk Management – The Core of Trading
+Purpose
+	•	Risk management is the science and art of limiting losses.
+	•	All traders lose money, even professionals.
+	•	The difference between winners and blow-ups: controlling losses.
+
+Two Key Elements
+	0.	Risk/Reward Ratio
+	•	Defined by entry, profit target, and stop loss.
+	•	Only take trades with a ratio of 2:1 or better.
+	•	Example: Risking $100 for potential $300 is acceptable.
+	•	Example of poor trade: Entering short at $49.60 with target $48.80 (reward $0.80) but stop at $50.20 (risk $0.60).
+	•	Ratio = 1.3:1 → not worth it.
+	0.	Position Sizing
+	•	Share size must match risk.
+	•	Always limit loss per trade (e.g., 1% of account). → Keeps 99% of capital protected.
+
+Stop Loss Placement
+	•	Stops must be at real technical levels, not artificially close.
+	•	Example: Stop loss below VWAP is meaningless if the stock naturally pulls back to VWAP before continuing.
+	•	Use different timeframes:
+	•	5-min chart may not show proper stops.
+	•	1-min chart often gives better resolution for precise stop placement.
+
+The Importance of Good Entries
+	•	A correct trade idea isn’t enough. If the entry doesn’t give good risk/reward, skip the trade.
+	•	Example with SQ:
+	•	At 9:45 a.m., long at $41.75 with target $42.50.
+	•	Stop at VWAP $41.00 → risk $0.75, reward $0.75 → 1:1 ratio → not worth it.
+	•	Ten minutes later at $41.50:
+	•	Target still $42.50 (reward $1.00).
+	•	Stop at VWAP $41.25 (risk $0.25).
+	•	Now risk/reward = 4:1 → excellent trade.
+
+Core Lessons
+	•	Discipline > being right. Your job is to follow rules, not to predict.
+	•	Small losses keep you in the game. Protect account first.
+	•	Risk/reward decides everything. Same trade idea can be bad or good depending on entry.
+	•	Patience pays. Wait for the right entry that offers favorable ratios.
+
+Risk Management Rules – Summary
+The 2% Rule
+Step 1 – Define maximum account risk per trade
+	•	Never risk more than 2% of account on a single trade.
+	•	Recommended for new traders: 0.5% to 1%.
+	•	Example: With a $20,000 account (and $80,000 buying power), max loss per trade = $200 (1%).
+Step 2 – Define risk per share
+	•	Based on entry price vs. stop loss.
+	•	Example:
+	•	Short at $14, stop at $14.10 → risk = $0.10 per share.
+	•	Long at $100.50, stop at $100.00 → risk = $0.50 per share.
+Step 3 – Calculate position size
+	•	Formula: Max account risk ÷ per-share risk = shares allowed.
+	•	Example: $200 ÷ $0.10 = 2,000 shares max.
+⚠️ Note: Calculating quickly is hard in live markets, but risk discipline is essential. Day trading isn’t supposed to be easy.
+
+The 6% Rule (Dr. Alexander Elder)
+	•	Do not lose more than 6% of your account in one month.
+	•	If you hit –6% for the month:
+	•	Stop live trading.
+	•	Switch to a simulator for the rest of the month.
+	•	Goal: Limit damage, focus on practice, avoid emotional spiral.
+
+Practical Guidance for New Traders
+	•	Start small – focus on executing correctly, not on making big profits.
+	•	Don’t worry about commissions – at early stages, the goal is discipline and process, not net P&L.
+	•	“First you get good, then you get fast.”
+
+Gambler’s Fallacy
+	•	Wrong approach: Gamblers increase bet size during losing streaks.
+	•	Correct approach for traders: Reduce position size when account is dropping.
+	•	Protect capital, avoid compounding losses.
+
+👉 Key Takeaway:
+	•	Risk management is survival.
+	•	Limit each trade risk (≤2%), limit monthly losses (≤6%), calculate position size with discipline, start small, and avoid gambler’s thinking.
+
+
+
+
+
+
+
+
+
+
+
+———
+En esencia, la profundidad del mercado ayuda a confirmar soportes y resistencias, evaluar la absorción de órdenes y medir el sesgo del mercado en tiempo real. No obstante, hay que tener precaución: lo que se muestra en el Level 2 son intenciones (órdenes pendientes), no transacciones ejecutadas. Existe mucho juego y manipulación posible para engañar a quienes leen el DOM. Por ello, los traders profesionales suelen usar el Level 2 combinado con la cinta de tiempo y ventas (Time & Sales), donde se ven las operaciones realmente ejecutadas, para verificar qué órdenes del DOM se llegan a cumplir y cuáles podrían ser engaños
+
+Spoofing: Órdenes Falsas que Buscan Engañar
+¿Qué es el spoofing? El spoofing es una técnica de manipulación donde un participante coloca órdenes de gran tamaño con la intención de cancelarlas antes de que se ejecuten, con el fin de crear una falsa impresión de fuerte demanda u oferta En otras palabras, el spoofer muestra ordeñes fantasma – por ejemplo, un muro enorme de compra en el bid – para hacer creer a los demás traders que hay apoyo sólido y así empujarlos a comprar, solo para retirar repentinamente esas órdenes y potencialmente vender a un precio más alto Lo inverso ocurre en el lado de venta: mostrar un gran bloque en el ask para simular presión vendedora, incitando a otros a vender, mientras el spoofer en realidad busca comprar barato. Es una práctica considerada desleal e ilegal en muchos mercados (las bolsas de EE.UU. la prohíben), pero aun así puede ocurrir de forma sutil
+
+¿Cómo identificar el spoofing en Level 2? Algunas pistas típicas incluyen: órdenes enormes colocadas en el mejor bid o ask que aparecen y desaparecen rápidamente sin llegar a ejecutarse, especialmente en momentos críticos de precio También cuando vemos que una gran orden se mantiene pero no hay correspondencia en la cinta (Time & Sales) – es decir, no se ven operaciones ejecutadas contra esa orden. Por ejemplo, un spoof común es colocar 100,000 acciones en el bid justo debajo del precio actual; si los vendedores atacan ese nivel pero la orden se quita justo antes de ser golpeada, es señal clara de spoofing. Los traders avispados también observan si tras quitarse ese “muro”, el precio cae rápidamente por falta de ese soporte artificial.
+
+==================================================
+
+Aveces por el poco float que tienen no puedes hacerle short porque hay poco float como para pedir prestado
+Easy to borrow pudiera significar que no va a llegar muy lejos a la subida porque pueden hacerle short
+Stocks q son manejados por high frequency computers siempre es difícil ganarle y esto son los large caps
+Biggest move under 50 mil shares
+Float es la cantidad de acciones de una empresa que están disponibles para ser negociadas libremente en el mercado por el público
+Buscar float of less 20 million share y menos de 50 mil disponible para trader
+Si una empresa tiene 100 millones de acciones en total (outstanding shares) y 40 millones están en manos de ejecutivos y accionistas estratégicos, el float sería: 100M - 40M = 60 millones de acciones
+
+En bolsa, el spread es la diferencia entre el precio de compra (bid) y el precio de venta (ask) de una acción o activo en un momento dado.
+📌 Ejemplo:
+	•	Bid (lo máximo que alguien está dispuesto a pagar): $10.00
+	•	Ask (lo mínimo que alguien está dispuesto a vender): $10.05
+	•	Spread = $10.05 − $10.00 = $0.05
+💡 Qué significa:
+	•	Spread pequeño → mercado líquido, alta actividad, más fácil entrar/salir.
+	•	Spread grande → menos liquidez, más costoso ejecutar operaciones.
+
+Slippage
+📌 Ejemplo
+	•	Precio de compra (ask): $10.50
+	•	Precio de venta (bid): $10.00
+	•	Spread = $0.50
+Si compras al precio ask ($10.50) y luego vendes enseguida al precio bid ($10.00), pierdes $0.50 por acción automáticamente, solo por la diferencia entre ambos precios.Eso es lo que se llama slippage en este contexto: la pérdida que ocurre al ejecutar una orden en un mercado con spread amplio.
+💡 Mientras más alto sea el spread, más difícil es que tu operación sea rentable, porque el precio debe moverse más a tu favor para cubrir esa “brecha” inicial.
+
+Entries: Based on Buying the First Candle to Make a New High during the First &Second Pullback Patterns after a fresh breakout (details coming soon)
+
+
+
+Exit indicators: Big Sellers on the Level 2, buying stalls out indicating possible change in trend, price approaching technical resistance point (200ema,ascending/descending resistance, double top, etc)
+
+DO NOT “HOLD THE BAG”. I learned the hard way not to hold and hope.
+
+When to Quit Each Day
+I walk away when I hit the following thresholds:
+1. Feeling frustrated and angry
+2. I’ve given back ½ my profit on the day
+3. I’ve taken 3 consecutive losing trades
+4. Momentum is slowing down, opportunities are decreasing. Other traders say they’re done.
+5. I’ve hit my max loss
+
+Max Risk Per Trade: $50
+Examples: 500 shares with 10 cent stop, 250 shares with 20 cent stop, 125 shares with 40 cent stop
+Max Position Size 2,000 shares.
+Profit Target Per Trade: $100 (500 shares x 20 cents)
+Daily Profit Target: $100-250/day
+
+Trading Plan Goal: First goal is to hit $100 profit, once I hit the first goal, if it came easily, I’ll keep trading and I will increase size to my full size position. Once momentum begins to slow down or I give back more than 50% of my profit I will stop.
+
+Success is not about being right 100% of the time. In reality, it's about learning to cut your losses when you are wrong…
+
+This is like trading: understand that loss is part of trading, but if we learn to control losses, we can have great careers as traders.
+
+A trade is not a trade until you know your max loss and your potential profit target. Until you know these things, you aren’t trading, you’re gambling.
+
+Successful day traders have a minimum profit loss ratio of 1:1, and aim for 2:1.
+A high profit-loss ratio means you can be wrong a lot and still make money.
+
+
+	◦	Esa persona casi nunca entra en una operación que no le dé la posibilidad de ganar al menos el doble de lo que está arriesgando (potencial de 2:1).
+	◦	Pero, en la práctica no siempre alcanza ese objetivo de 2:1, porque muchas operaciones no llegan a su meta máxima de ganancia.
+	◦	Entonces, cierra antes para asegurar una ganancia parcial, antes de que el trade se revierta y termine en pérdida
+
+
+One of the reasons I don’t like trading stocks under $1.50 is because getting even 10-15 cents of profit is difficult, and it’s hard to keep stops as tight as 5-7 cents (which you would need for a 2:1 profit / loss ratio).
+
+	◦	I’m wrong 30% of the time and make money.
+	◦	Learn to be good at being wrong.
+	◦	Take lots of small losses.
+	◦	Always get your stops as tight as possible.
+	◦	As soon as a setup doesn’t feel right, I bail out.
+	◦	Sometimes this means I sell for a small loss and then end up seeing the stock run, but other times I sell for a small loss and then the stock ends up tanking.
+
+As part of my day trading strategy, I look for almost immediate resolution on my trades. On my best trades, I’m profitable immediately and never go red. So if I get into a trade and I’m not in the profit in the first 2 minutes, I bail out. It’s either a breakout or a bailout situation.
+
+I have a trade management strategy that involves selling ½ my position as soon as I’ve made the amount of money I was risking on the trade. If I’m up $100 and I was risking $100, I sell ½, which gives me a $50 profit cushion.
+
+As soon as I’ve sold ½, I adjust my stop on the remaining shares to breakeven. Because of this strategy, I have TONS of small $50 winners which draws down my average winner statistic. However, it increases my percentage of success.
+
+Stock Halts present risk because while you’re in the halt you CANNOT buy or sell. (Preocuparse si va 80% sin noticias mas si estan en el New York exchange or AMEX)
+
+Si ya tienes perdidas evitar adicionar mas share para compensar y salir del trade, es mejor aceptar la perdida y salir
+
+Anytime I see a big mover and I missed a good entry, I start to feel that itch to jump in and chase it. I have the fear of missing out on the move. It’s really important to develop a sense of self awareness regarding these emotions. It’s easy to see a stock run up and think “I can jump in here and it will keep going,” but a bad entry is never worth it.
+
+Falling victim to FOMO is when you buy a stock too high and end up giving back profits.
+
+After taking a big loss, you immediately trade something else to try to recover that loss. This is an emotional response that will typically lead to additionally losses.
+
+When we apply the fundamentals of risk management to proper stock selection and chart patterns, we greatly improve our odds of success.
+ 
+Here’s the thing: big money looks for different opportunities in the market. The stocks that move 20-30% each day are rarely the stocks they will be trading because they are too volatile for 100+mil investments.
+
+Price Between $2-20 is Preferred
+
+
+5 Pillars of Stock Selection
+1. Price: I perform best on stocks between $2-20, however I will trade outside this range occasionally
+2. Percentage Change Today: I perform best on stock up 10% or more versus the prior days close. There are exceptions to this such as a continuation setup when a stock is gapping down slightly, but even in those cases, the stock should be up 10% vs the low of the day.
+3. Relative Volume: At least 5x above average volume today.
+4. Catalyst: Ideally we need a news catalyst driving the momentum, but a technical breakout on the daily chart can work.
+5. Float: I typically see much bigger % gains on stocks with floats of under 20 million shares. The lower the float, the lower the supply, and the greater the supply/demand imbalance.
+
+
+
+Technical (no news)
+Technical (no news) catalysts can be surprisingly strong. A technical breakout is usually when a stock has been weak for a very long time, and then suddenly starts to break out from consolidation. Just remember, if a stock is up 50-100% on no news, it’s going to be risky, and there could be risk of a secondary offering.
+
+News: Earnings
+When a stock announces its quarterly or annual earnings, reports this can be a big deal, especially if the results are much higher (or lower) than analysts and investors were expecting.
+
+News: FDA or Clinical Trial Announcements
+As active traders, pharma and biotech companies are some of our favorites. These stocks can go from zero to hero overnight when successful clinical trials on experiential treatments. We can also look for insurance companies to report approving the use of a certain drug to be covered by insurance.
+
+News: Merger or Buyouts
+Mergers or Buyouts can be tricky. If a stock has announced they are buying another company, the stock doing the buying will sometimes go down because investors fear the expense of the acquisition and the increased complexity of a buyout. The company being bought out will usually trade exactly at the buyout price, giving it no volatility and no opportunities for trading.
+
+Reverse Split hace q el precio sea mas asequible por lo que puede impulsar el precio
+
+News: Activist Investor Position
+An announcement that somebody has taken a position can be significant, especially if the person or company who took the position is considered an activist investor.
+
+News: Secondary Offerings
+Typically a secondary offering is NOT the type of headline we like to see as a long-biased trader. This means the company is selling more shares to the open public (diluting value of the stock) to raise money.
+
+IPOs
+Trading IPOs is popular among day traders, but it’s fairly risky. These are extremely volatile so I always use smaller size. 
+
+======
+With many small cap stocks, there is a cycle of changing floats, beginning with IPO, then secondary offerings, then reverse splits, then additional secondary offerings, and additional reverse splits. These companies sell shares onto the market to keep financing their growth in hopes that they finally achieve success and either get bought out or can maintain stock prices of $20+
+
+How a Float is Formed & Changes Over Time
+	◦	Initial Public Offering: Issuance of the initial shares that become the float 
+	◦	Secondary Offerings: When a company sells more shares onto the market through secondary offerings, direct offerings, and private placements to investors.
+	◦	Stock Splits: When a company performs a traditional stock split the float increases. When a company performs a reverse stock split the float decreases.
+	◦	Share Buybacks: When the company buys back shares.
+
+Because an offering is generally bad for the stock price (that are typically dilutive), companies must put shareholders on notice that they intend to conduct an offering in the future. This is done via an S1 or an S3 filing with the SEC.
+
+El sitio BamSEC está diseñado para facilitar la investigación financiera, especialmente enfocada en documentos regulatorios como presentaciones de la SEC y transcripciones de resultados corporativos.
+https://www.bamsec.com/
+
+Una Direct Offering es cuando el suscriptor vende acciones directamente en el mercado abierto. Suele hacerse tras buenas noticias, aprovechando el alto volumen de compra, para minimizar la presión vendedora aunque puede generar un desequilibrio hacia el lado de ventas.
+
+Offerings to Accredited Investors
+A diferencia de una Direct Offering, algunos suscriptores venden grandes bloques de acciones a inversores acreditados o instituciones con un fuerte descuento (por ejemplo, 50% del precio de mercado).
+Cuando se anuncia la oferta y su precio, la acción suele caer rápidamente hasta ese nivel.
+
+Una Private Placement es cuando la empresa vende acciones a inversores institucionales o bancos de inversión en lugar de hacerlo en el mercado abierto. Aunque implica dilución, indica que una institución ha evaluado y confiado en la empresa lo suficiente como para invertir mucho. Según los términos, la acción puede subir tras este tipo de oferta.
+
+Para evaluar el riesgo de que una empresa realice una oferta, se revisa el estado de resultados y el balance general. Así se ve cuánta liquidez tiene, si opera con ganancias o pérdidas y si realmente necesita efectivo.
+
+If I excluded any company with a shelf registration due to the risk of an offering, I would be eliminating most small cap stocks.
+I can reduce my risk by doing the following things:
+1) Checking the balance sheet and P/L statement in their latest earnings to check financial condition.
+2) Be cautious trading beyond the first 1-2 hours after news comes out on a stock, and avoid continuation or day 2, day 3 momentum.
+
+======
+We learn to anticipate the breakout levels on a chart where volume will come in.
+By anticipating these, we have our orders ready to buy just before or just as volume begins pouring in.
+This allows us to get the max profit with the min amount of time waiting.
+Key levels are based 100% on technicals, but are only valid on stocks with high relative volume.
+
+I’ve found strong intraday stocks with the right catalyst can override a poor daily chart.
+The perfect setup has a strong intraday and a strong daily chart
+
+Indicators of a Strong Daily Chart for Small Cap Stocks
+1. Price should be above the 9 EMA and 20 EMA (in the case of a gapper, it should be gapping above these levels).
+2. Ideally the price will also be above the 200 EMA, but this is not required.
+3. Ideally there should be large gaps and windows of no resistance.
+4. There should be no obvious ascending or descending resistance.
+5. “Blue sky” AKA all-time highs
+6. A history of being a former runner can create a bigger move than you might expect from the same pattern on another stock.
+
+
+Esto es un stock q esta bien pero con esos big spike se quedaron atrapado gente q estarían dispuesto a salir si el precio llegara d nuevo ahi para estar en break even
+Los moving average cuando estan por debajo pueden ofrecer resistencia
+
+Daily windows with no resistance are “pockets” of opportunity on the daily chart.
+These windows are formed by large gaps, or tall candle sticks.
+The best setups have several big windows lined up.
+
+What is Average True Range (ATR)
+Average true range is the average price range of a stock in a typical day.
+When we look for windows and triggers, we look for gaps/windows that are larger than an average day.
+*** Si una acción tiene ATR de 2 en gráfico diario → significa que, en promedio, el rango entre el máximo y mínimo de cada día es de unos 2 dólares.
+
+A true trigger will have at least a large amount of room until the next area of resistance.
+
+
+A trend line gains validity the MORE times it’s been tapped. If your trendline only has 2 taps, it might not be very strong.
+
+Former Momentum Stock Daily Breakout
+A stock that was a recent former runner and has been consolidating around the moving averages is something many traders will be watching either for a technical breakout or a breakout due to a press release.
+
+Always watch the first daily candle to make a new high on a former runner. Although this is a technical setup only when it occurs without news, it can provide base hit trade opportunities, and sometimes they do make bigger moves. I would rarely expect a technical breakout to result in a retest of the previous highs. A stock typically would need news to support that type of move.
+
+=====***
+Focus on the stock being a stock in play! If it doesn’t have high relative volume, forget about it.
+Some of the biggest home run trades will have both great daily and intraday charts.
+
+Applying these patterns to stocks that don't meet the criteria for being the right stock to trade will result in failed breakouts and unnecessary losses.
+*** The reason these patterns break out is because other traders see the same setup you are seeing, and are buying at or near the same place.
+This is the most important thing for you to remember.
+
+High Relative Volume Makes the Pattern
+We NEED volume to make a pattern resolve. Without volume, the pattern will fail.
+
+Ask:
+◦ Do we have high relative volume?
+◦ Is volume coming in at the breakout spot?
+
+*** Volume confirms we are right and that other people see the pattern too!
+
+What is the Best Time Frame to Trade On?
+The 5-min time frame is the most respected, but the 1-min time frame can be used in addition to the 5-min time frame for stocks with extremely high relative volume.
+The first 1-min pullback after a 5-min breakout is particularly strong because this where traders who missed their initial entry will get in.
+
+1-min vs. 5-min Trading
+Circumstances when I would NOT use the 1-min chart:
+
+◦ 1. If the stock is extremely extended already on the 5-min chart.
+◦ 2. If the stock has already experienced more than 2 pullbacks on the 1-min chart since the breakout began. (In other words, it's most likely extended on the 5-min chart and needs to pull back and give us a 5-min bull flag 	or flat top.)
+3. I’m less likely to use the 1-min chart on higher priced stocks (over $10, but especially over $20). This price range gets very choppy with lots of fakeouts.
+◦ 4. If the 1-min chart is extremely extended off the 20 EMA, I’ll be more cautious, even though I might still take a trade.
+◦ 5. I rarely take a 1-min entry if the 1-min price is below the 1-min 20 EMA.
+
+Circumstances when I’m very likely to use the 1-min chart:
+◦ 1. When a stock that meets all of our criteria for being a big potential stock (low float, huge volume spike, great daily chart, etc.) has just hit my HOD scanner, I’ll look for the first 1-min pullback, even if it’s
+	a micro pullback.
+◦ 2. When a stock that meets all of our criteria has just broken out on the 5-min chart but I missed my entry, I’ll get in on the first 1-min pullback. Even if I already have a position, I’ll use the first 1-min pullback to take a 		quick breakout.
+
+
+
+
+======================
+
+
+Ves un aumento en el volumen luego en las velas rojas un decremento en el volumen y en el first candle to make new high un nuevo incremento
+
+A bull flag has the following characteristics:
+1) 3+ green candles moving up sharply followed by…
+2) 2 or more red candles (these candles cannot break the high of the previous candle)
+3) A perfect 5-min bull flag pulls back to the 9 EMA on the 5-min chart.
+4) The entry point is the first candle to make a new high after 2 red candles and a tap of the
+9 EMA on the 5-min chart, with stop at the low of the last 5-min candle.
+5) A bull flag should not retrace more than 50% of the original move to the upside.
+
+
+ No puede ser mira el volumen de la vela roja primera
+
+Esa si mira el la ema
+
+==================
+
+A flat top breakout has the following characteristics:
+1) 3+ green candles moving up sharply followed by…
+2) 2+ candles of sideways consolidation (red or green) that are just slightly below, or at high of day price
+3) Continued consolidation will ultimately rest on the 9 EMA
+4) The entry point is the first candle to break the high of day, with stop at the low of the last 5-min candle.
+5) It’s very common for flat top and bottoms to occur around ½ and whole dollars because these are psychological levels of support/resistance.
+
+Es a bull flag pero con sideways, en ese momento sellers are taking profit
+
+
+
+*** This is one of my favorite patterns.
+Coiling is good, period of consolidation. Notice the consolidation is occurring just above the moving averages
+We don’t want to see a U-shape or double top formation--this is bearish.
+
+
+
+
+===========================
+Moving Average Pullback (9 EMA or 20 EMA)
+
+A moving average pullback has the following characteristics:
+1) 3+ green candles moving up sharply followed by…
+2) 2 or more candles of consolidation above the 9 EMA. This may start out as a bull flag or a flat top breakout, but then ends up having a false break, or consolidating for a longer period of time.
+3) A perfect 5-min pullback pulls back to the 9 EMA on the 5-min chart. Sometimes these continue to fade all the way to the VWAP, and that means the new entry is at the support of the VWAP.
+4) The entry point is not always extremely clear. Sometimes we start to see slight curling, and then take a 1-min bull flag after we see that volume is coming back. Stop will usually be 20 cents max.
+
+No es simper first candle to make a new high aveces necesitas esperar un poco mas
+
+
+================
+
+An ABCD flag pattern has the following characteristics:
+1) 3+ green candles moving up sharply followed by…
+2) 2 or more candles of consolidation above the 9 EMA. Then a first 5-min candle to make a new high that DOES NOT break high of day. The high of this burst is point #2. Then a 2nd pullback to the 9 EMA, which forms point #3. The entry is when the stock moves back up for the 2nd time and breaks point #2. This becomes #4.
+3) This consolidation should occur above the 9 EMA.
+4) The entry point is a break of point #2. Stop will usually be 20 cents max.
+
+A 1-min ABCD is Typically a 5-min Bull Flag which means Multi-Time Frame Alignment
+
+The ABCD pattern is especially strong on a 1-min chart because it often means the 5-min chart is forming a bull flag. This means we have multi-time frame alignment, and both 1-min traders and 5-min traders will see this strong opportunity to buy the stock.
+
+These are some of the most powerful setups.
+A 5-min ABCD pattern can also be very powerful, but the 1-min chart will simply show a much longer period of consolidation, including a failed breakout at point B.
+
+
+
+  ========================
+Volume Weighted Average Price (VWAP)
+Es un indicador financiero que calcula el precio promedio de un activo durante un período de tiempo (por ejemplo, una jornada de trading), pero ponderado según el volumen negociado en cada transacción.
+
+A VWAP pattern has the following characteristics:
+It’s very typical to see consolidation just above or just below VWAP and, therefore, breakouts around this level are also very common. On stocks with high relative volume, VWAP will be an important place to watch patterns forming
+
+
+VWAP es el anaranjado lineas
+================
+Horizontal lines will be typically drawn against critical levels such as high of day, low of day, and pivot areas such as the recent high of an ABCD pattern or perhaps a recent area of resistance.
+Ascending and descending support/resistance lines can be drawn as well, but once they are no longer valid it’s generally a good idea to remove them so your chart doesn’t get too busy.
+
+==============
+Head and shoulders patterns are not something I typically focus on or look for, but sometimes you’ll notice one happens to be forming on a chart. They consist of a left shoulder, then move up into the head, a
+small flat top/failed breakout, then a move back down the shoulder, and then a move back down the arm if it’s a true reversal. Inverted head and shoulders is the pattern upside down.
+
+
+=============
+
+Bull Traps and Bear Traps
+
+A bear trap / bull trap is when a pattern begins to resolve as you would expect, then quickly reverses. These quick rejections generally are unexpected and therefore catch traders off guard. People go long, only
+to instantly get stopped out, or visa versa.
+	
+The best prevention for getting caught in a trap is to focus on stocks with high relative volume. However, even then, it will sometimes happen
+
+A bull trap is when we see a bullish pattern resolve and then immediately reject and drop back down.
+
+What can create a high likelihood of a bull trap?
+1. The stock is well extended off the 9 EMA.
+2. The stock has already made a very large move.
+3. It’s anytime after 12PM.
+4. The stock has already shown a tendency for false breakouts.
+
+Traders who are FAST will be able to be profitable even during a false breakout. Traders who are slower and who took entries at confirmation will lose
+
+There is no way to prevent getting caught in a bull trap from time to time. It will happen. The best remedy is to exit immediately, and to learn to see some of the red flags that can indicate a higher
+likelihood of bull traps (such as previous history of false breakouts, extended chart, large sellers on the level 2, time of day, float, price, etc).
+
+Bull traps can happen in any pattern: bull flags, flat top breakouts, whole dollar breakouts, VWAP breakouts, etc. Bear traps are the inverse for short sellers.
+
+===========
+Double Top Pattern occurs when a stock hits a high, has a large pullback, then surges back to highs and creates a Cup formation, or empty space, between the two highs. This has rejection risk due to
+double top.
+
+
+
+============
+The Cup & Handle pattern is formed by a double top. The stock makes a first move up, pulls back more than you’d
+typically expect, and then rallies all the way back to highs, forming a double top. Buying into a double top such as this
+would be too risky. Most traders wait. Then a small pullback, in the form a bull flag, creates the handle of the pattern.
+Entry can either be the break through the double top, or first candle to make a new high on the bull flag.
+
+
+
+========
+Front side vs Back side of a move
+Traditionally I find I do the best trading the FRONT SIDE of a move, and if I over trade on the back side, I give back profit.
+What does the backside look like?
+	◦	Moving averages are going flat or down
+	◦	MACD will have crossed over on the 1min
+	◦	Volume typically declines
+	◦	The upward trend has stopped.
+
+
+
+
+==============
+Remember that we’re ONLY looking at the level 2 on stocks worth trading. The type of patterns and bullish/bearish indicators seen on level 2 are meaningless on stocks that don’t have high relative
+volume.
+
+The level 2 and the 5-min/1-min chart are the two things that all the traders involved in an active stock are focused on. So learning to read the subtle cues will give you an advantage.
+
+The most important time to watch level 2 is when you are about to buy, especially when the entry is a BREAKOUT spot
+
+
+
+The market for each stock is like an island. You need a bridge to get to an island. In the market, there are many “bridges.” These are electronic pathways to the market called ECNs or routes.
+Like bridges, some are free, and some charge a toll. “Express lane” would be high-speed routes and they often charge a small fee. Free routes are often slower.
+
+A true market maker is a financial institution that owns shares of the stock and provides liquidity to the market by sitting on both the bid price and the ask price. They buy/sell shares across the spread to turn a profit. This is their compensation for the risk of holding the stock. They will use algo trading to generate profits.
+
+An ECN can simply be an electronic pathway to the market such as NASDAQ, AMEX, NYSE.
+
+Level 2 market quotes show us ALL the buyers and sellers.
+
+
+
+Level 2 is very important because it shows you the market depth. This shows you the bid and ask, but also how many buyers are lined up just below the bid and just above the ask. This
+tells us if there are big buyers/sellers close by
+
+Los colores indican q tan cercano estan las ordenes del precio
+
+Helpful Tip: Stocks with floats less than 50mil will often trade more “thinly,” meaning bigger spreads and quick moves!! These are higher risk, but can be higher reward as well. This becomes exponentially true the lower the float.
+
+
+
+What Do I Look for in Level 2?
+1. I look at the spread.
+2. I look for the number of market makers.
+3. I look to see how close together the market depth tiers are.
+4. I look for big bids or big asks.
+5. As a momentum trader, I primarily look at the ask and the tape while I’m in a trade, or just about to get in a trade.
+
+*** Watching Big Orders Get Bought Up
+
+An interesting pattern in the Level 2 is that if we see a big order getting filled quickly by either buyers or sellers, it will often attract new traders and
+generate a pop/drop when the order is filled.
+
+The big seller itself is bearish, however, the buying volume is bullish.
+
+Señales en el DOM (Level 2)
+——————————————
+Aquí “niveles” se refiere a niveles de precio en el libro de órdenes (Level 2/DOM), no a soportes/resistencias del gráfico.
+	•	Nivel 1 (L1): mejor BID (mejor comprador) y mejor ASK (mejor vendedor).
+	•	Nivel 2 (L2): el siguiente precio inmediatamente detrás del mejor.
+	•	Nivel 3 (L3), L4, L5…: los siguientes escalones de precio en profundidad.
+
+Alcista si:
+Desequilibrio de libro (imbalance)
+	Suma de los 3–5 mejores niveles de BID claramente mayor que los ASK.
+ 	Mejora si al mismo tiempo se retiran (pull) ofertas del lado ask.
+BIDs apilados (“stacked bids”) justo bajo un nivel
+	Varias capas de BID en escalera (p. ej. … .98, .97, .96) que no se rompen durante los test
+	Si se “comen” parte del BID y vuelve (refresh), es aún más alcista.
+Agotamiento del ASK (ask depletion)
+	Ves cómo desaparecen niveles de ASK cuando el precio se acerca a una resistencia. Si se vacían 2–3 niveles en 1–3 s y el inside ask vuelve más alto → probabilidad de breakout.
+
+Qué significan esos términos
+	•	prints: ejecuciones en la cinta (Time & Sales).
+	•	“prints al ASK” = compras agresivas (al que vende).
+	•	“prints al BID” = ventas agresivas (al que compra).
+	•	flip (del inside): el precio que era ASK (resistencia inmediata) se convierte en BID (soporte inmediato) y se mantiene unos segundos.
+	•	stall: “atasco” o paro del avance. El precio deja de subir durante 3–5 s, reaparece oferta en el ASK y no salen nuevos máximos.
+	•	pull del ASK: los vendedores del ASK retiran sus órdenes (la oferta se “vacía”/retrocede).
+	•	refresh en BID: en un mismo precio de BID, te “pegan” muchas ventas pero el tamaño mostrado se regenera (hay comprador escondido/iceberg).
+	•	ticks: mínimos incrementos de precio (p. ej., 0.01 en la mayoría de acciones).
+	•	cruzar niveles de BID: barrer varios escalones de compradores de golpe.
+
+Reescrito en español sencillo
+1) Breakout con vaciado de ASK
+	•	Condiciones: más tamaño en BIDs que en ASKs (imbalance a favor del BID), el ASK se retira (pull) y ves 5–10 ejecuciones al ASK seguidas.
+	•	Entrada: justo arriba del nivel cuando veas el flip (el precio roto pasa de ASK a BID y sostiene).
+	•	Stop: 1–2 ticks por debajo del nivel roto.
+	•	Parcial: al primer stall (se para 3–5 s y el ASK reaparece).
+
+2) Pullback a soporte con refresh en BID
+	•	Contexto: el precio testea un soporte; se ejecuta volumen al BID pero el tamaño en ese BID se regenera (refresh).
+	•	Entrada: en el segundo test fallido del soporte (la cinta marca mínimo más alto).
+	•	Invalidación: si el refresh desaparece y barren varios niveles de BID de una.
+
+3) Reversal por absorción
+	•	Contexto: tras una vela roja fuerte, la caída se frena: muchos prints al BID sin que baje el precio y el ASK empieza a retirarse.
+	•	Entrada: en el primer flip del inside a tu favor (lo que era ASK ahora BID y sostiene).
+
+
+*********** Cuando veas una operación q no este entendida muy lejos de la Ema

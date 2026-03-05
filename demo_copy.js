@@ -3,7 +3,7 @@ const csv = require('csv-parser');
 const mqtt = require('mqtt');
 
 // const brokerUrl = "mqtt://20.190.196.94:1883";
-const brokerUrl = "mqtt://4.174.130.135:1883";
+const brokerUrl = "mqtt://89.167.96.63:1883";
 
 const mqttOptions = {
   username: "admin",

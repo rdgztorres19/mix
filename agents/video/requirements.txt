@@ -1,0 +1,6 @@
+python-dotenv
+azure-cognitiveservices-vision-customvision
+msrest
+matplotlib
+Pillow
+numpy
