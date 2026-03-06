@@ -25,13 +25,14 @@ _export(exports, {
 });
 const _tools = require("@langchain/core/tools");
 const _zod = require("zod");
+const _openai = require("@langchain/openai");
 const _axios = /*#__PURE__*/ _interop_require_default(require("axios"));
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj
     };
 }
-// ─── Keyword-based catalyst classifier ──────────────────────────────────────
+// ─── Keywords para que la AI evalúe el sentimiento ───────────────────────────
 const STRONG_KEYWORDS = [
     'fda approv',
     'approved',
@@ -55,20 +56,6 @@ const STRONG_KEYWORDS = [
     'major partnership',
     'exclusive deal',
     'quarterly results beat'
-];
-const MODERATE_KEYWORDS = [
-    'analyst upgrade',
-    'price target raised',
-    'partnership',
-    'collaboration',
-    'product launch',
-    'new product',
-    'expansion',
-    'milestone',
-    'guidance raised',
-    'strong demand',
-    'order increase',
-    'raised outlook'
 ];
 const WEAK_KEYWORDS = [
     'analyst downgrade',
@@ -96,8 +83,65 @@ const DILUTIVE_KEYWORDS = [
     'public offering',
     'shelf registration'
 ];
-function scoreHeadlines(headlines) {
-    if (!headlines.length) {
+// ─── Evaluación AI: solo la última noticia de hoy ─────────────────────────────
+function getLLM() {
+    return new _openai.ChatOpenAI({
+        model: 'gpt-4o-mini',
+        temperature: 0,
+        apiKey: process.env.OPENAI_API_KEY
+    });
+}
+async function evaluateLatestHeadline(headline) {
+    const prompt = `Eres un analista de noticias para day trading. Evalúa SOLO esta noticia reciente (la última del día):
+
+HEADLINE: "${headline.title}"
+
+REFERENCIA — Conceptos típicamente BULLISH (STRONG):
+${STRONG_KEYWORDS.join(', ')}
+
+REFERENCIA — Conceptos típicamente BEARISH o negativos (WEAK):
+${WEAK_KEYWORDS.join(', ')}
+
+Responde EXACTAMENTE en este formato, una sola línea:
+STRENGTH|catalyst_type
+
+Donde STRENGTH es uno de: STRONG, MODERATE, WEAK, NONE
+y catalyst_type es una frase corta (ej: "Government contract", "Negative earnings", "Product launch").
+
+Ejemplos válidos:
+STRONG|Government contract award
+MODERATE|Partnership announcement
+WEAK|Analyst downgrade
+NONE|Routine / no clear catalyst`;
+    try {
+        const res = await getLLM().invoke(prompt);
+        const text = (typeof res.content === 'string' ? res.content : '').trim();
+        for (const line of text.split('\n')){
+            const match = line.trim().match(/^(STRONG|MODERATE|WEAK|NONE)\s*[|:]\s*(.+)$/i);
+            if (match) {
+                return {
+                    strength: match[1].toUpperCase(),
+                    catalyst_type: match[2].trim().slice(0, 80) || 'Unknown'
+                };
+            }
+        }
+    } catch  {
+    // fallback si falla la AI
+    }
+    return {
+        strength: 'MODERATE',
+        catalyst_type: 'General news (AI fallback)'
+    };
+}
+/** Obtiene la última noticia de hoy (o la más reciente si no hay de hoy). */ function getLatestHeadline(headlines) {
+    if (!headlines.length) return null;
+    const today = headlines.filter((h)=>h.age_minutes < 24 * 60);
+    const pool = today.length ? today : headlines;
+    return pool.sort((a, b)=>a.age_minutes - b.age_minutes)[0] ?? null;
+}
+async function scoreHeadlines(headlines) {
+    const latest = getLatestHeadline(headlines);
+    if (!latest) {
         return {
             strength: 'NONE',
             catalyst_type: 'No news found',
@@ -105,46 +149,23 @@ function scoreHeadlines(headlines) {
             justifies_move: false
         };
     }
-    // Only look at news from last 24 hours for relevance
-    const recentHeadlines = headlines.filter((h)=>h.age_minutes < 24 * 60);
-    const allText = (recentHeadlines.length ? recentHeadlines : headlines).map((h)=>h.title.toLowerCase()).join(' ');
-    const is_dilutive = DILUTIVE_KEYWORDS.some((k)=>allText.includes(k));
-    const hasStrong = STRONG_KEYWORDS.some((k)=>allText.includes(k));
-    const hasModerate = MODERATE_KEYWORDS.some((k)=>allText.includes(k));
-    const hasWeak = WEAK_KEYWORDS.some((k)=>allText.includes(k));
-    let strength = 'NONE';
-    let catalyst_type = 'Unknown';
+    const text = latest.title.toLowerCase();
+    const is_dilutive = DILUTIVE_KEYWORDS.some((k)=>text.includes(k));
     if (is_dilutive) {
-        strength = 'WEAK';
-        catalyst_type = 'Dilutive event (offering/secondary) — DANGER';
-    } else if (hasStrong) {
-        strength = 'STRONG';
-        const matched = STRONG_KEYWORDS.find((k)=>allText.includes(k)) || '';
-        catalyst_type = capitalizeCatalyst(matched);
-    } else if (hasModerate) {
-        strength = 'MODERATE';
-        const matched = MODERATE_KEYWORDS.find((k)=>allText.includes(k)) || '';
-        catalyst_type = capitalizeCatalyst(matched);
-    } else if (hasWeak) {
-        strength = 'WEAK';
-        catalyst_type = 'Negative / dilutive news';
-    } else if (recentHeadlines.length > 0) {
-        strength = 'MODERATE';
-        catalyst_type = 'General company news (recent)';
-    } else {
-        strength = 'NONE';
-        catalyst_type = 'No fresh catalyst — pure technical move';
+        return {
+            strength: 'WEAK',
+            catalyst_type: 'Dilutive event (offering/secondary) — DANGER',
+            is_dilutive: true,
+            justifies_move: false
+        };
     }
-    const justifies_move = strength === 'STRONG' && !is_dilutive;
+    const { strength, catalyst_type } = await evaluateLatestHeadline(latest);
     return {
         strength,
         catalyst_type,
-        is_dilutive,
-        justifies_move
+        is_dilutive: false,
+        justifies_move: strength === 'STRONG'
     };
-}
-function capitalizeCatalyst(keyword) {
-    return keyword.split(' ').map((w)=>w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 async function fetchYahooNews(ticker) {
     try {
@@ -206,8 +227,8 @@ function createNewsTool() {
         if (!headlines.length) {
             headlines = await fetchFinvizNews(ticker);
         }
-        // 2. Rule-based catalyst scoring
-        const { strength, catalyst_type, is_dilutive, justifies_move } = scoreHeadlines(headlines);
+        // 2. Clasificación: solo la última noticia de hoy, evaluada por AI
+        const { strength, catalyst_type, is_dilutive, justifies_move } = await scoreHeadlines(headlines);
         // 3. Confidence score
         const recentCount = headlines.filter((h)=>h.age_minutes < 60).length;
         const confidence = strength === 'NONE' ? 0.1 : strength === 'WEAK' ? 0.3 : strength === 'MODERATE' ? 0.6 : recentCount > 0 ? 0.9 : 0.7;
@@ -235,13 +256,15 @@ function createNewsTool() {
             WEAK: '🔴',
             NONE: '⚪'
         }[strength];
+        const latestH = getLatestHeadline(headlines);
+        const evaluatedLine = latestH ? `Headline evaluada (última de hoy): "${latestH.title.slice(0, 80)}${latestH.title.length > 80 ? '…' : ''}"` : '';
         return `NEWS CATALYST ANALYSIS: ${ticker}
 ─────────────────────────────────────────
 Catalyst Strength: ${strengthEmoji} ${strength}
 Catalyst Type: ${catalyst_type}
 Justifies the Move: ${justifies_move ? 'YES ✅' : 'NO ❌'}
 Confidence: ${(confidence * 100).toFixed(0)}%
-Dilutive Risk: ${is_dilutive ? 'YES ⛔' : 'No'}
+Dilutive Risk: ${is_dilutive ? 'YES ⛔' : 'No'}${evaluatedLine ? `\n${evaluatedLine}` : ''}
 ─────────────────────────────────────────
 Recent Headlines (${headlines.length} found):
 ${headlineLines || '  No headlines found.'}

@@ -14,6 +14,7 @@ const _config = require("@nestjs/config");
 const _ragmodule = require("./rag/rag.module");
 const _agentmodule = require("./agent/agent.module");
 const _scannermodule = require("./scanner/scanner.module");
+const _analysislogmodule = require("./analysis-log/analysis-log.module");
 function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -29,6 +30,7 @@ AppModule = _ts_decorate([
                 isGlobal: true
             }),
             _schedule.ScheduleModule.forRoot(),
+            _analysislogmodule.AnalysisLogModule,
             _ragmodule.RagModule,
             _agentmodule.AgentModule,
             _scannermodule.ScannerModule

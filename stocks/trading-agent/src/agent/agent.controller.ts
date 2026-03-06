@@ -1,6 +1,7 @@
-import { Controller, Post, Body, Logger, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Query, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { IsString, IsNumber, IsOptional, Min } from 'class-validator';
 import { AgentService, AnalyzeResponse } from './agent.service';
+import { AnalysisLogService } from '../analysis-log/analysis-log.service';
 
 class AnalyzeDto {
   @IsString()
@@ -12,6 +13,10 @@ class AnalyzeDto {
   account_size?: number;
 
   @IsOptional()
+  @IsString()
+  timeframe?: '1m' | '5m';
+
+  @IsOptional()
   @IsNumber()
   cutoff_ms?: number;
 }
@@ -20,7 +25,10 @@ class AnalyzeDto {
 export class AgentController {
   private readonly logger = new Logger(AgentController.name);
 
-  constructor(private readonly agentService: AgentService) {}
+  constructor(
+    private readonly agentService: AgentService,
+    private readonly analysisLog: AnalysisLogService,
+  ) {}
 
   /**
    * POST /agent/analyze
@@ -41,6 +49,7 @@ export class AgentController {
       const result = await this.agentService.analyze({
         ticker: body.ticker.toUpperCase(),
         account_size: body.account_size,
+        timeframe: body.timeframe ?? '5m',
         cutoff_ms: body.cutoff_ms,
       });
       return result;
@@ -51,5 +60,31 @@ export class AgentController {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  /**
+   * GET /agent/logs?limit=50&ticker=NVDA
+   * Returns analysis history for debugging.
+   */
+  @Get('logs')
+  async getLogs(
+    @Query('limit') limit?: string,
+    @Query('ticker') ticker?: string,
+  ) {
+    const l = limit ? parseInt(limit, 10) : 50;
+    return this.analysisLog.list(l, ticker);
+  }
+
+  /**
+   * GET /agent/logs/:id
+   * Returns full analysis log by ID (messages, tool calls, response).
+   */
+  @Get('logs/:id')
+  async getLogById(@Param('id') id: string) {
+    const entry = await this.analysisLog.getById(parseInt(id, 10));
+    if (!entry) {
+      throw new HttpException('Log not found', HttpStatus.NOT_FOUND);
+    }
+    return entry;
   }
 }

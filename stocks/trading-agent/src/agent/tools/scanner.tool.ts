@@ -7,13 +7,14 @@ import { ScannerService, StockSnapshot } from '../../scanner/scanner.service';
 const TOOL_CANDLES = parseInt(process.env.TOOL_CANDLES_SHOWN ?? '0', 10);
 const TRADING_DAYS_HISTORY = parseInt(process.env.TRADING_DAYS_HISTORY ?? '2', 10);
 
-export function createScannerTool(scannerService: ScannerService, cutoffMs?: number): any {
+export function createScannerTool(scannerService: ScannerService, cutoffMs?: number, timeframe: '1m' | '5m' = '5m'): any {
   return tool(
     async ({ ticker }) => {
       try {
         const snap: StockSnapshot = await scannerService.getStockSnapshot(
           ticker.toUpperCase(),
           cutoffMs,
+          timeframe,
         );
 
         // Use cutoff time for session/time display in simulation mode
@@ -48,9 +49,10 @@ export function createScannerTool(scannerService: ScannerService, cutoffMs?: num
               : `below EMA20 (${snap.ema20.toFixed(2)})`
             : 'EMA20 unavailable';
 
+        const candlesForInterval = timeframe === '1m' ? snap.candles_1min : snap.candles_5min;
         const lastCandles = TOOL_CANDLES > 0
-          ? snap.candles_5min.slice(-TOOL_CANDLES)
-          : snap.candles_5min;
+          ? candlesForInterval.slice(-TOOL_CANDLES)
+          : candlesForInterval;
         const candleSummary = lastCandles
           .map((c) => {
             const timeStr = new Date(c.t).toLocaleTimeString('en-US', {
@@ -77,7 +79,7 @@ Pre-market High: ${snap.pre_market_high ? '$' + snap.pre_market_high.toFixed(2) 
 Volume: ${(snap.volume / 1e6).toFixed(2)}M | Avg: ${(snap.avg_volume / 1e6).toFixed(2)}M | Rel Vol: ${snap.relative_volume.toFixed(1)}x
 ATR (14d): $${snap.atr.toFixed(2)}
 ─────────────────────────────────
-5-min candles (${lastCandles.length} candles, last ${TRADING_DAYS_HISTORY} trading day(s)):
+${timeframe} candles (${lastCandles.length} candles, last ${TRADING_DAYS_HISTORY} trading day(s)):
 ${candleSummary || 'No intraday data available'}`;
       } catch (err) {
         return `Error fetching stock data for ${ticker}: ${err.message}`;
@@ -88,7 +90,7 @@ ${candleSummary || 'No intraday data available'}`;
       description:
         'Fetches real-time stock data from momoscreener.com for a given ticker. ' +
         'Returns: current price, VWAP, EMA9, EMA20, relative volume, ATR, ' +
-        'high/low of day, pre-market high, last 5-min candles, and current trading session. ' +
+        'high/low of day, pre-market high, candles (' + timeframe + '), and current trading session. ' +
         'Use this to understand where the stock is relative to key technical levels.',
       schema: z.object({
         ticker: z.string().describe('Stock ticker symbol, e.g. NVDA, TSLA, AAPL'),

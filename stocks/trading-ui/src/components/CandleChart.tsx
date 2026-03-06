@@ -9,12 +9,13 @@ import {
   CrosshairMode,
   LineStyle,
 } from 'lightweight-charts';
-import type { Candle } from '../types';
+import type { Candle, VwapPoint } from '../types';
 
 interface Props {
   candles: Candle[];
   title: string;
   vwap?: number | null;
+  vwap_line?: VwapPoint[];
   ema9?: number | null;
   ema20?: number | null;
   height?: number;
@@ -33,7 +34,7 @@ const CHART_THEME = {
   redDim: 'rgba(239,68,68,0.15)',
 };
 
-export default function CandleChart({ candles, title, vwap, ema9, ema20, height = 340, simMode, onCandleClick }: Props) {
+export default function CandleChart({ candles, title, vwap, vwap_line, ema9, ema20, height = 340, simMode, onCandleClick }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
@@ -156,33 +157,57 @@ export default function CandleChart({ candles, title, vwap, ema9, ema20, height 
     candleSeriesRef.current.setData(candleData);
     volSeriesRef.current.setData(volData);
 
-    // ── Per-candle indicator calculations ───────────────────────────────────
+    // ── VWAP: use backend vwap_line when available (guarantees match with legend)
+    const vwapOpts = {
+      color: '#fbbf24',
+      lineWidth: 2,
+      lineStyle: LineStyle.Solid as const,
+      lastValueVisible: true,
+      priceLineVisible: true,
+    };
+    if (vwap_line && vwap_line.length > 0) {
+      const points = vwap_line.map((p) => ({ time: p.t as any, value: p.value }));
+      const series = chartRef.current!.addLineSeries({ ...vwapOpts, title: 'VWAP' });
+      series.setData(points);
+    } else {
+      // Fallback: compute locally (9:30-16:00 ET, one series per day)
+      const MARKET_OPEN_MIN = 9 * 60 + 30;
+      const MARKET_CLOSE_MIN = 16 * 60;
+      const vwapByDay: { time: any; value: number }[][] = [];
+      let currentDayPoints: { time: any; value: number }[] = [];
+      let cumPV = 0, cumV = 0, lastEtDate = '';
+      for (let i = 0; i < candles.length; i++) {
+        const c = candles[i];
+        const dt = new Date(c.t);
+        const etDate = dt.toLocaleDateString('en-US', { timeZone: 'America/New_York' });
+        const etHour = parseInt(dt.toLocaleString('en-US', { timeZone: 'America/New_York', hour: 'numeric', hour12: false }));
+        const etMin = parseInt(dt.toLocaleString('en-US', { timeZone: 'America/New_York', minute: 'numeric' }));
+        const totalMinutesET = etHour * 60 + etMin;
 
-    // VWAP: starts at 9:30 AM ET each day (regular session only), resets daily
-    // Pre-market candles are excluded from VWAP calculation — matches TradingView behavior
-    const MARKET_OPEN_HOUR = 9;
-    const MARKET_OPEN_MIN  = 30;
-    const vwapPoints: { time: any; value: number }[] = [];
-    let cumPV = 0, cumV = 0, lastEtDate = '';
-    for (let i = 0; i < candles.length; i++) {
-      const c = candles[i];
-      const dt = new Date(c.t);
-      const etDate = dt.toLocaleDateString('en-US', { timeZone: 'America/New_York' });
-      const etHour = parseInt(dt.toLocaleString('en-US', { timeZone: 'America/New_York', hour: 'numeric', hour12: false }));
-      const etMin  = dt.toLocaleString('en-US', { timeZone: 'America/New_York', minute: 'numeric' });
-      const totalMinutesET = etHour * 60 + parseInt(etMin);
-      const marketOpenMinutes = MARKET_OPEN_HOUR * 60 + MARKET_OPEN_MIN;
+        if (etDate !== lastEtDate) {
+          cumPV = 0;
+          cumV = 0;
+          lastEtDate = etDate;
+          if (currentDayPoints.length) {
+            vwapByDay.push(currentDayPoints);
+            currentDayPoints = [];
+          }
+        }
+        if (totalMinutesET < MARKET_OPEN_MIN || totalMinutesET > MARKET_CLOSE_MIN) continue;
 
-      // Reset on new day
-      if (etDate !== lastEtDate) { cumPV = 0; cumV = 0; lastEtDate = etDate; }
-
-      // Only accumulate from 9:30 AM ET onwards
-      if (totalMinutesET < marketOpenMinutes) continue;
-
-      const tp = (c.h + c.l + c.c) / 3;
-      cumPV += tp * c.v;
-      cumV += c.v;
-      if (cumV > 0) vwapPoints.push({ time: candleData[i].time, value: cumPV / cumV });
+        const tp = (c.h + c.l + c.c) / 3;
+        cumPV += tp * c.v;
+        cumV += c.v;
+        if (cumV > 0) currentDayPoints.push({ time: candleData[i].time, value: cumPV / cumV });
+      }
+      if (currentDayPoints.length) vwapByDay.push(currentDayPoints);
+      vwapByDay.forEach((points, idx) => {
+        const series = chartRef.current!.addLineSeries({
+          ...vwapOpts,
+          title: idx === 0 ? 'VWAP' : undefined,
+        });
+        series.setData(points);
+      });
     }
 
     // EMA helper: returns per-candle values (null until enough data)
@@ -204,19 +229,6 @@ export default function CandleChart({ candles, title, vwap, ema9, ema20, height 
       }
       return points;
     };
-
-    // Draw VWAP
-    if (vwapPoints.length) {
-      const vwapSeries = chartRef.current!.addLineSeries({
-        color: '#facc15',
-        lineWidth: 1,
-        lineStyle: LineStyle.Dashed,
-        title: 'VWAP',
-        lastValueVisible: true,
-        priceLineVisible: false,
-      });
-      vwapSeries.setData(vwapPoints);
-    }
 
     // Draw EMA9
     const ema9Points = calcEMA(9);
@@ -245,7 +257,7 @@ export default function CandleChart({ candles, title, vwap, ema9, ema20, height 
     }
 
     chartRef.current!.timeScale().fitContent();
-  }, [candles, vwap, ema9, ema20]);
+  }, [candles, vwap, vwap_line, ema9, ema20]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>

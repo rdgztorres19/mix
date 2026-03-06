@@ -25,7 +25,7 @@ export default function MomoDropdown({ stocks, loading, filter, onSelect }: Prop
     ? stocks.filter((s) => s.symbol.startsWith(filter.toUpperCase()))
     : stocks;
 
-  if (!loading && filtered.length === 0) return null;
+  const empty = !loading && filtered.length === 0;
 
   return (
     <div style={{
@@ -33,8 +33,8 @@ export default function MomoDropdown({ stocks, loading, filter, onSelect }: Prop
       top: 'calc(100% + 6px)',
       left: 0,
       right: 0,
-      background: '#0f1520',
-      border: '1px solid #2d3f55',
+      background: empty ? '#131820' : '#0f1520',
+      border: `1px solid ${empty ? '#1e293b' : '#2d3f55'}`,
       borderRadius: 10,
       zIndex: 100,
       maxHeight: 420,
@@ -49,19 +49,31 @@ export default function MomoDropdown({ stocks, loading, filter, onSelect }: Prop
         alignItems: 'center',
         justifyContent: 'space-between',
       }}>
-        <span style={{ fontSize: 11, color: '#475569', fontFamily: "'JetBrains Mono', monospace" }}>
+        <span style={{ fontSize: 11, color: empty ? '#334155' : '#475569', fontFamily: "'JetBrains Mono', monospace" }}>
           TOP MOVERS · momoscreener
         </span>
         {loading && (
           <span style={{ fontSize: 11, color: '#475569' }}>cargando…</span>
         )}
         {!loading && (
-          <span style={{ fontSize: 11, color: '#334155' }}>{filtered.length} stocks</span>
+          <span style={{ fontSize: 11, color: empty ? '#334155' : '#334155' }}>
+            {empty ? 'Sin resultados' : `${filtered.length} stocks`}
+          </span>
         )}
       </div>
 
-      {/* Rows */}
-      {filtered.map((s) => (
+      {/* Rows or empty state */}
+      {empty ? (
+        <div style={{
+          padding: '20px 14px',
+          fontSize: 12,
+          color: '#475569',
+          fontFamily: "'JetBrains Mono', monospace",
+          textAlign: 'center',
+        }}>
+          {filter ? `Ningún ticker coincide con «${filter}»` : 'No hay stocks disponibles'}
+        </div>
+      ) : filtered.map((s) => (
         <button
           key={s.symbol}
           onMouseDown={(e) => { e.preventDefault(); onSelect(s.symbol); }}
@@ -78,21 +90,25 @@ export default function MomoDropdown({ stocks, loading, filter, onSelect }: Prop
             gap: 12,
             transition: 'background 0.1s',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = '#1a2030')}
+          onMouseEnter={(e) => (e.currentTarget.style.background = s.ideal ? '#1a2030' : '#2a1515')}
           onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
         >
-          {/* Symbol + price */}
+          {/* Symbol + price — red if not ideal */}
           <div style={{ minWidth: 80 }}>
             <div style={{
               fontWeight: 700,
               fontSize: 14,
-              color: '#e2e8f0',
+              color: s.ideal ? '#e2e8f0' : '#ef4444',
               fontFamily: "'JetBrains Mono', monospace",
               letterSpacing: '0.03em',
             }}>
               {s.symbol}
             </div>
-            <div style={{ fontSize: 12, color: '#64748b', fontFamily: "'JetBrains Mono', monospace" }}>
+            <div style={{
+              fontSize: 12,
+              color: s.ideal ? '#64748b' : '#b91c1c',
+              fontFamily: "'JetBrains Mono', monospace",
+            }}>
               ${s.price.toFixed(2)}
             </div>
           </div>
@@ -106,7 +122,8 @@ export default function MomoDropdown({ stocks, loading, filter, onSelect }: Prop
               {s.change >= 0 ? '+' : ''}{s.change.toFixed(1)}%
             </span>
             <span style={{
-              fontSize: 10, color: '#475569',
+              fontSize: 10,
+              color: s.ideal ? '#475569' : '#b91c1c',
               fontFamily: "'JetBrains Mono', monospace",
             }}>
               5m: {s.change5m >= 0 ? '+' : ''}{s.change5m.toFixed(1)}%
@@ -115,11 +132,19 @@ export default function MomoDropdown({ stocks, loading, filter, onSelect }: Prop
 
           {/* Volume + float */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 72 }}>
-            <span style={{ fontSize: 11, color: '#94a3b8', fontFamily: "'JetBrains Mono', monospace" }}>
+            <span style={{
+              fontSize: 11,
+              color: s.ideal ? '#94a3b8' : '#b91c1c',
+              fontFamily: "'JetBrains Mono', monospace",
+            }}>
               {fmtVol(s.volume)}
             </span>
             {fmtFloat(s.float) && (
-              <span style={{ fontSize: 10, color: '#334155', fontFamily: "'JetBrains Mono', monospace" }}>
+              <span style={{
+                fontSize: 10,
+                color: s.ideal ? '#334155' : '#b91c1c',
+                fontFamily: "'JetBrains Mono', monospace",
+              }}>
                 {fmtFloat(s.float)}
               </span>
             )}
@@ -130,7 +155,7 @@ export default function MomoDropdown({ stocks, loading, filter, onSelect }: Prop
             <div style={{
               flex: 1,
               fontSize: 11,
-              color: '#475569',
+              color: s.ideal ? '#475569' : '#b91c1c',
               overflow: 'hidden',
               display: '-webkit-box',
               WebkitLineClamp: 2,

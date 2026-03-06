@@ -6,6 +6,7 @@ import StatBadge from './components/StatBadge';
 import NewsPanel from './components/NewsPanel';
 import MomoDropdown from './components/MomoDropdown';
 import StrategyGuide from './components/StrategyGuide';
+import LogsPanel from './components/LogsPanel';
 import type { StockSnapshot, AnalyzeResponse, CatalystAnalysis, MomoStock } from './types';
 
 type Tab = '1m' | '5m' | 'news';
@@ -39,6 +40,7 @@ export default function App() {
   const [momoLoading, setMomoLoading] = useState(false);
   const [showMomo, setShowMomo] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  const [showLogs, setShowLogs] = useState(false);
 
   // Simulation mode: limit data visible to agent/chart up to a specific ET datetime
   const [simMode, setSimMode] = useState(false);
@@ -110,9 +112,11 @@ export default function App() {
     setError('');
     try {
       const cutoff = simCutoffMs();
+      const timeframe = (tab === '1m' || tab === '5m') ? tab : '5m';
       const { data } = await axios.post<AnalyzeResponse>('/api/agent/analyze', {
         ticker,
         account_size: Number(accountSize) || 25000,
+        timeframe,
         ...(cutoff ? { cutoff_ms: cutoff } : {}),
       });
       setAnalysis(data);
@@ -122,7 +126,7 @@ export default function App() {
       setStatus('error');
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ticker, accountSize, simMode, simDatetime]);
+  }, [ticker, accountSize, tab, simMode, simDatetime]);
 
   const handleSearch = () => {
     const sym = input.trim().toUpperCase();
@@ -232,6 +236,26 @@ export default function App() {
             }}
           >
             ?
+          </button>
+          <button
+            onClick={() => setShowLogs(true)}
+            title="Historial de análisis (debug)"
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: '50%',
+              background: 'rgba(34,197,94,0.15)',
+              border: '1px solid rgba(34,197,94,0.4)',
+              color: '#22c55e',
+              fontSize: 14,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            📋
           </button>
         </div>
 
@@ -530,6 +554,7 @@ export default function App() {
                   candles={snapshot.candles_1min}
                   title={`${snapshot.ticker} · 1 min  (ET)`}
                   vwap={snapshot.vwap}
+                  vwap_line={snapshot.vwap_line}
                   ema9={snapshot.ema9}
                   ema20={snapshot.ema20}
                   height={380}
@@ -543,6 +568,7 @@ export default function App() {
                   candles={snapshot.candles_5min}
                   title={`${snapshot.ticker} · 5 min  (ET)`}
                   vwap={snapshot.vwap}
+                  vwap_line={snapshot.vwap_line}
                   ema9={snapshot.ema9}
                   ema20={snapshot.ema20}
                   height={380}
@@ -638,6 +664,7 @@ export default function App() {
       </main>
 
       {showGuide && <StrategyGuide onClose={() => setShowGuide(false)} />}
+      {showLogs && <LogsPanel onClose={() => setShowLogs(false)} />}
     </div>
   );
 }

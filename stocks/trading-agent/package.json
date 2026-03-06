@@ -8,7 +8,8 @@
     "start": "nest start",
     "start:dev": "nest start --watch --builder swc",
     "start:prod": "node dist/main",
-    "embed": "ts-node -r tsconfig-paths/register scripts/embed-knowledge.ts"
+    "embed": "ts-node -r tsconfig-paths/register scripts/embed-knowledge.ts",
+    "debug-metrics": "node scripts/debug-stock-metrics.js -- GXAI 2026-03-05 9:31 5m"
   },
   "dependencies": {
     "@langchain/core": "^0.3.0",
@@ -24,6 +25,7 @@
     "class-validator": "^0.14.0",
     "dotenv": "^16.0.0",
     "langchain": "^0.3.0",
+    "mysql2": "^3.19.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.0",
     "zod": "^3.22.0"

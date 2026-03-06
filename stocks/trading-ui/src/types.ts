@@ -7,10 +7,16 @@ export interface Candle {
   t: number; // ms timestamp
 }
 
+export interface VwapPoint {
+  t: number;    // unix seconds
+  value: number;
+}
+
 export interface StockSnapshot {
   ticker: string;
   price: number;
   vwap: number | null;
+  vwap_line?: VwapPoint[];
   ema9: number | null;
   ema20: number | null;
   volume: number;
@@ -54,6 +60,7 @@ export interface MomoStock {
   float: number | null;
   headline: string;
   headline_source: string;
+  ideal: boolean; // meets Stock in Play conditions
 }
 
 export interface AnalyzeResponse {

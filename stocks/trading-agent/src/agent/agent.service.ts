@@ -3,6 +3,7 @@ import { ChatOpenAI } from '@langchain/openai';
 import { HumanMessage, SystemMessage, AIMessage, ToolMessage } from '@langchain/core/messages';
 import { RagService } from '../rag/rag.service';
 import { ScannerService } from '../scanner/scanner.service';
+import { AnalysisLogService } from '../analysis-log/analysis-log.service';
 import { createRagTool } from './tools/rag.tool';
 import { createScannerTool } from './tools/scanner.tool';
 import { createRulesTool } from './tools/rules.tool';
@@ -11,6 +12,7 @@ import { createNewsTool } from './tools/news.tool';
 export interface AnalyzeRequest {
   ticker: string;
   account_size?: number;
+  timeframe?: '1m' | '5m';  // velas usadas para VWAP, EMA, ATR (igual que tab del UI)
   cutoff_ms?: number; // optional simulation cutoff (unix ms); if set, agent sees data only up to this time
 }
 
@@ -126,6 +128,7 @@ export class AgentService {
   constructor(
     private readonly ragService: RagService,
     private readonly scannerService: ScannerService,
+    private readonly analysisLog: AnalysisLogService,
   ) {
     this.llm = new ChatOpenAI({
       model: 'gpt-4o-mini',
@@ -135,15 +138,15 @@ export class AgentService {
   }
 
   async analyze(req: AnalyzeRequest): Promise<AnalyzeResponse> {
-    const { ticker, account_size = Number(process.env.DEFAULT_ACCOUNT_SIZE) || 25000, cutoff_ms } = req;
+    const { ticker, account_size = Number(process.env.DEFAULT_ACCOUNT_SIZE) || 25000, timeframe = '5m', cutoff_ms } = req;
     const tStart = Date.now();
     this.logger.log(
-      `[0.0s] Analyzing ${ticker} | account $${account_size}` +
+      `[0.0s] Analyzing ${ticker} | account $${account_size} | ${timeframe}` +
       (cutoff_ms ? ` | SIMULATION up to ${new Date(cutoff_ms).toLocaleString('en-US', { timeZone: 'America/New_York' })} ET` : ''),
     );
 
     const ragTool = createRagTool(this.ragService);
-    const scannerTool = createScannerTool(this.scannerService, cutoff_ms);
+    const scannerTool = createScannerTool(this.scannerService, cutoff_ms, timeframe);
     const rulesTool = createRulesTool();
     const newsTool = createNewsTool();
     const tools = [ragTool, scannerTool, rulesTool, newsTool];
@@ -229,13 +232,14 @@ export class AgentService {
     // Parse structured JSON from the response
     const parsed = this.parseAgentResponse(rawAnalysis, ticker, account_size);
 
-    this.logger.log(`[${((Date.now() - tStart) / 1000).toFixed(1)}s] ANALYSIS COMPLETE for ${ticker}`);
+    const durationMs = Date.now() - tStart;
+    this.logger.log(`[${(durationMs / 1000).toFixed(1)}s] ANALYSIS COMPLETE for ${ticker}`);
 
     const momentoEt = cutoff_ms
       ? new Date(cutoff_ms).toLocaleString('en-US', { timeZone: 'America/New_York', dateStyle: 'short', timeStyle: 'short' }) + ' ET'
       : new Date().toLocaleString('en-US', { timeZone: 'America/New_York', dateStyle: 'short', timeStyle: 'short' }) + ' ET';
 
-    return {
+    const result = {
       ...parsed,
       ticker: ticker.toUpperCase(),
       momento_analisis_et: momentoEt,
@@ -243,6 +247,32 @@ export class AgentService {
       tool_calls_made: toolCallsCount,
       raw_analysis: rawAnalysis,
     };
+
+    this.analysisLog.insert({
+      ticker: ticker.toUpperCase(),
+      account_size,
+      cutoff_ms: cutoff_ms ?? null,
+      request_prompt: `Analyze ${ticker.toUpperCase()} for a trading opportunity. My account size is $${account_size.toLocaleString()}.`,
+      messages_json: JSON.stringify(this.serializeMessages(messages)),
+      response_json: JSON.stringify(result),
+      raw_analysis: rawAnalysis,
+      tool_calls_count: toolCallsCount,
+      rag_chunks_used: ragChunksUsed,
+      duration_ms: durationMs,
+    });
+
+    return result;
+  }
+
+  private serializeMessages(messages: any[]): any[] {
+    return messages.map((m) => {
+      const type = (m.constructor?.name ?? 'unknown').replace('Message', '').toLowerCase();
+      const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content);
+      const obj: any = { type, content: content.slice(0, 100_000) };
+      if (m.tool_calls?.length) obj.tool_calls = m.tool_calls;
+      if (m.tool_call_id) obj.tool_call_id = m.tool_call_id;
+      return obj;
+    });
   }
 
   private parseAgentResponse(

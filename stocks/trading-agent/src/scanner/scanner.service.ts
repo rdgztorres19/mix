@@ -17,10 +17,16 @@ export interface StockCandidate {
   reason: string;
 }
 
+export interface VwapPoint {
+  t: number;    // unix seconds (for chart)
+  value: number;
+}
+
 export interface StockSnapshot {
   ticker: string;
   price: number;
   vwap: number | null;
+  vwap_line: VwapPoint[];  // cumulative VWAP per 5-min bar, for chart
   ema9: number | null;
   ema20: number | null;
   volume: number;
@@ -91,14 +97,13 @@ export class ScannerService {
 
   /**
    * Fetch 1-min candles from momoscreener and build a full StockSnapshot.
-   * API: GET /api/p/ticker/chart?q=TICKER&interval=1m
-   * Response: { error: 0, message: { symbol, history: [[o,h,l,c,v,t], ...] } }
-   * NOTE: history[0] is the MOST RECENT candle (newest first).
+   * timeframe: '1m' | '5m' — velas usadas para VWAP, EMA9, EMA20, ATR, price (alineado con tab del UI)
    */
-  async getStockSnapshot(ticker: string, cutoffMs?: number): Promise<StockSnapshot> {
+  async getStockSnapshot(ticker: string, cutoffMs?: number, timeframe: '1m' | '5m' = '5m'): Promise<StockSnapshot> {
     ticker = ticker.toUpperCase();
     this.logger.log(
-      `Fetching snapshot for ${ticker}${cutoffMs ? ` [SIMULATION cutoff: ${new Date(cutoffMs).toLocaleString('en-US', { timeZone: 'America/New_York' })} ET]` : ''}`,
+      `Fetching snapshot for ${ticker} | ${timeframe}` +
+      (cutoffMs ? ` [SIMULATION cutoff: ${new Date(cutoffMs).toLocaleString('en-US', { timeZone: 'America/New_York' })} ET]` : ''),
     );
 
     let candles1m: Candle[] = [];
@@ -133,14 +138,10 @@ export class ScannerService {
       if (!candles1m.length) return this.getMockSnapshot(ticker);
     }
 
-    // ── Compute stats on the FULL history before filtering ──────────────────
+    // ── Compute stats ───────────────────────────────────────────────────────
 
     // Average volume across all available days (needs full history)
     const avg_volume = this.estimateAvgDailyVolume(candles1m);
-
-    // ATR on full 5-min history
-    const all5m = this.aggregate1mTo5m(candles1m);
-    const atr = this.calculateATR(all5m, this.ATR_PERIOD);
 
     // ── Determine history window (N trading days) ───────────────────────────
     const historyStart = this.getHistoryStartMs(candles1m, this.TRADING_DAYS_HISTORY);
@@ -154,10 +155,10 @@ export class ScannerService {
     const candles1mDay = candles1m.filter((c) => c.t >= historyStart);
     const candles5mDay = this.aggregate1mTo5m(candles1mDay);
 
-    // Current price = close of most recent candle
-    const latest = candles1mDay.length
-      ? candles1mDay[candles1mDay.length - 1]
-      : candles1m[candles1m.length - 1];
+    const candlesForMetrics = timeframe === '1m' ? candles1mDay : candles5mDay;
+    const latest = candlesForMetrics.length
+      ? candlesForMetrics[candlesForMetrics.length - 1]
+      : candles1mDay[candles1mDay.length - 1] ?? candles1m[candles1m.length - 1];
     const price = latest.c;
 
     // Session candles (9:30 AM ET onwards)
@@ -191,19 +192,19 @@ export class ScannerService {
     const volume = sessionCandles.reduce((s, c) => s + c.v, 0);
     const relative_volume = avg_volume > 0 ? volume / avg_volume : 0;
 
-    // VWAP from today's session 5-min candles
-    const session5mDay = candles5mDay.filter((c) => c.t >= marketOpen);
-    const vwap = this.calculateVWAP(session5mDay);
-
-    // EMAs from today's 5-min closes
-    const closes5mDay = candles5mDay.map((c) => c.c);
-    const ema9 = this.calculateEMA(closes5mDay, 9);
-    const ema20 = this.calculateEMA(closes5mDay, 20);
+    // VWAP, EMA, ATR según timeframe (1m o 5m) — alineado con tab del UI
+    const vwap = this.calculateVWAP(candlesForMetrics);
+    const vwap_line = this.calculateVWAPLine(candlesForMetrics);
+    const closes = candlesForMetrics.map((c) => c.c);
+    const ema9 = this.calculateEMA(closes, 9);
+    const ema20 = this.calculateEMA(closes, 20);
+    const atr = this.calculateATR(candlesForMetrics, this.ATR_PERIOD);
 
     return {
       ticker,
       price,
       vwap,
+      vwap_line,
       ema9,
       ema20,
       volume,
@@ -416,6 +417,19 @@ export class ScannerService {
     return totalV > 0 ? totalPV / totalV : null;
   }
 
+  /** Cumulative VWAP points per candle for chart (matches calculateVWAP logic). */
+  private calculateVWAPLine(candles: Candle[]): VwapPoint[] {
+    const points: VwapPoint[] = [];
+    let cumPV = 0, cumV = 0;
+    for (const c of candles) {
+      const typical = (c.h + c.l + c.c) / 3;
+      cumPV += typical * c.v;
+      cumV += c.v;
+      if (cumV > 0) points.push({ t: Math.floor(c.t / 1000), value: cumPV / cumV });
+    }
+    return points;
+  }
+
   private calculateEMA(values: number[], period: number): number | null {
     if (values.length < period) return null;
     const k = 2 / (period + 1);
@@ -433,6 +447,7 @@ export class ScannerService {
       ticker,
       price: 5.42,
       vwap: 5.20,
+      vwap_line: [],
       ema9: 5.35,
       ema20: 5.10,
       volume: 4500000,

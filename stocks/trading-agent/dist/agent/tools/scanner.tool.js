@@ -14,10 +14,10 @@ const _zod = require("zod");
 // 0 = send all candles from the history window (default); any positive number caps it
 const TOOL_CANDLES = parseInt(process.env.TOOL_CANDLES_SHOWN ?? '0', 10);
 const TRADING_DAYS_HISTORY = parseInt(process.env.TRADING_DAYS_HISTORY ?? '2', 10);
-function createScannerTool(scannerService, cutoffMs) {
+function createScannerTool(scannerService, cutoffMs, timeframe = '5m') {
     return (0, _tools.tool)(async ({ ticker })=>{
         try {
-            const snap = await scannerService.getStockSnapshot(ticker.toUpperCase(), cutoffMs);
+            const snap = await scannerService.getStockSnapshot(ticker.toUpperCase(), cutoffMs, timeframe);
             // Use cutoff time for session/time display in simulation mode
             const refDate = cutoffMs ? new Date(cutoffMs) : new Date();
             const etTime = new Intl.DateTimeFormat('en-US', {
@@ -30,7 +30,8 @@ function createScannerTool(scannerService, cutoffMs) {
             const priceVsVwap = snap.vwap ? snap.price > snap.vwap ? `ABOVE VWAP (+${((snap.price - snap.vwap) / snap.vwap * 100).toFixed(2)}%)` : `BELOW VWAP (-${((snap.vwap - snap.price) / snap.vwap * 100).toFixed(2)}%)` : 'VWAP unavailable';
             const ema9Relation = snap.ema9 ? snap.price > snap.ema9 ? `above EMA9 (${snap.ema9.toFixed(2)})` : `below EMA9 (${snap.ema9.toFixed(2)})` : 'EMA9 unavailable';
             const ema20Relation = snap.ema20 ? snap.price > snap.ema20 ? `above EMA20 (${snap.ema20.toFixed(2)})` : `below EMA20 (${snap.ema20.toFixed(2)})` : 'EMA20 unavailable';
-            const lastCandles = TOOL_CANDLES > 0 ? snap.candles_5min.slice(-TOOL_CANDLES) : snap.candles_5min;
+            const candlesForInterval = timeframe === '1m' ? snap.candles_1min : snap.candles_5min;
+            const lastCandles = TOOL_CANDLES > 0 ? candlesForInterval.slice(-TOOL_CANDLES) : candlesForInterval;
             const candleSummary = lastCandles.map((c)=>{
                 const timeStr = new Date(c.t).toLocaleTimeString('en-US', {
                     timeZone: 'America/New_York',
@@ -54,14 +55,14 @@ Pre-market High: ${snap.pre_market_high ? '$' + snap.pre_market_high.toFixed(2) 
 Volume: ${(snap.volume / 1e6).toFixed(2)}M | Avg: ${(snap.avg_volume / 1e6).toFixed(2)}M | Rel Vol: ${snap.relative_volume.toFixed(1)}x
 ATR (14d): $${snap.atr.toFixed(2)}
 ─────────────────────────────────
-5-min candles (${lastCandles.length} candles, last ${TRADING_DAYS_HISTORY} trading day(s)):
+${timeframe} candles (${lastCandles.length} candles, last ${TRADING_DAYS_HISTORY} trading day(s)):
 ${candleSummary || 'No intraday data available'}`;
         } catch (err) {
             return `Error fetching stock data for ${ticker}: ${err.message}`;
         }
     }, {
         name: 'get_stock_data',
-        description: 'Fetches real-time stock data from momoscreener.com for a given ticker. ' + 'Returns: current price, VWAP, EMA9, EMA20, relative volume, ATR, ' + 'high/low of day, pre-market high, last 5-min candles, and current trading session. ' + 'Use this to understand where the stock is relative to key technical levels.',
+        description: 'Fetches real-time stock data from momoscreener.com for a given ticker. ' + 'Returns: current price, VWAP, EMA9, EMA20, relative volume, ATR, ' + 'high/low of day, pre-market high, candles (' + timeframe + '), and current trading session. ' + 'Use this to understand where the stock is relative to key technical levels.',
         schema: _zod.z.object({
             ticker: _zod.z.string().describe('Stock ticker symbol, e.g. NVDA, TSLA, AAPL')
         })

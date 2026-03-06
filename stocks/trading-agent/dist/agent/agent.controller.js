@@ -11,6 +11,7 @@ Object.defineProperty(exports, "AgentController", {
 const _common = require("@nestjs/common");
 const _classvalidator = require("class-validator");
 const _agentservice = require("./agent.service");
+const _analysislogservice = require("../analysis-log/analysis-log.service");
 function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -39,6 +40,11 @@ _ts_decorate([
 ], AnalyzeDto.prototype, "account_size", void 0);
 _ts_decorate([
     (0, _classvalidator.IsOptional)(),
+    (0, _classvalidator.IsString)(),
+    _ts_metadata("design:type", String)
+], AnalyzeDto.prototype, "timeframe", void 0);
+_ts_decorate([
+    (0, _classvalidator.IsOptional)(),
     (0, _classvalidator.IsNumber)(),
     _ts_metadata("design:type", Number)
 ], AnalyzeDto.prototype, "cutoff_ms", void 0);
@@ -58,6 +64,7 @@ let AgentController = class AgentController {
             const result = await this.agentService.analyze({
                 ticker: body.ticker.toUpperCase(),
                 account_size: body.account_size,
+                timeframe: body.timeframe ?? '5m',
                 cutoff_ms: body.cutoff_ms
             });
             return result;
@@ -66,8 +73,26 @@ let AgentController = class AgentController {
             throw new _common.HttpException(`Analysis failed: ${err.message}`, _common.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    constructor(agentService){
+    /**
+   * GET /agent/logs?limit=50&ticker=NVDA
+   * Returns analysis history for debugging.
+   */ async getLogs(limit, ticker) {
+        const l = limit ? parseInt(limit, 10) : 50;
+        return this.analysisLog.list(l, ticker);
+    }
+    /**
+   * GET /agent/logs/:id
+   * Returns full analysis log by ID (messages, tool calls, response).
+   */ async getLogById(id) {
+        const entry = await this.analysisLog.getById(parseInt(id, 10));
+        if (!entry) {
+            throw new _common.HttpException('Log not found', _common.HttpStatus.NOT_FOUND);
+        }
+        return entry;
+    }
+    constructor(agentService, analysisLog){
         this.agentService = agentService;
+        this.analysisLog = analysisLog;
         this.logger = new _common.Logger(AgentController.name);
     }
 };
@@ -80,11 +105,32 @@ _ts_decorate([
     ]),
     _ts_metadata("design:returntype", Promise)
 ], AgentController.prototype, "analyze", null);
+_ts_decorate([
+    (0, _common.Get)('logs'),
+    _ts_param(0, (0, _common.Query)('limit')),
+    _ts_param(1, (0, _common.Query)('ticker')),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        String,
+        String
+    ]),
+    _ts_metadata("design:returntype", Promise)
+], AgentController.prototype, "getLogs", null);
+_ts_decorate([
+    (0, _common.Get)('logs/:id'),
+    _ts_param(0, (0, _common.Param)('id')),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        String
+    ]),
+    _ts_metadata("design:returntype", Promise)
+], AgentController.prototype, "getLogById", null);
 AgentController = _ts_decorate([
     (0, _common.Controller)('agent'),
     _ts_metadata("design:type", Function),
     _ts_metadata("design:paramtypes", [
-        typeof _agentservice.AgentService === "undefined" ? Object : _agentservice.AgentService
+        typeof _agentservice.AgentService === "undefined" ? Object : _agentservice.AgentService,
+        typeof _analysislogservice.AnalysisLogService === "undefined" ? Object : _analysislogservice.AnalysisLogService
     ])
 ], AgentController);
 

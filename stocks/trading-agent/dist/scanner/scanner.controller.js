@@ -59,7 +59,7 @@ let ScannerController = class ScannerController {
         const sym = ticker.toUpperCase();
         let headlines = await (0, _newstool.fetchYahooNews)(sym);
         if (!headlines.length) headlines = await (0, _newstool.fetchFinvizNews)(sym);
-        const { strength, catalyst_type, is_dilutive, justifies_move } = (0, _newstool.scoreHeadlines)(headlines);
+        const { strength, catalyst_type, is_dilutive, justifies_move } = await (0, _newstool.scoreHeadlines)(headlines);
         const recentCount = headlines.filter((h)=>h.age_minutes < 60).length;
         const confidence = strength === 'NONE' ? 0.1 : strength === 'WEAK' ? 0.3 : strength === 'MODERATE' ? 0.6 : recentCount > 0 ? 0.9 : 0.7;
         let trade_implication = '';
@@ -95,54 +95,58 @@ let ScannerController = class ScannerController {
             timeout: 8000
         });
         const items = res.data?.message ?? [];
+        const volOf = (item)=>item.live?.totalVolume ?? item.stats?.volume ?? item.quote?.totalVolume ?? 0;
         // Deduplicate by symbol — keep the entry with highest volume
         const bySymbol = new Map();
         for (const item of items){
             const sym = item.symbol;
             if (!sym) continue;
             const existing = bySymbol.get(sym);
-            const vol = item.quote?.totalVolume ?? 0;
-            if (!existing || vol > (existing.quote?.totalVolume ?? 0)) {
+            const vol = volOf(item);
+            if (!existing || vol > volOf(existing)) {
                 bySymbol.set(sym, item);
             }
         }
-        const mapped = [
-            ...bySymbol.values()
-        ].map((item)=>({
-                symbol: item.symbol,
-                price: item.live?.lastPrice ?? item.stats?.price ?? item.quote?.lastPrice ?? 0,
-                change: item.change ?? 0,
-                change5m: item.change5m ?? 0,
-                volume: item.quote?.totalVolume ?? 0,
-                float: item.stats?.floatShares ?? null,
-                headline: item.news?.headline ? item.news.headline.replace(/&#39;/g, "'").replace(/&amp;/g, '&') : '',
-                headline_source: item.news?.source ?? ''
-            }));
-        // Filter by ideal Stock in Play conditions:
-        // Price $2–$20 | Change ≥10% | Rel vol ≥5x | Catalyst (news) | Float <20M
         const IDEAL_PRICE_MIN = 2;
         const IDEAL_PRICE_MAX = 20;
         const IDEAL_CHANGE_PCT = 10;
-        const IDEAL_REL_VOL = 5;
         const IDEAL_FLOAT_MAX = 20_000_000;
-        return mapped.filter((s)=>{
-            if (s.price < IDEAL_PRICE_MIN || s.price > IDEAL_PRICE_MAX) return false;
-            if (s.change < IDEAL_CHANGE_PCT) return false;
-            // Float: exclude if known and >20M; allow if null (unknown)
-            if (s.float != null && s.float > IDEAL_FLOAT_MAX) return false;
-            // Catalyst: must have news headline (technical breakout not detectable from momo API)
-            if (!s.headline?.trim()) return false;
-            // Rel vol: need avgVolume from source — use raw item to compute
-            const raw = [
-                ...bySymbol.values()
-            ].find((x)=>x.symbol === s.symbol);
-            const avgVol = raw?.stats?.avgVolume ?? raw?.quote?.totalVolume;
-            if (avgVol && avgVol > 0) {
-                const relVol = s.volume / avgVol;
-                if (relVol < IDEAL_REL_VOL) return false;
-            }
-            return true;
+        const IDEAL_REL_VOL = 5;
+        const headlineOf = (item)=>{
+            const n = item.news;
+            const raw = Array.isArray(n) ? n[0]?.headline : n?.headline;
+            return raw ? String(raw).replace(/&#39;/g, "'").replace(/&amp;/g, '&') : '';
+        };
+        const sourceOf = (item)=>{
+            const n = item.news;
+            return (Array.isArray(n) ? n[0]?.source : n?.source) ?? '';
+        };
+        const mapped = [
+            ...bySymbol.values()
+        ].map((item)=>{
+            const price = item.live?.lastPrice ?? item.stats?.price ?? item.quote?.lastPrice ?? 0;
+            const change = item.change ?? 0;
+            const volume = volOf(item);
+            const float = item.stats?.floatShares ?? null;
+            const headline = headlineOf(item);
+            const avgVol = item.stats?.avgVolume ?? item.quote?.totalVolume;
+            const relVol = avgVol && avgVol > 0 ? volume / avgVol : null;
+            const ideal = price >= IDEAL_PRICE_MIN && price <= IDEAL_PRICE_MAX && change >= IDEAL_CHANGE_PCT && (float == null || float <= IDEAL_FLOAT_MAX) && !!headline?.trim() && (relVol == null || relVol >= IDEAL_REL_VOL);
+            return {
+                symbol: item.symbol,
+                price,
+                change,
+                change5m: item.change5m ?? 0,
+                volume,
+                float,
+                headline,
+                headline_source: sourceOf(item),
+                ideal
+            };
         });
+        // Sort by change descending (hot movers first)
+        mapped.sort((a, b)=>b.change - a.change);
+        return mapped;
     }
     constructor(scannerService){
         this.scannerService = scannerService;
