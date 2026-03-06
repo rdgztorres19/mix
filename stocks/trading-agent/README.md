@@ -9,7 +9,8 @@ User → POST /agent/analyze → LangChain Agent
                                ├── Tool: get_stock_data          → momoscreener.com API
                                ├── Tool: analyze_news_catalyst   → Yahoo Finance / momoscreener news
                                ├── Tool: apply_trading_rules     → Deterministic rules engine
-                               └── Tool: search_trading_knowledge → Qdrant RAG
+                               ├── Tool: search_trading_knowledge → Qdrant RAG
+                               └── Tool: run_python              → Ejecuta código Python (pandas, numpy, matplotlib)
 
 UI (React + Vite) → http://localhost:5173
   ├── Ticker input + search
@@ -30,20 +31,27 @@ cp .env.example .env
 docker compose up -d
 ```
 
-### 3. Embed your trading knowledge
+### 3. (Opcional) Python sandbox para run_python tool
+```bash
+cd scripts/python-sandbox
+pip3 install -r requirements.txt
+```
+Requiere: pandas, numpy, matplotlib. Si no lo instalas, el tool run_python fallará si el agente lo usa.
+
+### 4. Embed your trading knowledge
 ```bash
 npm run embed
 ```
 
-### 4. Start the API
+### 5. Start the API
 ```bash
 npm run start:dev
 # → http://localhost:3000
 ```
 
-### 5. Start the UI
+### 6. Start the UI
 ```bash
-cd trading-ui
+cd ui
 npm install   # solo la primera vez
 npm run dev
 # → http://localhost:5173
@@ -56,7 +64,9 @@ npm run dev
 POST /agent/analyze
 {
   "ticker": "NVDA",
-  "account_size": 25000
+  "account_size": 25000,
+  "timeframe": "5m",      // opcional: "1m" | "5m" — velas para VWAP/EMA/ATR (default: 5m)
+  "cutoff_ms": 1738600000000  // opcional: unix ms para modo replay/simulación
 }
 ```
 
@@ -65,7 +75,10 @@ POST /agent/analyze
 {
   "ticker": "NVDA",
   "decision": "PREPARAR_ENTRADA",
+  "momento_analisis_et": "3/1/2026, 2:30 PM ET",
   "estrategia": "Bull Flag",
+  "estrategia_mas_probable": "Bull Flag formando",
+  "esperar_para_validar": "Break del high de consolidación con volumen",
   "entry": 18.55,
   "stop": 18.15,
   "target_1": 18.75,
@@ -77,7 +90,8 @@ POST /agent/analyze
   "justificacion": "...",
   "alertas": ["..."],
   "rag_chunks_usados": 3,
-  "tool_calls_made": 5
+  "tool_calls_made": 5,
+  "raw_analysis": "..."
 }
 ```
 
@@ -99,7 +113,8 @@ The agent follows this flow for each analysis:
 3. `apply_trading_rules(...)` → identifies strategy, entry/stop/targets, R/R
 4. `search_trading_knowledge(query, strategy)` → retrieves specific strategy rules from RAG
 5. (optional) `search_trading_knowledge(...)` → retrieves risk/exit rules
-6. Final response with structured JSON decision
+6. (optional) `run_python(code)` → ejecuta Python con pandas, numpy, matplotlib cuando necesita cálculos o gráficos
+7. Final response with structured JSON decision
 
 > If catalyst is NONE or WEAK → `NO_OPERAR`.
 > If dilutive event detected (offering/secondary) → `NO_OPERAR` on long side.
@@ -133,6 +148,15 @@ React app at `ui/` — dark terminal-style interface:
 - Relative volume: 5x minimum
 - Float: ≤ 20M shares
 - ATR: ≥ $0.50
+
+## Python Tool (run_python)
+
+El agente puede ejecutar código Python cuando necesita cálculos complejos o visualizaciones. Librerías pre-cargadas:
+- `pd` (pandas)
+- `np` (numpy)
+- `plt` (matplotlib.pyplot, backend Agg)
+
+**Instalación:** `pip3 install -r scripts/python-sandbox/requirements.txt`
 
 ## Risk Management (enforced by rules engine)
 

@@ -8,6 +8,7 @@ import { createRagTool } from './tools/rag.tool';
 import { createScannerTool } from './tools/scanner.tool';
 import { createRulesTool } from './tools/rules.tool';
 import { createNewsTool } from './tools/news.tool';
+import { createPythonTool } from './tools/python.tool';
 
 export interface AnalyzeRequest {
   ticker: string;
@@ -90,9 +91,10 @@ export interface AnalyzeResponse {
 // }
 // \`\`\``;
 
-const SYSTEM_PROMPT = `Expert day trader. Tools: get_stock_data, analyze_news_catalyst, apply_trading_rules, search_trading_knowledge.
+const SYSTEM_PROMPT = `Expert day trader. Tools: get_stock_data, analyze_news_catalyst, apply_trading_rules, search_trading_knowledge, run_python.
 
 WORKFLOW: 1) get_stock_data 2) analyze_news_catalyst 3) apply_trading_rules 4) search_trading_knowledge. Then decide.
+Use run_python only when you need custom calculations, stats, or charts (pd, np, plt available). Prefer other tools first.
 
 RULES: No entry without stop. R/R < 2:1 → MONITOREAR. After hours/pre-market → NO_OPERAR. Rel vol < 3x → NO_OPERAR. NONE/WEAK catalyst → NO_OPERAR. Dilutive event → NO_OPERAR longs. STRONG catalyst → higher conviction. Spanish. Exact prices.
 
@@ -149,13 +151,15 @@ export class AgentService {
     const scannerTool = createScannerTool(this.scannerService, cutoff_ms, timeframe);
     const rulesTool = createRulesTool();
     const newsTool = createNewsTool();
-    const tools = [ragTool, scannerTool, rulesTool, newsTool];
+    const pythonTool = createPythonTool();
+    const tools = [ragTool, scannerTool, rulesTool, newsTool, pythonTool];
 
     const toolsByName: Record<string, any> = {
       search_trading_knowledge: ragTool,
       get_stock_data: scannerTool,
       apply_trading_rules: rulesTool,
       analyze_news_catalyst: newsTool,
+      run_python: pythonTool,
     };
 
     const llmWithTools = this.llm.bindTools(tools);

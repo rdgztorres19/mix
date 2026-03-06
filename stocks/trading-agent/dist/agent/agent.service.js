@@ -18,6 +18,7 @@ const _ragtool = require("./tools/rag.tool");
 const _scannertool = require("./tools/scanner.tool");
 const _rulestool = require("./tools/rules.tool");
 const _newstool = require("./tools/news.tool");
+const _pythontool = require("./tools/python.tool");
 function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -77,9 +78,10 @@ function _ts_metadata(k, v) {
 //   "alertas": ["lista de alertas o condiciones a vigilar"]
 // }
 // \`\`\``;
-const SYSTEM_PROMPT = `Expert day trader. Tools: get_stock_data, analyze_news_catalyst, apply_trading_rules, search_trading_knowledge.
+const SYSTEM_PROMPT = `Expert day trader. Tools: get_stock_data, analyze_news_catalyst, apply_trading_rules, search_trading_knowledge, run_python.
 
 WORKFLOW: 1) get_stock_data 2) analyze_news_catalyst 3) apply_trading_rules 4) search_trading_knowledge. Then decide.
+Use run_python only when you need custom calculations, stats, or charts (pd, np, plt available). Prefer other tools first.
 
 RULES: No entry without stop. R/R < 2:1 → MONITOREAR. After hours/pre-market → NO_OPERAR. Rel vol < 3x → NO_OPERAR. NONE/WEAK catalyst → NO_OPERAR. Dilutive event → NO_OPERAR longs. STRONG catalyst → higher conviction. Spanish. Exact prices.
 
@@ -117,17 +119,20 @@ let AgentService = class AgentService {
         const scannerTool = (0, _scannertool.createScannerTool)(this.scannerService, cutoff_ms, timeframe);
         const rulesTool = (0, _rulestool.createRulesTool)();
         const newsTool = (0, _newstool.createNewsTool)();
+        const pythonTool = (0, _pythontool.createPythonTool)();
         const tools = [
             ragTool,
             scannerTool,
             rulesTool,
-            newsTool
+            newsTool,
+            pythonTool
         ];
         const toolsByName = {
             search_trading_knowledge: ragTool,
             get_stock_data: scannerTool,
             apply_trading_rules: rulesTool,
-            analyze_news_catalyst: newsTool
+            analyze_news_catalyst: newsTool,
+            run_python: pythonTool
         };
         const llmWithTools = this.llm.bindTools(tools);
         const messages = [
