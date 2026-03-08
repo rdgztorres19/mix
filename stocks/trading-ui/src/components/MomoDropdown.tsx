@@ -5,6 +5,7 @@ interface Props {
   loading: boolean;
   filter: string;
   onSelect: (symbol: string) => void;
+  sourceLabel?: string; // "momoscreener" | "MySQL"
 }
 
 const fmtVol = (n: number) => {
@@ -20,7 +21,7 @@ const fmtFloat = (n: number | null) => {
   return null;
 };
 
-export default function MomoDropdown({ stocks, loading, filter, onSelect }: Props) {
+export default function MomoDropdown({ stocks, loading, filter, onSelect, sourceLabel = 'momoscreener' }: Props) {
   const filtered = filter
     ? stocks.filter((s) => s.symbol.startsWith(filter.toUpperCase()))
     : stocks;
@@ -50,7 +51,7 @@ export default function MomoDropdown({ stocks, loading, filter, onSelect }: Prop
         justifyContent: 'space-between',
       }}>
         <span style={{ fontSize: 11, color: empty ? '#334155' : '#475569', fontFamily: "'JetBrains Mono', monospace" }}>
-          TOP MOVERS · momoscreener
+          TOP MOVERS · {sourceLabel}
         </span>
         {loading && (
           <span style={{ fontSize: 11, color: '#475569' }}>cargando…</span>

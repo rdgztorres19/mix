@@ -16,3 +16,21 @@ credentials.json
 *.env
 
 node_modules
+
+# Python virtual environments
+**/venv/
+**/.venv/
+**/env/
+venv
+.venv
+
+# Large data & ML models (use LFS or host elsewhere)
+**/data/*.csv
+**/data/backups/
+**/ml/**/models/*.joblib
+**/ml/**/models/*.pkl
+*.joblib
+
+# OS & cache
+.DS_Store
+**/__pycache__/

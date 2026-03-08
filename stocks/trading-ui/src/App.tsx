@@ -6,6 +6,7 @@ import StatBadge from './components/StatBadge';
 import NewsPanel from './components/NewsPanel';
 import MomoDropdown from './components/MomoDropdown';
 import StrategyGuide from './components/StrategyGuide';
+import StrategyInfoPanel from './components/StrategyInfoPanel';
 import LogsPanel from './components/LogsPanel';
 import type { StockSnapshot, AnalyzeResponse, CatalystAnalysis, MomoStock } from './types';
 
@@ -35,6 +36,7 @@ export default function App() {
   const [newsData, setNewsData] = useState<CatalystAnalysis | null>(null);
   const [loadingNews, setLoadingNews] = useState(false);
   const [accountSize, setAccountSize] = useState('25000');
+  const [fastPath, setFastPath] = useState(true); // pipeline determinístico ~2-15s vs agentic ~20-40s
   // Momo scanner dropdown
   const [momoStocks, setMomoStocks] = useState<MomoStock[]>([]);
   const [momoLoading, setMomoLoading] = useState(false);
@@ -42,9 +44,16 @@ export default function App() {
   const [showGuide, setShowGuide] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
 
+  // Date picker: today by default, historical dates → MySQL (stock-training)
+  const getTodayET = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+  const [selectedDate, setSelectedDate] = useState(() => new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }));
+  const [availableDates, setAvailableDates] = useState<string[]>([]);
   // Simulation mode: limit data visible to agent/chart up to a specific ET datetime
   const [simMode, setSimMode] = useState(false);
   const [simDatetime, setSimDatetime] = useState(''); // value from <input type="datetime-local">
+  const [replayCutoffMs, setReplayCutoffMs] = useState<number | null>(null);
+  // Patrón actual (polling cada 1s)
+  const [currentPattern, setCurrentPattern] = useState<{ name: string | null; viable: boolean } | null>(null);
 
   /** Convert a datetime-local string (treated as ET) to unix ms */
   const simCutoffMs = (): number | undefined => {
@@ -78,17 +87,20 @@ export default function App() {
     return cutoffUtcMs;
   };
 
-  const loadChart = useCallback(async (sym: string) => {
+  const loadChart = useCallback(async (sym: string, dateOverride?: string) => {
     setStatus('loading-chart');
     setError('');
     setSnapshot(null);
     setAnalysis(null);
     setNewsData(null);
+    setCurrentPattern(null);
     try {
       const cutoff = simCutoffMs();
-      const url = cutoff
-        ? `/api/scanner/snapshot/${sym}?cutoff=${cutoff}`
-        : `/api/scanner/snapshot/${sym}`;
+      const params = new URLSearchParams();
+      if (cutoff) params.set('cutoff', String(cutoff));
+      const dateToUse = dateOverride ?? selectedDate;
+      if (dateToUse && dateToUse !== getTodayET()) params.set('date', dateToUse);
+      const url = `/api/scanner/snapshot/${sym}${params.toString() ? '?' + params.toString() : ''}`;
       const { data } = await axios.get<StockSnapshot>(url);
       setSnapshot(data);
       setTicker(sym);
@@ -104,7 +116,7 @@ export default function App() {
       setStatus('error');
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [simMode, simDatetime]);
+  }, [simMode, simDatetime, selectedDate]);
 
   const runAnalysis = useCallback(async () => {
     if (!ticker) return;
@@ -117,8 +129,9 @@ export default function App() {
         ticker,
         account_size: Number(accountSize) || 25000,
         timeframe,
+        fast: fastPath,
         ...(cutoff ? { cutoff_ms: cutoff } : {}),
-      });
+      }, { timeout: fastPath ? 60_000 : 180_000 }); // fast: 1 min; agentic: 3 min
       setAnalysis(data);
       setStatus('done');
     } catch (e: any) {
@@ -126,30 +139,134 @@ export default function App() {
       setStatus('error');
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ticker, accountSize, tab, simMode, simDatetime]);
+  }, [ticker, accountSize, tab, fastPath, simMode, simDatetime]);
 
   const handleSearch = () => {
     const sym = input.trim().toUpperCase();
     if (!sym) return;
     setShowMomo(false);
+    setSimMode(false);
+    setSimDatetime('');
+    setReplayCutoffMs(null);
     loadChart(sym);
+  };
+
+  const handleClear = () => {
+    setInput('');
+    setTicker('');
+    setSnapshot(null);
+    setAnalysis(null);
+    setNewsData(null);
+    setCurrentPattern(null);
+    setStatus('idle');
+    setError('');
+  };
+
+  const fetchMomoList = () => {
+    setMomoLoading(true);
+    const isToday = selectedDate === getTodayET();
+    const url = isToday
+      ? '/api/scanner/momo'
+      : `/api/scanner/topmovers?date=${selectedDate}`;
+    axios.get<MomoStock[]>(url)
+      .then(({ data }) => setMomoStocks(data))
+      .catch(() => setMomoStocks([]))
+      .finally(() => setMomoLoading(false));
   };
 
   const handleMomoFocus = () => {
     setShowMomo(true);
-    if (momoStocks.length > 0) return; // already loaded
-    setMomoLoading(true);
-    axios.get<MomoStock[]>('/api/scanner/momo')
-      .then(({ data }) => setMomoStocks(data))
-      .catch(() => {})
-      .finally(() => setMomoLoading(false));
+    fetchMomoList();
+  };
+
+  const handleInputClick = () => {
+    // If already focused, toggle the dropdown
+    if (!showMomo) {
+      setShowMomo(true);
+      fetchMomoList();
+    }
   };
 
   const handleMomoSelect = (symbol: string) => {
     setInput(symbol);
     setShowMomo(false);
+    setSimMode(false);
+    setSimDatetime('');
+    setReplayCutoffMs(null);
     loadChart(symbol);
   };
+
+  useEffect(() => {
+    axios.get<{ dates: string[] }>('/api/scanner/dates')
+      .then(({ data }) => setAvailableDates(data.dates ?? []))
+      .catch(() => setAvailableDates([]));
+  }, []);
+
+  const onDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const d = e.target.value;
+    if (!d) return;
+    setSelectedDate(d);
+    setMomoStocks([]);
+    if (showMomo) {
+      setMomoLoading(true);
+      const url = d === getTodayET() ? '/api/scanner/momo' : `/api/scanner/topmovers?date=${d}`;
+      axios.get<MomoStock[]>(url)
+        .then(({ data }) => setMomoStocks(data))
+        .catch(() => setMomoStocks([]))
+        .finally(() => setMomoLoading(false));
+    }
+  };
+
+  // Cuando cambia la fecha y hay ticker, refetch (asegura que la API se llame)
+  useEffect(() => {
+    if (!ticker || !selectedDate) return;
+    const params = new URLSearchParams();
+    if (selectedDate !== getTodayET()) params.set('date', selectedDate);
+    setStatus('loading-chart');
+    setSnapshot(null);
+    setAnalysis(null);
+    axios
+      .get<StockSnapshot>(`/api/scanner/snapshot/${ticker}${params.toString() ? '?' + params.toString() : ''}`)
+      .then(({ data }) => {
+        setSnapshot(data);
+        setStatus('idle');
+      })
+      .catch((e) => {
+        setError(e?.response?.data?.message || e.message || 'Failed to fetch');
+        setStatus('error');
+      });
+  // Solo al cambiar selectedDate (no al montar, para evitar doble fetch con loadChart)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDate]);
+
+  // Poll strategy every 2s en Replay (usa snapshot que sí existe). Sin Replay, usa strategy del snapshot ya cargado.
+  useEffect(() => {
+    if (!ticker || !snapshot) return;
+    if (!simMode) {
+      setCurrentPattern(snapshot.strategy ? { name: snapshot.strategy.name, viable: snapshot.strategy.viable } : null);
+      return;
+    }
+    let cancelled = false;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+    const cutoff = simCutoffMs();
+    const params = new URLSearchParams();
+    if (cutoff) params.set('cutoff', String(cutoff));
+    if (selectedDate && selectedDate !== getTodayET()) params.set('date', selectedDate);
+    const url = `/api/scanner/snapshot/${ticker}${params.toString() ? '?' + params.toString() : ''}`;
+    const fetchStrategy = () => {
+      if (cancelled) return;
+      axios.get<StockSnapshot>(url)
+        .then(({ data }) => {
+          if (!cancelled && data.strategy)
+            setCurrentPattern({ name: data.strategy.name, viable: data.strategy.viable });
+        })
+        .catch(() => { /* ignore */ });
+    };
+    fetchStrategy();
+    intervalId = setInterval(fetchStrategy, 2000);
+    return () => { cancelled = true; if (intervalId) clearInterval(intervalId); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ticker, snapshot?.ticker, simMode, simDatetime, selectedDate]);
 
   // When Replay is turned OFF, reload full data for the current ticker
   useEffect(() => {
@@ -158,34 +275,51 @@ export default function App() {
       setStatus('loading-chart');
       setSnapshot(null);
       setAnalysis(null);
-      axios.get<StockSnapshot>(`/api/scanner/snapshot/${ticker}`)
+      const params = selectedDate && selectedDate !== getTodayET() ? `?date=${selectedDate}` : '';
+      axios.get<StockSnapshot>(`/api/scanner/snapshot/${ticker}${params}`)
         .then(({ data }) => { setSnapshot(data); setStatus('idle'); })
         .catch((e) => { setError(e?.response?.data?.message || e.message); setStatus('error'); });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [simMode]);
+  }, [simMode, selectedDate]);
 
   /** Called when user clicks a candle in Replay mode — sets cutoff to that candle's time */
   const handleCandleClick = useCallback((ms: number) => {
     if (!simMode || !ticker) return;
-    // Convert unix ms → ET datetime-local string "YYYY-MM-DDTHH:mm"
+    setReplayCutoffMs(ms);
     const etStr = new Date(ms).toLocaleString('en-CA', {
       timeZone: 'America/New_York',
       year: 'numeric', month: '2-digit', day: '2-digit',
       hour: '2-digit', minute: '2-digit',
       hour12: false,
-    }).replace(', ', 'T').slice(0, 16); // "YYYY-MM-DDTHH:mm"
+    }).replace(', ', 'T').slice(0, 16);
     setSimDatetime(etStr);
-    // Re-load chart with new cutoff (loadChart reads simDatetime via simCutoffMs,
-    // but state update is async — pass the ms directly instead)
-    const url = `/api/scanner/snapshot/${ticker}?cutoff=${ms}`;
+    const params = new URLSearchParams({ cutoff: String(ms) });
+    if (selectedDate && selectedDate !== getTodayET()) params.set('date', selectedDate);
+    const url = `/api/scanner/snapshot/${ticker}?${params.toString()}`;
     setStatus('loading-chart');
-    setSnapshot(null);
     setAnalysis(null);
     axios.get<StockSnapshot>(url)
       .then(({ data }) => { setSnapshot(data); setStatus('idle'); })
       .catch((e) => { setError(e?.response?.data?.message || e.message); setStatus('error'); });
-  }, [simMode, ticker]);
+  }, [simMode, ticker, selectedDate]);
+
+  /** Step +1 or -1 candle in replay mode */
+  const handleReplayStep = useCallback((dir: 1 | -1) => {
+    if (!simMode || !ticker || !snapshot) return;
+    const candles = tab === '5m' ? snapshot.candles_5min : snapshot.candles_1min;
+    if (!candles.length) return;
+    const intervalMs = tab === '5m' ? 5 * 60_000 : 60_000;
+    const lastCandleMs = candles[candles.length - 1].t;
+    if (dir === 1) {
+      // Step forward: one interval past the last visible candle
+      handleCandleClick(lastCandleMs + intervalMs);
+    } else {
+      // Step backward: remove last candle (use second-to-last candle's time)
+      if (candles.length < 2) return;
+      handleCandleClick(candles[candles.length - 2].t);
+    }
+  }, [simMode, ticker, snapshot, tab, handleCandleClick]);
 
   const handleKey = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') handleSearch();
@@ -260,15 +394,16 @@ export default function App() {
         </div>
 
         {/* Ticker search */}
-        <div style={{ display: 'flex', gap: 8, flex: 1, maxWidth: 420, position: 'relative' }}>
+        <div style={{ display: 'flex', gap: 8, flex: 1, maxWidth: 380, position: 'relative' }}>
           <div style={{ flex: 1, position: 'relative' }}>
             <input
               value={input}
               onChange={(e) => setInput(e.target.value.toUpperCase())}
               onKeyDown={handleKey}
               onFocus={handleMomoFocus}
+              onClick={handleInputClick}
               onBlur={() => setTimeout(() => setShowMomo(false), 150)}
-              placeholder="Ticker  (ej: SOUN, GME…) ↓ top movers"
+              placeholder="Ticker ↵  (ej: SOUN, GME…) ↓ movers"
               maxLength={8}
               style={{
                 width: '100%',
@@ -277,7 +412,7 @@ export default function App() {
                 border: `1px solid ${showMomo ? '#3b82f6' : '#2d3f55'}`,
                 borderRadius: 8,
                 color: '#e2e8f0',
-                padding: '8px 14px',
+                padding: '8px 34px 8px 14px',
                 fontSize: 14,
                 fontFamily: "'JetBrains Mono', monospace",
                 fontWeight: 600,
@@ -286,22 +421,39 @@ export default function App() {
                 transition: 'border-color 0.15s',
               }}
             />
+            {(input || ticker) && (
+              <button
+                onClick={handleClear}
+                title="Limpiar ticker"
+                style={{
+                  position: 'absolute',
+                  right: 8,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#64748b',
+                  fontSize: 16,
+                  cursor: 'pointer',
+                  padding: '0 4px',
+                  lineHeight: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                ×
+              </button>
+            )}
             {showMomo && (
               <MomoDropdown
                 stocks={momoStocks}
                 loading={momoLoading}
                 filter={input}
                 onSelect={handleMomoSelect}
+                sourceLabel={selectedDate === getTodayET() ? 'momoscreener' : 'MySQL'}
               />
             )}
           </div>
-          <button
-            onClick={handleSearch}
-            disabled={isLoading || !input.trim()}
-            style={btnStyle('#3b82f6', isLoading || !input.trim())}
-          >
-            {status === 'loading-chart' ? '…' : 'Buscar'}
-          </button>
         </div>
 
         {/* Account size */}
@@ -324,49 +476,51 @@ export default function App() {
           />
         </div>
 
-        {/* Simulation mode */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
-          <button
-            onClick={() => setSimMode((v) => !v)}
-            title="Simulation mode: replay data up to a specific time"
-            style={{
-              padding: '7px 12px',
-              background: simMode ? 'rgba(245,158,11,0.15)' : '#1a2030',
-              border: `1px solid ${simMode ? 'rgba(245,158,11,0.5)' : '#2d3f55'}`,
-              borderRadius: 8,
-              color: simMode ? '#fbbf24' : '#475569',
-              cursor: 'pointer',
-              fontSize: 12,
-              fontWeight: 600,
-              fontFamily: "'JetBrains Mono', monospace",
-              whiteSpace: 'nowrap',
-              transition: 'all 0.15s',
-            }}
-          >
-            ⏪ {simMode ? 'REPLAY ON' : 'Replay'}
-          </button>
-          {simMode && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <input
-                type="datetime-local"
-                value={simDatetime}
-                onChange={(e) => setSimDatetime(e.target.value)}
-                title="Cutoff time in ET (Eastern Time)"
-                style={{
-                  background: '#1a2030',
-                  border: '1px solid rgba(245,158,11,0.4)',
-                  borderRadius: 8,
-                  color: '#fbbf24',
-                  padding: '7px 10px',
-                  fontSize: 12,
-                  fontFamily: "'JetBrains Mono', monospace",
-                  outline: 'none',
-                  colorScheme: 'dark',
-                }}
-              />
-              <span style={{ fontSize: 10, color: '#92400e', whiteSpace: 'nowrap' }}>ET</span>
-            </div>
-          )}
+        {/* Fast path toggle */}
+        <button
+          onClick={() => setFastPath((v) => !v)}
+          title={fastPath ? 'Fast path: pipeline determinístico (~2-15s). Desactiva para modo agentic completo.' : 'Agentic: LLM elige herramientas (~20-40s)'}
+          style={{
+            padding: '7px 12px',
+            background: fastPath ? 'rgba(34,197,94,0.15)' : '#1a2030',
+            border: `1px solid ${fastPath ? 'rgba(34,197,94,0.5)' : '#2d3f55'}`,
+            borderRadius: 8,
+            color: fastPath ? '#4ade80' : '#475569',
+            cursor: 'pointer',
+            fontSize: 12,
+            fontWeight: 600,
+            fontFamily: "'JetBrains Mono', monospace",
+            whiteSpace: 'nowrap',
+            transition: 'all 0.15s',
+          }}
+        >
+          ⚡ {fastPath ? 'Fast' : 'Agentic'}
+        </button>
+
+        {/* Date picker + Simulation mode */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginLeft: 'auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={onDateChange}
+              max={getTodayET()}
+              title="Fecha: hoy = momo live, otra = MySQL histórico (stock-training)"
+              style={{
+                background: '#1a2030',
+                border: '1px solid #2d3f55',
+                borderRadius: 8,
+                color: '#e2e8f0',
+                padding: '7px 10px',
+                fontSize: 12,
+                fontFamily: "'JetBrains Mono', monospace",
+                outline: 'none',
+                colorScheme: 'dark',
+              }}
+            />
+            <span style={{ fontSize: 10, color: '#64748b', whiteSpace: 'nowrap' }}>ET</span>
+          </div>
+
         </div>
 
         {/* Analyze button */}
@@ -423,6 +577,20 @@ export default function App() {
               </div>
 
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginLeft: 4 }}>
+                {(currentPattern?.name ?? snapshot.strategy?.name) && (
+                  <div style={{
+                    padding: '6px 12px',
+                    borderRadius: 8,
+                    background: (currentPattern ?? snapshot.strategy)?.viable ? 'rgba(34,197,94,0.15)' : 'rgba(234,179,8,0.15)',
+                    border: `1px solid ${(currentPattern ?? snapshot.strategy)?.viable ? 'rgba(34,197,94,0.4)' : 'rgba(234,179,8,0.4)'}`,
+                    color: (currentPattern ?? snapshot.strategy)?.viable ? '#4ade80' : '#eab308',
+                    fontSize: 13,
+                    fontWeight: 700,
+                    fontFamily: "'JetBrains Mono', monospace",
+                  }}>
+                    📐 {(currentPattern ?? snapshot.strategy)?.name}
+                  </div>
+                )}
                 <StatBadge label="HOD" value={fmt(snapshot.high_of_day)} color="#22c55e" mono />
                 <StatBadge label="LOD" value={fmt(snapshot.low_of_day)} color="#ef4444" mono />
                 <StatBadge label="VWAP" value={fmt(snapshot.vwap)} color="#facc15" mono />
@@ -538,6 +706,87 @@ export default function App() {
                 </button>
 
                 <div style={{ flex: 1 }} />
+
+                {/* Replay controls — next to chart tabs */}
+                {tab !== 'news' && (
+                  <div style={{ display: 'flex', alignItems: 'center', padding: '0 8px', gap: 6 }}>
+                    <button
+                      onClick={() => { setSimMode((v) => { if (v) { setReplayCutoffMs(null); setSimDatetime(''); } return !v; }); }}
+                      title="Simulation mode: replay data up to a specific time"
+                      style={{
+                        padding: '5px 10px',
+                        background: simMode ? 'rgba(245,158,11,0.15)' : 'transparent',
+                        border: `1px solid ${simMode ? 'rgba(245,158,11,0.5)' : '#2d3f55'}`,
+                        borderRadius: 6,
+                        color: simMode ? '#fbbf24' : '#475569',
+                        cursor: 'pointer',
+                        fontSize: 11,
+                        fontWeight: 600,
+                        fontFamily: "'JetBrains Mono', monospace",
+                        whiteSpace: 'nowrap',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      ⏪ {simMode ? 'REPLAY ON' : 'Replay'}
+                    </button>
+                    {simMode && replayCutoffMs && (
+                      <>
+                        <button
+                          onClick={() => handleReplayStep(-1)}
+                          disabled={isLoading}
+                          title="Retroceder 1 vela"
+                          style={{
+                            padding: '4px 8px',
+                            background: '#1a2030',
+                            border: '1px solid rgba(245,158,11,0.4)',
+                            borderRadius: 6,
+                            color: '#fbbf24',
+                            cursor: isLoading ? 'not-allowed' : 'pointer',
+                            fontSize: 13,
+                            fontWeight: 700,
+                            opacity: isLoading ? 0.5 : 1,
+                            lineHeight: 1,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: 28,
+                            height: 28,
+                          }}
+                        >
+                          <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor"><path d="M10 0L0 6l10 6z"/></svg>
+                        </button>
+                        <button
+                          onClick={() => handleReplayStep(1)}
+                          disabled={isLoading}
+                          title="Avanzar 1 vela"
+                          style={{
+                            padding: '4px 8px',
+                            background: '#1a2030',
+                            border: '1px solid rgba(245,158,11,0.4)',
+                            borderRadius: 6,
+                            color: '#fbbf24',
+                            cursor: isLoading ? 'not-allowed' : 'pointer',
+                            fontSize: 13,
+                            fontWeight: 700,
+                            opacity: isLoading ? 0.5 : 1,
+                            lineHeight: 1,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: 28,
+                            height: 28,
+                          }}
+                        >
+                          <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor"><path d="M0 0l10 6-10 6z"/></svg>
+                        </button>
+                        <span style={{ fontSize: 10, color: '#92400e', fontFamily: "'JetBrains Mono', monospace" }}>
+                          {simDatetime.split('T')[1] || ''} ET
+                        </span>
+                      </>
+                    )}
+                  </div>
+                )}
+
                 {tab !== 'news' && (
                   <div style={{ display: 'flex', alignItems: 'center', padding: '0 14px', gap: 12, fontSize: 11 }}>
                     <LegendDot color="#facc15" label="VWAP" />
@@ -551,7 +800,7 @@ export default function App() {
               {tab === '1m' && (
                 <CandleChart
                   key={`1m-${snapshot.ticker}`}
-                  candles={snapshot.candles_1min}
+                  candles={snapshot.candles_1min ?? []}
                   title={`${snapshot.ticker} · 1 min  (ET)`}
                   vwap={snapshot.vwap}
                   vwap_line={snapshot.vwap_line}
@@ -560,12 +809,13 @@ export default function App() {
                   height={380}
                   simMode={simMode}
                   onCandleClick={simMode ? handleCandleClick : undefined}
+                  strategy={currentPattern ? { name: currentPattern.name, viable: currentPattern.viable, entry: null, stop: null, target_1: null, target_2: null, pattern_signals: [] } : snapshot.strategy}
                 />
               )}
               {tab === '5m' && (
                 <CandleChart
                   key={`5m-${snapshot.ticker}`}
-                  candles={snapshot.candles_5min}
+                  candles={snapshot.candles_5min ?? []}
                   title={`${snapshot.ticker} · 5 min  (ET)`}
                   vwap={snapshot.vwap}
                   vwap_line={snapshot.vwap_line}
@@ -574,6 +824,7 @@ export default function App() {
                   height={380}
                   simMode={simMode}
                   onCandleClick={simMode ? handleCandleClick : undefined}
+                  strategy={currentPattern ? { name: currentPattern.name, viable: currentPattern.viable, entry: null, stop: null, target_1: null, target_2: null, pattern_signals: [] } : snapshot.strategy}
                 />
               )}
 
@@ -609,6 +860,11 @@ export default function App() {
                 )
               )}
             </div>
+
+            {/* Strategy info panel with guidance */}
+            {snapshot.strategy?.name && (
+              <StrategyInfoPanel strategy={snapshot.strategy} />
+            )}
           </>
         )}
 

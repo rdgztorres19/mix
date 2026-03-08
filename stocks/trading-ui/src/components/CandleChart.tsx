@@ -9,7 +9,8 @@ import {
   CrosshairMode,
   LineStyle,
 } from 'lightweight-charts';
-import type { Candle, VwapPoint } from '../types';
+import type { Candle, VwapPoint, StrategySnapshot } from '../types';
+import { PatternOverlay } from './PatternOverlay';
 
 interface Props {
   candles: Candle[];
@@ -21,6 +22,7 @@ interface Props {
   height?: number;
   simMode?: boolean;
   onCandleClick?: (timestampMs: number) => void;
+  strategy?: StrategySnapshot | null;
 }
 
 const CHART_THEME = {
@@ -34,12 +36,16 @@ const CHART_THEME = {
   redDim: 'rgba(239,68,68,0.15)',
 };
 
-export default function CandleChart({ candles, title, vwap, vwap_line, ema9, ema20, height = 340, simMode, onCandleClick }: Props) {
+export default function CandleChart({ candles, title, vwap, vwap_line, ema9, ema20, height = 340, simMode, onCandleClick, strategy }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const volSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null);
+  const overlaySeriesRef = useRef<ISeriesApi<'Line'>[]>([]);
   const onCandleClickRef = useRef(onCandleClick);
+  const overlayRef = useRef(new PatternOverlay());
+  const initialLoadRef = useRef(true);
+  const etOffsetSecRef = useRef(0);
   onCandleClickRef.current = onCandleClick;
 
   // Initialize chart once
@@ -73,19 +79,13 @@ export default function CandleChart({ candles, title, vwap, vwap_line, ema9, ema
         barSpacing: 8,
       },
       localization: {
-        timeFormatter: (timestamp: number) =>
-          new Date(timestamp * 1000).toLocaleTimeString('en-US', {
-            timeZone: 'America/New_York',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-          }),
-        dateFormatter: (timestamp: number) =>
-          new Date(timestamp * 1000).toLocaleDateString('en-US', {
-            timeZone: 'America/New_York',
-            month: 'short',
-            day: 'numeric',
-          }),
+        timeFormatter: (timestamp: number) => {
+          const d = new Date(timestamp * 1000);
+          const hh = String(d.getUTCHours()).padStart(2, '0');
+          const mm = String(d.getUTCMinutes()).padStart(2, '0');
+          return `${hh}:${mm}`;
+        },
+        dateFormat: 'MMM d',
       },
       width: containerRef.current.clientWidth,
       height,
@@ -118,7 +118,8 @@ export default function CandleChart({ candles, title, vwap, vwap_line, ema9, ema
     chart.subscribeClick((param) => {
       if (!onCandleClickRef.current) return;
       if (param.time == null) return;
-      const ms = (param.time as number) * 1000;
+      // param.time is in "fake ET" seconds — reverse the offset to get real UTC ms
+      const ms = ((param.time as number) - etOffsetSecRef.current) * 1000;
       onCandleClickRef.current(ms);
     });
 
@@ -132,16 +133,30 @@ export default function CandleChart({ candles, title, vwap, vwap_line, ema9, ema
 
     return () => {
       ro.disconnect();
+      overlaySeriesRef.current = [];
+      overlayRef.current = new PatternOverlay();
       chart.remove();
     };
   }, [height]);
 
   // Update data when candles change
   useEffect(() => {
-    if (!candleSeriesRef.current || !volSeriesRef.current || !candles.length) return;
+    if (!chartRef.current || !candleSeriesRef.current || !volSeriesRef.current || !candles.length) return;
+
+    // Compute UTC→ET offset (seconds) from the first candle so the X-axis
+    // labels show Eastern Time.  lightweight-charts renders timestamps as-is
+    // on the axis; there's no built-in TZ support.
+    const sampleDate = new Date(candles[0].t);
+    const utcStr = sampleDate.toLocaleString('en-US', { timeZone: 'UTC', hour12: false });
+    const etStr  = sampleDate.toLocaleString('en-US', { timeZone: 'America/New_York', hour12: false });
+    const etOffsetSec = (new Date(etStr).getTime() - new Date(utcStr).getTime()) / 1000;
+
+    /** Convert a UTC-ms timestamp to a "fake UTC" unix-seconds that visually equals ET. */
+    const toET = (utcMs: number) => Math.floor(utcMs / 1000) + etOffsetSec;
+    etOffsetSecRef.current = etOffsetSec;
 
     const candleData: CandlestickData[] = candles.map((c) => ({
-      time: Math.floor(c.t / 1000) as any,
+      time: toET(c.t) as any,
       open: c.o,
       high: c.h,
       low: c.l,
@@ -149,7 +164,7 @@ export default function CandleChart({ candles, title, vwap, vwap_line, ema9, ema
     }));
 
     const volData: HistogramData[] = candles.map((c) => ({
-      time: Math.floor(c.t / 1000) as any,
+      time: toET(c.t) as any,
       value: c.v,
       color: c.c >= c.o ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)',
     }));
@@ -157,18 +172,25 @@ export default function CandleChart({ candles, title, vwap, vwap_line, ema9, ema
     candleSeriesRef.current.setData(candleData);
     volSeriesRef.current.setData(volData);
 
+    // Remove previously added overlay line series (VWAP, EMA9, EMA20)
+    for (const s of overlaySeriesRef.current) {
+      try { chartRef.current!.removeSeries(s); } catch { /* series from destroyed chart */ }
+    }
+    overlaySeriesRef.current = [];
+
     // ── VWAP: use backend vwap_line when available (guarantees match with legend)
     const vwapOpts = {
       color: '#fbbf24',
-      lineWidth: 2,
+      lineWidth: 2 as 1 | 2 | 3 | 4,
       lineStyle: LineStyle.Solid as const,
       lastValueVisible: true,
       priceLineVisible: true,
     };
     if (vwap_line && vwap_line.length > 0) {
-      const points = vwap_line.map((p) => ({ time: p.t as any, value: p.value }));
+      const points = vwap_line.map((p) => ({ time: (p.t + etOffsetSec) as any, value: p.value }));
       const series = chartRef.current!.addLineSeries({ ...vwapOpts, title: 'VWAP' });
       series.setData(points);
+      overlaySeriesRef.current.push(series);
     } else {
       // Fallback: compute locally (9:30-16:00 ET, one series per day)
       const MARKET_OPEN_MIN = 9 * 60 + 30;
@@ -207,6 +229,7 @@ export default function CandleChart({ candles, title, vwap, vwap_line, ema9, ema
           title: idx === 0 ? 'VWAP' : undefined,
         });
         series.setData(points);
+        overlaySeriesRef.current.push(series);
       });
     }
 
@@ -235,12 +258,13 @@ export default function CandleChart({ candles, title, vwap, vwap_line, ema9, ema
     if (ema9Points.length) {
       const ema9Series = chartRef.current!.addLineSeries({
         color: '#38bdf8',
-        lineWidth: 1,
+        lineWidth: 1 as 1 | 2 | 3 | 4,
         title: 'EMA9',
         lastValueVisible: true,
         priceLineVisible: false,
       });
       ema9Series.setData(ema9Points);
+      overlaySeriesRef.current.push(ema9Series);
     }
 
     // Draw EMA20
@@ -248,16 +272,38 @@ export default function CandleChart({ candles, title, vwap, vwap_line, ema9, ema
     if (ema20Points.length) {
       const ema20Series = chartRef.current!.addLineSeries({
         color: '#a78bfa',
-        lineWidth: 1,
+        lineWidth: 1 as 1 | 2 | 3 | 4,
         title: 'EMA20',
         lastValueVisible: true,
         priceLineVisible: false,
       });
       ema20Series.setData(ema20Points);
+      overlaySeriesRef.current.push(ema20Series);
     }
 
-    chartRef.current!.timeScale().fitContent();
-  }, [candles, vwap, vwap_line, ema9, ema20]);
+    // Draw strategy price lines (entry, stop, targets) and pattern markers
+    if (strategy && candleSeriesRef.current) {
+      const shiftedPoints = strategy.pattern_points?.map((p) => ({
+        ...p,
+        time: p.time + etOffsetSec * 1000, // shift UTC ms → "fake ET" ms
+      }));
+      overlayRef.current.apply(chartRef.current!, candleSeriesRef.current, {
+        entry: strategy.entry,
+        stop: strategy.stop,
+        target1: strategy.target_1,
+        target2: strategy.target_2,
+        patternPoints: shiftedPoints,
+      });
+    } else if (candleSeriesRef.current) {
+      overlayRef.current.clear(candleSeriesRef.current);
+    }
+
+    // Only auto-fit on initial load; preserve scroll on subsequent updates (e.g. replay clicks)
+    if (initialLoadRef.current) {
+      chartRef.current!.timeScale().fitContent();
+      initialLoadRef.current = false;
+    }
+  }, [candles, vwap, vwap_line, ema9, ema20, strategy]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
@@ -273,6 +319,16 @@ export default function CandleChart({ candles, title, vwap, vwap_line, ema9, ema
       }}>
         <span style={{ fontWeight: 600, color: '#e2e8f0' }}>{title}</span>
         <span style={{ color: '#64748b' }}>{candles.length} candles</span>
+        {strategy?.name && (
+          <span style={{
+            padding: '2px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700,
+            background: strategy.viable ? 'rgba(34,197,94,0.2)' : 'rgba(234,179,8,0.2)',
+            color: strategy.viable ? '#4ade80' : '#eab308',
+            border: `1px solid ${strategy.viable ? 'rgba(34,197,94,0.4)' : 'rgba(234,179,8,0.4)'}`,
+          }}>
+            📐 {strategy.name}
+          </span>
+        )}
         {vwap && <span style={{ color: '#facc15' }}>VWAP {vwap.toFixed(2)}</span>}
         {ema9 && <span style={{ color: '#38bdf8' }}>EMA9 {ema9.toFixed(2)}</span>}
         {ema20 && <span style={{ color: '#a78bfa' }}>EMA20 {ema20.toFixed(2)}</span>}

@@ -18,6 +18,39 @@ UI (React + Vite) → http://localhost:5173
   └── Agent analysis panel (decision, entry/stop/targets, R:R, justification)
 ```
 
+## Fast vs Agentic — Cuándo usar cada modo
+
+| Si… | Usa | Tiempo típico |
+|-----|-----|---------------|
+| **Operas en vivo** — necesitas decisión rápida | **Fast** ⚡ | ~2–15 s |
+| **Rechazos** — hard stops, catalyst débil, dilutivo | **Fast** (early exit sin LLM) | ~2 s |
+| **Quieres explorar** — razonamiento flexible, múltiples consultas RAG | **Agentic** | ~20–40 s |
+| **Investigación / backtesting manual** — no importa la latencia | **Agentic** | ~20–40 s |
+
+```
+                    ¿Necesitas respuesta en segundos?
+                              │
+                    ┌─────────┴─────────┐
+                    │                   │
+                   SÍ                   NO
+                    │                   │
+                    ▼                   ▼
+              ┌──────────┐        ┌──────────┐
+              │   FAST   │        │ AGENTIC  │
+              │    ⚡    │        │  🔄      │
+              └──────────┘        └──────────┘
+                    │                   │
+    Pipeline fijo:                    LLM decide
+    • fetch stock+news                qué tools llamar
+    • rules determinísticos          y en qué orden
+    • early exit si falla
+    • 1 LLM call si califica
+```
+
+**En el UI:** toggle `⚡ Fast` / `Agentic` en el header. Fast viene activado por defecto.
+
+**En la API:** `fast: true` en el body del POST para usar Fast.
+
 ## Quick Start
 
 ### 1. Configure environment
@@ -46,7 +79,7 @@ npm run embed
 ### 5. Start the API
 ```bash
 npm run start:dev
-# → http://localhost:3000
+# → http://localhost:3100
 ```
 
 ### 6. Start the UI
@@ -66,6 +99,7 @@ POST /agent/analyze
   "ticker": "NVDA",
   "account_size": 25000,
   "timeframe": "5m",      // opcional: "1m" | "5m" — velas para VWAP/EMA/ATR (default: 5m)
+  "fast": true,           // opcional: true = pipeline rápido (~2–15s), false = agentic (~20–40s). Default en UI: true
   "cutoff_ms": 1738600000000  // opcional: unix ms para modo replay/simulación
 }
 ```
@@ -104,6 +138,58 @@ GET /scanner/watchlist
 ```bash
 GET /scanner/snapshot/NVDA
 ```
+
+### Predict — ¿Se puede operar? (ML)
+```bash
+POST /predict?threshold=0.3
+Content-Type: application/json
+
+{
+  "candle_idx": 1,
+  "open": 5.2,
+  "high": 5.5,
+  "low": 5.1,
+  "close": 5.4,
+  "volume": 1000000,
+  "atr": 0.15,
+  "vwap": 5.3,
+  "high_of_day": 5.6,
+  "low_of_day": 5.0,
+  "change_pct_at_candle": 2.5,
+  "ema9": 5.25,
+  "ema20": 5.2,
+  "pre_market_high": 5.4,
+  "shares_outstanding": 50000000,
+  "market_cap": 270000000,
+  "gap_pct": 5.0,
+  "premarket_volume": 500000,
+  "momentum_acumulado": 0.02,
+  "change_1m": 0.5,
+  "change_5m": 1.2,
+  "change_10m": 2.0,
+  "minutes_since_hod": 30
+}
+```
+
+**Query params:** `threshold` (opcional, default 0.3 — recall ~91%). Valores más bajos = más señales, más falsas alarmas.
+
+**Response:**
+```json
+{
+  "tradeable": true,
+  "prob": 0.4521,
+  "threshold": 0.3
+}
+```
+
+**Ejemplo con curl:**
+```bash
+curl -X POST http://localhost:3100/predict \
+  -H "Content-Type: application/json" \
+  -d '{"open":5.2,"high":5.5,"low":5.1,"close":5.4,"volume":1000000,"atr":0.15,"vwap":5.3}'
+```
+
+Las features que no envíes se rellenan con 0. Requiere que `stock-training` esté en `../stock-training` (o `STOCK_TRAINING_PATH` en `.env`).
 
 ## Agent Tool Loop
 

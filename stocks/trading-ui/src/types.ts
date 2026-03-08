@@ -12,6 +12,35 @@ export interface VwapPoint {
   value: number;
 }
 
+/** Anchor point for drawing pattern on chart (e.g. A, B, C, D). */
+export interface PatternPoint {
+  label: string;
+  price: number;
+  time: number; // ms timestamp
+}
+
+/** Knowledge-based guidance for the identified strategy. */
+export interface StrategyGuidance {
+  what_to_watch: string;
+  confirmation_signals: string[];
+  invalidation: string;
+  session_context: string;
+  knowledge_summary: string;
+}
+
+/** Real-time strategy detection from trading rules engine. */
+export interface StrategySnapshot {
+  name: string | null;
+  viable: boolean;
+  entry: number | null;
+  stop: number | null;
+  target_1: number | null;
+  target_2: number | null;
+  pattern_signals: string[];
+  pattern_points?: PatternPoint[];
+  strategy_guidance?: StrategyGuidance | null;
+}
+
 export interface StockSnapshot {
   ticker: string;
   price: number;
@@ -29,6 +58,8 @@ export interface StockSnapshot {
   atr: number;
   high_of_day: number;
   low_of_day: number;
+  /** Real-time strategy in play (Bull Flag, ABCD, VWAP Reversal, etc.) */
+  strategy?: StrategySnapshot;
 }
 
 export interface NewsItem {

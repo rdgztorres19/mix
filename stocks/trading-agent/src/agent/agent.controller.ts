@@ -1,7 +1,8 @@
-import { Controller, Post, Body, Get, Param, Query, Logger, HttpException, HttpStatus } from '@nestjs/common';
-import { IsString, IsNumber, IsOptional, Min } from 'class-validator';
+import { Controller, Post, Body, Get, Param, Query, Delete, Logger, HttpException, HttpStatus } from '@nestjs/common';
+import { IsString, IsNumber, IsOptional, Min, IsBoolean } from 'class-validator';
 import { AgentService, AnalyzeResponse } from './agent.service';
 import { AnalysisLogService } from '../analysis-log/analysis-log.service';
+import { NewsCacheService } from '../cache/news-cache.service';
 
 class AnalyzeDto {
   @IsString()
@@ -19,6 +20,10 @@ class AnalyzeDto {
   @IsOptional()
   @IsNumber()
   cutoff_ms?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  fast?: boolean;
 }
 
 @Controller('agent')
@@ -28,6 +33,7 @@ export class AgentController {
   constructor(
     private readonly agentService: AgentService,
     private readonly analysisLog: AnalysisLogService,
+    private readonly newsCache: NewsCacheService,
   ) {}
 
   /**
@@ -51,6 +57,7 @@ export class AgentController {
         account_size: body.account_size,
         timeframe: body.timeframe ?? '5m',
         cutoff_ms: body.cutoff_ms,
+        fast: body.fast,
       });
       return result;
     } catch (err) {
@@ -86,5 +93,35 @@ export class AgentController {
       throw new HttpException('Log not found', HttpStatus.NOT_FOUND);
     }
     return entry;
+  }
+
+  /**
+   * GET /agent/cache/:ticker
+   * Returns cached catalyst for a ticker (TTL info + data).
+   */
+  @Get('cache/:ticker')
+  async getCacheStatus(@Param('ticker') ticker: string) {
+    const cached = await this.newsCache.get(ticker);
+    const ttl = await this.newsCache.ttlRemaining(ticker);
+    if (!cached) {
+      return { ticker: ticker.toUpperCase(), cached: false, ttl_remaining_sec: ttl };
+    }
+    return {
+      ticker: ticker.toUpperCase(),
+      cached: true,
+      ttl_remaining_sec: ttl,
+      age_sec: Math.round((Date.now() - cached.cached_at) / 1000),
+      catalyst: cached,
+    };
+  }
+
+  /**
+   * DELETE /agent/cache/:ticker
+   * Force-invalidates the news cache for a ticker (e.g. after breaking news).
+   */
+  @Delete('cache/:ticker')
+  async invalidateCache(@Param('ticker') ticker: string) {
+    await this.newsCache.invalidate(ticker);
+    return { ticker: ticker.toUpperCase(), invalidated: true };
   }
 }

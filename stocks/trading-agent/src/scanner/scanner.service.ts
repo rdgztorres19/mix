@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
+import { VwapCalculator, EmaCalculator, AtrCalculator } from '../small-cap-trading';
 
 export interface StockCandidate {
   ticker: string;
@@ -96,10 +97,18 @@ export class ScannerService {
   }
 
   /**
+   * Fetch snapshot. Delegates to momo or MySQL based on date (see ScannerController).
+   * For backward compat, when no date provided uses momo.
+   */
+  async getStockSnapshot(ticker: string, cutoffMs?: number, timeframe: '1m' | '5m' = '5m'): Promise<StockSnapshot> {
+    return this.getStockSnapshotFromMomo(ticker, cutoffMs, timeframe);
+  }
+
+  /**
    * Fetch 1-min candles from momoscreener and build a full StockSnapshot.
    * timeframe: '1m' | '5m' — velas usadas para VWAP, EMA9, EMA20, ATR, price (alineado con tab del UI)
    */
-  async getStockSnapshot(ticker: string, cutoffMs?: number, timeframe: '1m' | '5m' = '5m'): Promise<StockSnapshot> {
+  async getStockSnapshotFromMomo(ticker: string, cutoffMs?: number, timeframe: '1m' | '5m' = '5m'): Promise<StockSnapshot> {
     ticker = ticker.toUpperCase();
     this.logger.log(
       `Fetching snapshot for ${ticker} | ${timeframe}` +
@@ -193,12 +202,12 @@ export class ScannerService {
     const relative_volume = avg_volume > 0 ? volume / avg_volume : 0;
 
     // VWAP, EMA, ATR según timeframe (1m o 5m) — alineado con tab del UI
-    const vwap = this.calculateVWAP(candlesForMetrics);
-    const vwap_line = this.calculateVWAPLine(candlesForMetrics);
+    const vwap = VwapCalculator.calculate(candlesForMetrics);
+    const vwap_line = VwapCalculator.calculateLine(candlesForMetrics);
     const closes = candlesForMetrics.map((c) => c.c);
-    const ema9 = this.calculateEMA(closes, 9);
-    const ema20 = this.calculateEMA(closes, 20);
-    const atr = this.calculateATR(candlesForMetrics, this.ATR_PERIOD);
+    const ema9 = EmaCalculator.calculate(closes, 9);
+    const ema20 = EmaCalculator.calculate(closes, 20);
+    const atr = AtrCalculator.calculate(candlesForMetrics, this.ATR_PERIOD);
 
     return {
       ticker,
@@ -391,53 +400,6 @@ export class ScannerService {
           t: bucket,
         };
       });
-  }
-
-  private calculateATR(candles: Candle[], period = 14): number {
-    if (candles.length < 2) return 0;
-    const trs: number[] = [];
-    for (let i = 1; i < candles.length; i++) {
-      const prev = candles[i - 1];
-      const cur = candles[i];
-      trs.push(Math.max(cur.h - cur.l, Math.abs(cur.h - prev.c), Math.abs(cur.l - prev.c)));
-    }
-    const slice = trs.slice(-period);
-    return slice.reduce((s, v) => s + v, 0) / slice.length;
-  }
-
-  private calculateVWAP(candles: Candle[]): number | null {
-    if (!candles.length) return null;
-    let totalPV = 0;
-    let totalV = 0;
-    for (const c of candles) {
-      const typical = (c.h + c.l + c.c) / 3;
-      totalPV += typical * c.v;
-      totalV += c.v;
-    }
-    return totalV > 0 ? totalPV / totalV : null;
-  }
-
-  /** Cumulative VWAP points per candle for chart (matches calculateVWAP logic). */
-  private calculateVWAPLine(candles: Candle[]): VwapPoint[] {
-    const points: VwapPoint[] = [];
-    let cumPV = 0, cumV = 0;
-    for (const c of candles) {
-      const typical = (c.h + c.l + c.c) / 3;
-      cumPV += typical * c.v;
-      cumV += c.v;
-      if (cumV > 0) points.push({ t: Math.floor(c.t / 1000), value: cumPV / cumV });
-    }
-    return points;
-  }
-
-  private calculateEMA(values: number[], period: number): number | null {
-    if (values.length < period) return null;
-    const k = 2 / (period + 1);
-    let ema = values.slice(0, period).reduce((s, v) => s + v, 0) / period;
-    for (let i = period; i < values.length; i++) {
-      ema = values[i] * k + ema * (1 - k);
-    }
-    return ema;
   }
 
   // ─── Mock fallback ────────────────────────────────────────────────────────

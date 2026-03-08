@@ -1,0 +1,33 @@
+{
+  "name": "stock-training",
+  "version": "1.0.0",
+  "description": "Training data pipeline for small-cap trading: top gainers → 1-min historical → indicators → news catalyst → CSV",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "download-gainers": "tsx scripts/download-top-gainers.ts",
+    "build-csv": "tsx scripts/build-training-csv.ts",
+    "build-training": "tsx scripts/build-training-csv.ts",
+    "build-csv-5m": "tsx scripts/resample-training-to-5m.ts",
+    "build-csv:limit": "tsx scripts/build-training-csv.ts --limit 10",
+    "chart": "tsx scripts/chart-ticker.ts",
+    "chart:ui": "tsx scripts/serve-chart-ui.ts",
+    "ui": "tsx scripts/serve-chart-ui.ts",
+    "sync-mysql": "tsx scripts/sync-to-mysql.ts",
+    "recompute-target": "tsx scripts/recompute-target-csv.ts",
+    "add-features": "tsx scripts/add-features-csv.ts",
+    "build-features": "tsx scripts/add-features-csv.ts",
+    "verify-predictions": "tsx scripts/verify-predictions.ts"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dotenv": "^16.0.0",
+    "mysql2": "^3.11.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.1.0"
+  }
+}

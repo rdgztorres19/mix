@@ -5,6 +5,8 @@ import { RagModule } from './rag/rag.module';
 import { AgentModule } from './agent/agent.module';
 import { ScannerModule } from './scanner/scanner.module';
 import { AnalysisLogModule } from './analysis-log/analysis-log.module';
+import { CacheModule } from './cache/cache.module';
+import { PredictorModule } from './predictor/predictor.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { AnalysisLogModule } from './analysis-log/analysis-log.module';
     RagModule,
     AgentModule,
     ScannerModule,
+    CacheModule,
+    PredictorModule,
   ],
 })
 export class AppModule {}
