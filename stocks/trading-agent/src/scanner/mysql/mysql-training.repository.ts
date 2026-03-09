@@ -110,4 +110,157 @@ export class MysqlTrainingRepository {
       return [];
     }
   }
+
+  // ─── Collector: active symbols persistence ──────────────────────────────
+
+  async ensureCollectorTable(): Promise<void> {
+    const p = this.getPool();
+    if (!p) return;
+    try {
+      await p.query(`
+        CREATE TABLE IF NOT EXISTS collector_symbols (
+          symbol VARCHAR(16) NOT NULL PRIMARY KEY,
+          added_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          source VARCHAR(32) NOT NULL DEFAULT 'momo',
+          active TINYINT NOT NULL DEFAULT 1
+        )
+      `);
+      this.logger.log('collector_symbols table ready');
+    } catch (e) {
+      this.logger.warn(`ensureCollectorTable failed: ${(e as Error).message}`);
+    }
+  }
+
+  async saveActiveSymbol(symbol: string, source: string): Promise<void> {
+    const p = this.getPool();
+    if (!p) return;
+    try {
+      await p.query(
+        `REPLACE INTO collector_symbols (symbol, source, active) VALUES (?, ?, 1)`,
+        [symbol.toUpperCase(), source],
+      );
+    } catch (e) {
+      this.logger.warn(`saveActiveSymbol(${symbol}) failed: ${(e as Error).message}`);
+    }
+  }
+
+  async getActiveSymbols(): Promise<{ symbol: string; source: string; added_at: string }[]> {
+    const p = this.getPool();
+    if (!p) return [];
+    try {
+      const [rows] = await p.query<mysql.RowDataPacket[]>(
+        `SELECT symbol, source, added_at FROM collector_symbols WHERE active = 1`,
+      );
+      return rows.map((r) => ({
+        symbol: String(r.symbol),
+        source: String(r.source),
+        added_at: String(r.added_at),
+      }));
+    } catch (e) {
+      this.logger.warn(`getActiveSymbols failed: ${(e as Error).message}`);
+      return [];
+    }
+  }
+
+  async deactivateAllSymbols(): Promise<void> {
+    const p = this.getPool();
+    if (!p) return;
+    try {
+      await p.query(`UPDATE collector_symbols SET active = 0`);
+    } catch (e) {
+      this.logger.warn(`deactivateAllSymbols failed: ${(e as Error).message}`);
+    }
+  }
+
+  // ─── Collector: candle CRUD ─────────────────────────────────────────────
+
+  async getLastCandleForSymbol(
+    symbol: string,
+    dateStr: string,
+  ): Promise<{ candle_idx: number; candle_time_et: string } | null> {
+    const p = this.getPool();
+    if (!p) return null;
+    try {
+      const [rows] = await p.query<mysql.RowDataPacket[]>(
+        `SELECT candle_idx, candle_time_et FROM training_1m
+         WHERE symbol = ? AND date = ?
+         ORDER BY candle_idx DESC LIMIT 1`,
+        [symbol.toUpperCase(), dateStr],
+      );
+      if (!rows.length) return null;
+      return {
+        candle_idx: Number(rows[0].candle_idx),
+        candle_time_et: String(rows[0].candle_time_et),
+      };
+    } catch (e) {
+      this.logger.warn(`getLastCandleForSymbol(${symbol}) failed: ${(e as Error).message}`);
+      return null;
+    }
+  }
+
+  async getRecentCandles(
+    symbol: string,
+    dateStr: string,
+    limit = 30,
+  ): Promise<Record<string, unknown>[]> {
+    const p = this.getPool();
+    if (!p) return [];
+    try {
+      const [rows] = await p.query<mysql.RowDataPacket[]>(
+        `SELECT * FROM training_1m
+         WHERE symbol = ? AND date = ?
+         ORDER BY candle_idx DESC LIMIT ?`,
+        [symbol.toUpperCase(), dateStr, limit],
+      );
+      return (rows as unknown as Record<string, unknown>[]).reverse();
+    } catch (e) {
+      this.logger.warn(`getRecentCandles(${symbol}) failed: ${(e as Error).message}`);
+      return [];
+    }
+  }
+
+  async upsertCandle(row: Record<string, unknown>): Promise<void> {
+    const p = this.getPool();
+    if (!p) return;
+
+    const cols = [
+      'symbol', 'date', 'candle_idx', 'candle_time_et',
+      'open', 'high', 'low', 'close', 'volume',
+      'atr', 'vwap', 'ema9', 'ema20',
+      'high_of_day', 'low_of_day',
+      'change_pct_at_candle', 'pre_market_high', 'session',
+      'shares_outstanding', 'market_cap', 'gap_pct', 'premarket_volume',
+      'change_1m', 'change_5m', 'change_10m', 'minutes_since_hod',
+    ];
+    const placeholders = cols.map(() => '?').join(',');
+    const values = cols.map((c) => row[c] ?? null);
+
+    try {
+      await p.query(
+        `REPLACE INTO training_1m (${cols.join(',')}) VALUES (${placeholders})`,
+        values,
+      );
+    } catch (e) {
+      this.logger.warn(`upsertCandle failed: ${(e as Error).message}`);
+    }
+  }
+
+  /**
+   * Delete all candles for a symbol on a given date.
+   * Used before backfill to ensure clean data.
+   */
+  async deleteCandlesForSymbolDate(symbol: string, date: string): Promise<number> {
+    const p = this.getPool();
+    if (!p) return 0;
+    try {
+      const [result] = await p.query(
+        'DELETE FROM training_1m WHERE symbol = ? AND date = ?',
+        [symbol, date],
+      );
+      return (result as any).affectedRows ?? 0;
+    } catch (e) {
+      this.logger.warn(`deleteCandlesForSymbolDate failed: ${(e as Error).message}`);
+      return 0;
+    }
+  }
 }

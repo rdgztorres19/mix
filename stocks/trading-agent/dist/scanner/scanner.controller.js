@@ -190,10 +190,13 @@ let ScannerController = class ScannerController {
         const today = new Date().toLocaleDateString('en-CA', {
             timeZone: 'America/New_York'
         });
-        if (!date || date === today) {
-            return this.getMomoFromApi();
-        }
-        return this.getMomoFromMysql(date);
+        const targetDate = date || today;
+        // Always pull from MySQL first (has all collected tickers)
+        const mysqlStocks = await this.getMomoFromMysql(targetDate);
+        if (mysqlStocks.length > 0) return mysqlStocks;
+        // Fallback to live MoMo API if nothing in MySQL yet
+        if (!date || date === today) return this.getMomoFromApi();
+        return [];
     }
     async getMomoFromMysql(dateStr) {
         const rows = await this.mysqlRepo.getTopMovers(dateStr);

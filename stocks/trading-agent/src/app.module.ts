@@ -7,6 +7,7 @@ import { ScannerModule } from './scanner/scanner.module';
 import { AnalysisLogModule } from './analysis-log/analysis-log.module';
 import { CacheModule } from './cache/cache.module';
 import { PredictorModule } from './predictor/predictor.module';
+import { CollectorModule } from './collector/collector.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { PredictorModule } from './predictor/predictor.module';
     ScannerModule,
     CacheModule,
     PredictorModule,
+    CollectorModule,
   ],
 })
 export class AppModule {}

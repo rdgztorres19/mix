@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useImperativeHandle, forwardRef } from 'react';
 import {
   createChart,
   IChartApi,
@@ -53,6 +53,12 @@ interface PredictResult {
   threshold: number;
 }
 
+/** Imperative handle exposed via ref for real-time updates. */
+export interface CandleChartHandle {
+  /** Call update() on the candlestick + volume series for a real-time tick. */
+  appendCandle: (candle: { time: number; open: number; high: number; low: number; close: number; volume: number }) => void;
+}
+
 const CHART_THEME = {
   background: '#131820',
   text: '#94a3b8',
@@ -64,7 +70,7 @@ const CHART_THEME = {
   redDim: 'rgba(239,68,68,0.15)',
 };
 
-export default function CandleChart({ candles, title, vwap, vwap_line, ema9, ema20, height = 340, simMode, onCandleClick, strategy, atr, highOfDay, lowOfDay, preMarketHigh, changePct, ticker, selectedDate }: Props) {
+const CandleChart = forwardRef<CandleChartHandle, Props>(function CandleChart({ candles, title, vwap, vwap_line, ema9, ema20, height = 340, simMode, onCandleClick, strategy, atr, highOfDay, lowOfDay, preMarketHigh, changePct, ticker, selectedDate }, ref) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
@@ -77,6 +83,26 @@ export default function CandleChart({ candles, title, vwap, vwap_line, ema9, ema
   const candlesRef = useRef(candles);
   onCandleClickRef.current = onCandleClick;
   candlesRef.current = candles;
+
+  // Expose appendCandle to parent for real-time updates
+  useImperativeHandle(ref, () => ({
+    appendCandle: (candle) => {
+      if (!candleSeriesRef.current || !volSeriesRef.current) return;
+      const etSec = candle.time + etOffsetSecRef.current;
+      candleSeriesRef.current.update({
+        time: etSec as any,
+        open: candle.open,
+        high: candle.high,
+        low: candle.low,
+        close: candle.close,
+      });
+      volSeriesRef.current.update({
+        time: etSec as any,
+        value: candle.volume,
+        color: candle.close >= candle.open ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)',
+      });
+    },
+  }), []);
 
   // Tooltip state
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
@@ -647,4 +673,6 @@ export default function CandleChart({ candles, title, vwap, vwap_line, ema9, ema
       </div>
     </div>
   );
-}
+});
+
+export default CandleChart;

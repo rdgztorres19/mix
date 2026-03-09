@@ -120,6 +120,8 @@ def build_dataframe(data):
         candle_times = []
         for t_val in times:
             if isinstance(t_val, (int, float)) and t_val > 0:
+                if t_val > 1e12:          # milliseconds → seconds
+                    t_val = t_val / 1000
                 dt = datetime.fromtimestamp(t_val, tz=et_tz)
                 candle_times.append(f"{dt.hour:02d}:{dt.minute:02d}")
             else:

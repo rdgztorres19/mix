@@ -1,0 +1,431 @@
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var PredictorService_1;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.PredictorService = void 0;
+const common_1 = require("@nestjs/common");
+const child_process_1 = require("child_process");
+const path = __importStar(require("path"));
+const rxjs_1 = require("rxjs");
+const mysql_training_repository_1 = require("../scanner/mysql/mysql-training.repository");
+let PredictorService = PredictorService_1 = class PredictorService {
+    constructor(mysqlRepo) {
+        this.mysqlRepo = mysqlRepo;
+        this.logger = new common_1.Logger(PredictorService_1.name);
+        const stockTraining = path.resolve(process.cwd(), process.env.STOCK_TRAINING_PATH ?? path.join('..', 'stock-training'));
+        this.scriptPath = path.join(stockTraining, 'ml', 'experiments', 'predict.py');
+        this.evaluateScriptPath = path.join(stockTraining, 'ml', 'random_forest', 'evaluate.py');
+    }
+    async evaluate(threshold = 0.5) {
+        return new Promise((resolve, reject) => {
+            const proc = (0, child_process_1.spawn)('python3', [this.evaluateScriptPath, '--json', '--threshold', String(threshold)], {
+                cwd: path.dirname(this.evaluateScriptPath),
+                stdio: ['pipe', 'pipe', 'pipe'],
+            });
+            let stdout = '';
+            let stderr = '';
+            proc.stdout.on('data', (chunk) => { stdout += chunk.toString(); });
+            proc.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
+            proc.on('error', (err) => {
+                this.logger.error(`Evaluate spawn error: ${err.message}`);
+                reject(err);
+            });
+            proc.on('close', (code) => {
+                if (code !== 0) {
+                    this.logger.warn(`Evaluate script exit ${code}: ${stderr}`);
+                    reject(new Error(stderr || `Evaluate failed with code ${code}`));
+                    return;
+                }
+                try {
+                    resolve(JSON.parse(stdout));
+                }
+                catch {
+                    reject(new Error(`Invalid evaluate output: ${stdout}`));
+                }
+            });
+        });
+    }
+    async predict(features, threshold = 0.3) {
+        let payload;
+        if (features.ticker && features.date && features.candle_time_et) {
+            const rows = await this.mysqlRepo.getTickerRowsForDate(features.ticker, features.date, '1m');
+            if (!rows.length) {
+                return { tradeable: false, prob: 0, threshold, error: `No data for ${features.ticker} on ${features.date}` };
+            }
+            let targetIdx = rows.length - 1;
+            for (let i = 0; i < rows.length; i++) {
+                if (String(rows[i].candle_time_et) === features.candle_time_et) {
+                    targetIdx = i;
+                }
+            }
+            const candles = rows.map((r, i) => ({
+                t: i,
+                o: Number(r.open ?? 0),
+                h: Number(r.high ?? 0),
+                l: Number(r.low ?? 0),
+                c: Number(r.close ?? 0),
+                v: Number(r.volume ?? 0),
+            }));
+            const candleTimesEt = rows.map((r) => String(r.candle_time_et ?? '09:30'));
+            const candleIdxArr = rows.map((r) => Number(r.candle_idx ?? 0));
+            const targetRow = rows[targetIdx];
+            payload = {
+                candles,
+                target_idx: targetIdx,
+                candle_times_et: candleTimesEt,
+                candle_idx_arr: candleIdxArr,
+                atr: Number(targetRow.atr ?? 0),
+                high_of_day: Number(targetRow.high_of_day ?? 0),
+                low_of_day: Number(targetRow.low_of_day ?? 0),
+                pre_market_high: Number(targetRow.pre_market_high ?? 0),
+                change_pct_at_candle: Number(targetRow.change_pct_at_candle ?? 0),
+                shares_outstanding: Number(targetRow.shares_outstanding ?? 0),
+                market_cap: Number(targetRow.market_cap ?? 0),
+                gap_pct: Number(targetRow.gap_pct ?? 0),
+                premarket_volume: Number(targetRow.premarket_volume ?? 0),
+                _threshold: threshold,
+            };
+            this.logger.log(`Historical predict: ${features.ticker} ${features.date} ${features.candle_time_et} (${rows.length} candles, target=${targetIdx})`);
+        }
+        else {
+            payload = { ...features, _threshold: threshold };
+        }
+        const input = JSON.stringify(payload);
+        return new Promise((resolve, reject) => {
+            const proc = (0, child_process_1.spawn)('python3', [this.scriptPath], {
+                cwd: path.dirname(this.scriptPath),
+                stdio: ['pipe', 'pipe', 'pipe'],
+            });
+            let stdout = '';
+            let stderr = '';
+            proc.stdout.on('data', (chunk) => { stdout += chunk.toString(); });
+            proc.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
+            proc.on('error', (err) => {
+                this.logger.error(`Predict spawn error: ${err.message}`);
+                reject(err);
+            });
+            proc.on('close', (code) => {
+                if (code !== 0) {
+                    this.logger.warn(`Predict script exit ${code}: ${stderr}`);
+                }
+                try {
+                    const result = JSON.parse(stdout);
+                    if (result.error) {
+                        reject(new Error(result.error));
+                    }
+                    else {
+                        resolve(result);
+                    }
+                }
+                catch {
+                    reject(new Error(`Invalid predict output: ${stdout}`));
+                }
+            });
+            proc.stdin.write(input, () => proc.stdin.end());
+        });
+    }
+    computeMfr(rows, idx) {
+        const dbVal = rows[idx].max_future_return_10m;
+        if (dbVal != null)
+            return Number(dbVal);
+        const closeT = Number(rows[idx].close ?? 0);
+        if (closeT <= 0 || idx + 10 >= rows.length)
+            return 0;
+        let maxHigh = 0;
+        for (let j = idx + 1; j <= idx + 10; j++) {
+            const h = Number(rows[j]?.high ?? 0);
+            if (h > maxHigh)
+                maxHigh = h;
+        }
+        return (maxHigh - closeT) / closeT;
+    }
+    async backtest(ticker, dateStr, fromTime, toTime, threshold, investment) {
+        const rows = await this.mysqlRepo.getTickerRowsForDate(ticker.toUpperCase(), dateStr, '1m');
+        if (!rows.length) {
+            return { rows: [], summary: null, error: `No data for ${ticker} on ${dateStr}` };
+        }
+        const toMin = (t) => {
+            const [h, m] = t.split(':').map(Number);
+            return h * 60 + m;
+        };
+        const fromMin = toMin(fromTime);
+        const toMinVal = toMin(toTime);
+        const allCandles = rows.map((r, i) => ({
+            t: i,
+            o: Number(r.open ?? 0),
+            h: Number(r.high ?? 0),
+            l: Number(r.low ?? 0),
+            c: Number(r.close ?? 0),
+            v: Number(r.volume ?? 0),
+        }));
+        const candleTimesEt = rows.map((r) => String(r.candle_time_et ?? '09:30'));
+        const candleIdxArr = rows.map((r) => Number(r.candle_idx ?? 0));
+        const targets = [];
+        for (let i = 0; i < rows.length; i++) {
+            const t = String(rows[i].candle_time_et ?? '');
+            const m = toMin(t);
+            if (m >= fromMin && m <= toMinVal) {
+                targets.push({ idx: i, time: t });
+            }
+        }
+        if (!targets.length) {
+            return { rows: [], summary: null, error: `No candles in ${fromTime}–${toTime}` };
+        }
+        let tp = 0, fp = 0, tn = 0, fn = 0;
+        let cumPnL = 0;
+        const resultRows = [];
+        for (const { idx, time } of targets) {
+            const targetRow = rows[idx];
+            const payload = {
+                candles: allCandles.slice(0, idx + 1),
+                target_idx: idx,
+                candle_times_et: candleTimesEt.slice(0, idx + 1),
+                candle_idx_arr: candleIdxArr.slice(0, idx + 1),
+                atr: Number(targetRow.atr ?? 0),
+                high_of_day: Number(targetRow.high_of_day ?? 0),
+                low_of_day: Number(targetRow.low_of_day ?? 0),
+                pre_market_high: Number(targetRow.pre_market_high ?? 0),
+                change_pct_at_candle: Number(targetRow.change_pct_at_candle ?? 0),
+                shares_outstanding: Number(targetRow.shares_outstanding ?? 0),
+                market_cap: Number(targetRow.market_cap ?? 0),
+                gap_pct: Number(targetRow.gap_pct ?? 0),
+                premarket_volume: Number(targetRow.premarket_volume ?? 0),
+                _threshold: threshold,
+            };
+            let prob = 0;
+            let tradeable = false;
+            try {
+                const result = await this.callPredictRaw(payload);
+                prob = result.prob ?? 0;
+                tradeable = result.tradeable ?? false;
+            }
+            catch {
+            }
+            const mfr = this.computeMfr(rows, idx);
+            const realGood = mfr >= 0.015;
+            if (tradeable && realGood)
+                tp++;
+            else if (tradeable && !realGood)
+                fp++;
+            else if (!tradeable && realGood)
+                fn++;
+            else
+                tn++;
+            const match = tradeable === realGood;
+            const pnl = tradeable ? investment * mfr : 0;
+            cumPnL += pnl;
+            resultRows.push({
+                time,
+                open: Number(targetRow.open ?? 0),
+                high: Number(targetRow.high ?? 0),
+                low: Number(targetRow.low ?? 0),
+                close: Number(targetRow.close ?? 0),
+                volume: Number(targetRow.volume ?? 0),
+                prob,
+                tradeable,
+                mfr,
+                realGood,
+                match,
+                pnl: Math.round(pnl * 100) / 100,
+                cumPnl: Math.round(cumPnL * 100) / 100,
+            });
+        }
+        const total = tp + fp + tn + fn;
+        const precision = tp + fp > 0 ? tp / (tp + fp) : 0;
+        const recall = tp + fn > 0 ? tp / (tp + fn) : 0;
+        const accuracy = total > 0 ? (tp + tn) / total : 0;
+        return {
+            rows: resultRows,
+            summary: {
+                tp, fp, tn, fn,
+                precision: Math.round(precision * 1000) / 10,
+                recall: Math.round(recall * 1000) / 10,
+                accuracy: Math.round(accuracy * 1000) / 10,
+                signals: tp + fp,
+                total,
+                pnl: Math.round(cumPnL * 100) / 100,
+                investment,
+            },
+        };
+    }
+    backtestStream(ticker, dateStr, fromTime, toTime, threshold, investment) {
+        return new rxjs_1.Observable((subscriber) => {
+            this._runBacktestStream(subscriber, ticker, dateStr, fromTime, toTime, threshold, investment);
+        });
+    }
+    async _runBacktestStream(sub, ticker, dateStr, fromTime, toTime, threshold, investment) {
+        try {
+            const rows = await this.mysqlRepo.getTickerRowsForDate(ticker.toUpperCase(), dateStr, '1m');
+            if (!rows.length) {
+                sub.next({ data: { type: 'error', message: `No data for ${ticker} on ${dateStr}` } });
+                sub.complete();
+                return;
+            }
+            const toMin = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+            const fromMin = toMin(fromTime);
+            const toMinVal = toMin(toTime);
+            const allCandles = rows.map((r, i) => ({
+                t: i, o: Number(r.open ?? 0), h: Number(r.high ?? 0),
+                l: Number(r.low ?? 0), c: Number(r.close ?? 0), v: Number(r.volume ?? 0),
+            }));
+            const candleTimesEt = rows.map((r) => String(r.candle_time_et ?? '09:30'));
+            const candleIdxArr = rows.map((r) => Number(r.candle_idx ?? 0));
+            const targets = [];
+            for (let i = 0; i < rows.length; i++) {
+                const t = String(rows[i].candle_time_et ?? '');
+                const m = toMin(t);
+                if (m >= fromMin && m <= toMinVal)
+                    targets.push({ idx: i, time: t });
+            }
+            if (!targets.length) {
+                sub.next({ data: { type: 'error', message: `No candles in ${fromTime}–${toTime}` } });
+                sub.complete();
+                return;
+            }
+            sub.next({ data: { type: 'info', total: targets.length, ticker, date: dateStr } });
+            let tp = 0, fp = 0, tn = 0, fn = 0, cumPnL = 0;
+            for (let n = 0; n < targets.length; n++) {
+                if (sub.closed)
+                    return;
+                const { idx, time } = targets[n];
+                const targetRow = rows[idx];
+                const payload = {
+                    candles: allCandles.slice(0, idx + 1),
+                    target_idx: idx,
+                    candle_times_et: candleTimesEt.slice(0, idx + 1),
+                    candle_idx_arr: candleIdxArr.slice(0, idx + 1),
+                    atr: Number(targetRow.atr ?? 0),
+                    high_of_day: Number(targetRow.high_of_day ?? 0),
+                    low_of_day: Number(targetRow.low_of_day ?? 0),
+                    pre_market_high: Number(targetRow.pre_market_high ?? 0),
+                    change_pct_at_candle: Number(targetRow.change_pct_at_candle ?? 0),
+                    shares_outstanding: Number(targetRow.shares_outstanding ?? 0),
+                    market_cap: Number(targetRow.market_cap ?? 0),
+                    gap_pct: Number(targetRow.gap_pct ?? 0),
+                    premarket_volume: Number(targetRow.premarket_volume ?? 0),
+                    _threshold: threshold,
+                };
+                let prob = 0, tradeable = false;
+                try {
+                    const result = await this.callPredictRaw(payload);
+                    prob = result.prob ?? 0;
+                    tradeable = result.tradeable ?? false;
+                }
+                catch { }
+                const mfr = this.computeMfr(rows, idx);
+                const realGood = mfr >= 0.015;
+                if (tradeable && realGood)
+                    tp++;
+                else if (tradeable && !realGood)
+                    fp++;
+                else if (!tradeable && realGood)
+                    fn++;
+                else
+                    tn++;
+                const match = tradeable === realGood;
+                const pnl = tradeable ? investment * mfr : 0;
+                cumPnL += pnl;
+                const row = {
+                    time, open: Number(targetRow.open ?? 0), high: Number(targetRow.high ?? 0),
+                    low: Number(targetRow.low ?? 0), close: Number(targetRow.close ?? 0),
+                    volume: Number(targetRow.volume ?? 0),
+                    prob, tradeable, mfr, realGood, match,
+                    pnl: Math.round(pnl * 100) / 100,
+                    cumPnl: Math.round(cumPnL * 100) / 100,
+                };
+                sub.next({ data: { type: 'row', row, progress: n + 1 } });
+            }
+            const total = tp + fp + tn + fn;
+            const precision = tp + fp > 0 ? tp / (tp + fp) : 0;
+            const recall = tp + fn > 0 ? tp / (tp + fn) : 0;
+            const accuracy = total > 0 ? (tp + tn) / total : 0;
+            sub.next({ data: {
+                    type: 'summary',
+                    summary: {
+                        tp, fp, tn, fn,
+                        precision: Math.round(precision * 1000) / 10,
+                        recall: Math.round(recall * 1000) / 10,
+                        accuracy: Math.round(accuracy * 1000) / 10,
+                        signals: tp + fp, total,
+                        pnl: Math.round(cumPnL * 100) / 100,
+                        investment,
+                    },
+                } });
+            sub.complete();
+        }
+        catch (err) {
+            sub.next({ data: { type: 'error', message: err.message } });
+            sub.complete();
+        }
+    }
+    callPredictRaw(payload) {
+        const input = JSON.stringify(payload);
+        return new Promise((resolve, reject) => {
+            const proc = (0, child_process_1.spawn)('python3', [this.scriptPath], {
+                cwd: path.dirname(this.scriptPath),
+                stdio: ['pipe', 'pipe', 'pipe'],
+            });
+            let stdout = '';
+            let stderr = '';
+            proc.stdout.on('data', (chunk) => { stdout += chunk.toString(); });
+            proc.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
+            proc.on('error', (err) => reject(err));
+            proc.on('close', (code) => {
+                try {
+                    resolve(JSON.parse(stdout));
+                }
+                catch {
+                    reject(new Error(stderr || `exit ${code}`));
+                }
+            });
+            proc.stdin.write(input, () => proc.stdin.end());
+        });
+    }
+};
+exports.PredictorService = PredictorService;
+exports.PredictorService = PredictorService = PredictorService_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [mysql_training_repository_1.MysqlTrainingRepository])
+], PredictorService);
+//# sourceMappingURL=predictor.service.js.map

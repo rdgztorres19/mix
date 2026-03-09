@@ -1,6 +1,7 @@
-import { useState, useCallback, useEffect, KeyboardEvent } from 'react';
+import { useState, useCallback, useEffect, useRef, KeyboardEvent } from 'react';
 import axios from 'axios';
 import CandleChart from './components/CandleChart';
+import type { CandleChartHandle } from './components/CandleChart';
 import AnalysisPanel from './components/AnalysisPanel';
 import StatBadge from './components/StatBadge';
 import NewsPanel from './components/NewsPanel';
@@ -8,8 +9,11 @@ import MomoDropdown from './components/MomoDropdown';
 import StrategyGuide from './components/StrategyGuide';
 import StrategyInfoPanel from './components/StrategyInfoPanel';
 import LogsPanel from './components/LogsPanel';
+import BacktestPage from './components/BacktestPage';
+import { useCollectorSocket } from './hooks/useCollectorSocket';
 import type { StockSnapshot, AnalyzeResponse, CatalystAnalysis, MomoStock } from './types';
 
+type Page = 'trading' | 'backtest';
 type Tab = '1m' | '5m' | 'news';
 type Status = 'idle' | 'loading-chart' | 'loading-analysis' | 'done' | 'error';
 
@@ -26,6 +30,7 @@ const fmtVol = (n: number) => {
 };
 
 export default function App() {
+  const [page, setPage] = useState<Page>('trading');
   const [input, setInput] = useState('');
   const [ticker, setTicker] = useState('');
   const [tab, setTab] = useState<Tab>('1m');
@@ -54,6 +59,31 @@ export default function App() {
   const [replayCutoffMs, setReplayCutoffMs] = useState<number | null>(null);
   // Patrón actual (polling cada 1s)
   const [currentPattern, setCurrentPattern] = useState<{ name: string | null; viable: boolean } | null>(null);
+
+  // ── Real-time collector ──
+  const chart1mRef = useRef<CandleChartHandle>(null);
+  const isToday = selectedDate === getTodayET();
+  const { activeSymbols } = useCollectorSocket(
+    isToday && ticker ? ticker : null,
+    isToday ? selectedDate : null,
+    useCallback((payload) => {
+      chart1mRef.current?.appendCandle(payload.candle);
+    }, []),
+    useCallback((symbols: string[]) => {
+      // If viewing today and the momo dropdown is open, merge new symbols
+      setMomoStocks((prev) => {
+        const existing = new Set(prev.map((s) => s.symbol));
+        const newOnes = symbols.filter((s) => !existing.has(s)).map((s) => ({
+          symbol: s,
+          price: 0,
+          change: 0,
+          volume: 0,
+          float: null as number | null,
+        } as MomoStock));
+        return newOnes.length ? [...prev, ...newOnes] : prev;
+      });
+    }, []),
+  );
 
   /** Convert a datetime-local string (treated as ET) to unix ms */
   const simCutoffMs = (): number | undefined => {
@@ -393,7 +423,30 @@ export default function App() {
           </button>
         </div>
 
-        {/* Ticker search */}
+        {/* Page tabs */}
+        <div style={{ display: 'flex', gap: 4, marginRight: 8 }}>
+          {([['trading', '📈 Trading'], ['backtest', '🔮 Backtest']] as const).map(([p, label]) => (
+            <button
+              key={p}
+              onClick={() => setPage(p)}
+              style={{
+                padding: '5px 12px',
+                borderRadius: 6,
+                border: page === p ? '1px solid #3b82f6' : '1px solid #334155',
+                background: page === p ? 'rgba(59,130,246,0.15)' : 'transparent',
+                color: page === p ? '#60a5fa' : '#64748b',
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Ticker search (only on trading page) */}
+        {page === 'trading' && (<>
         <div style={{ display: 'flex', gap: 8, flex: 1, maxWidth: 380, position: 'relative' }}>
           <div style={{ flex: 1, position: 'relative' }}>
             <input
@@ -535,9 +588,13 @@ export default function App() {
             </span>
           ) : '🤖 Analizar'}
         </button>
+        </>)}
       </header>
 
-      {/* ── Main content ── */}
+      {/* ── Page body ── */}
+      {page === 'backtest' ? (
+        <BacktestPage />
+      ) : (
       <main style={{ flex: 1, padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
         {/* Error */}
@@ -799,6 +856,7 @@ export default function App() {
               {/* Chart */}
               {tab === '1m' && (
                 <CandleChart
+                  ref={chart1mRef}
                   key={`1m-${snapshot.ticker}`}
                   candles={snapshot.candles_1min ?? []}
                   title={`${snapshot.ticker} · 1 min  (ET)`}
@@ -932,6 +990,7 @@ export default function App() {
           </div>
         )}
       </main>
+      )}
 
       {showGuide && <StrategyGuide onClose={() => setShowGuide(false)} />}
       {showLogs && <LogsPanel onClose={() => setShowLogs(false)} />}
