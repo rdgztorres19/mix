@@ -118,6 +118,7 @@ async function main() {
   console.log(`Found ${rows.length} total candles, iterating ${targetRows.length} in window\n`);
 
   // Table header
+  const INVESTMENT = 200; // dollars per trade
   const hdr = [
     'Time'.padEnd(6),
     'Open'.padStart(8),
@@ -130,11 +131,14 @@ async function main() {
     'MFR10m'.padStart(8),
     'Real≥1.5%'.padStart(10),
     'Match'.padStart(6),
+    'P/L $200'.padStart(10),
+    'Cumul'.padStart(10),
   ].join(' | ');
   console.log(hdr);
   console.log('─'.repeat(hdr.length));
 
   let tp = 0, fp = 0, tn = 0, fn = 0;
+  let cumPnL = 0;
 
   for (const { idx, row, time } of targetRows) {
     // Send all candles up to and including this one
@@ -179,6 +183,10 @@ async function main() {
 
     const match = tradeable === realGood;
 
+    // P/L: if we traded, gain/loss = $INVESTMENT * actual return
+    const pnl = tradeable ? INVESTMENT * mfr : 0;
+    cumPnL += pnl;
+
     const line = [
       time.padEnd(6),
       Number(targetRow.open || 0).toFixed(3).padStart(8),
@@ -191,6 +199,8 @@ async function main() {
       (mfr * 100).toFixed(2).padStart(7) + '%',
       (realGood ? '  ✅' : '  ❌').padStart(10),
       match ? '  ✅' : '  ❌',
+      (pnl >= 0 ? '+' : '') + pnl.toFixed(2).padStart(9),
+      (cumPnL >= 0 ? '+' : '') + cumPnL.toFixed(2).padStart(9),
     ].join(' | ');
     console.log(line);
   }
@@ -204,6 +214,7 @@ async function main() {
   console.log(`Confusion: TP=${tp}  FP=${fp}  TN=${tn}  FN=${fn}`);
   console.log(`Precision: ${(precision * 100).toFixed(1)}%  Recall: ${(recall * 100).toFixed(1)}%  Accuracy: ${(accuracy * 100).toFixed(1)}%`);
   console.log(`Signals (tradeable=true): ${tp + fp} / ${total}`);
+  console.log(`\n💰 Inversión $${INVESTMENT}/trade → P/L total: ${cumPnL >= 0 ? '+' : ''}$${cumPnL.toFixed(2)}`);
 
   await conn.end();
 }
