@@ -1,17 +1,31 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { spawn } from 'child_process';
 import * as path from 'path';
+import { MysqlTrainingRepository } from '../scanner/mysql/mysql-training.repository';
 
-/** Features requeridas por el modelo RF (orden importa para el script Python) */
-export const ML_FEATURE_KEYS = [
-  'candle_idx', 'open', 'high', 'low', 'close', 'volume', 'atr', 'vwap',
-  'high_of_day', 'low_of_day', 'change_pct_at_candle', 'ema9', 'ema20',
-  'pre_market_high', 'shares_outstanding', 'market_cap', 'gap_pct',
-  'premarket_volume', 'momentum_acumulado', 'change_1m', 'change_5m',
-  'change_10m', 'minutes_since_hod',
-] as const;
+export interface CandleData {
+  t: number;
+  o: number;
+  h: number;
+  l: number;
+  c: number;
+  v: number;
+}
 
-export type MlFeatures = Partial<Record<typeof ML_FEATURE_KEYS[number], number>>;
+export interface MlFeatures {
+  /** Live mode: candle array + metadata */
+  candles?: CandleData[];
+  target_idx?: number;
+  atr?: number;
+  high_of_day?: number;
+  low_of_day?: number;
+  pre_market_high?: number;
+  change_pct_at_candle?: number;
+  /** Historical mode: ticker + date + time → NestJS fetches from MySQL */
+  ticker?: string;
+  date?: string;
+  candle_time_et?: string;
+}
 
 export interface PredictResult {
   tradeable: boolean;
@@ -37,12 +51,12 @@ export class PredictorService {
   private readonly scriptPath: string;
   private readonly evaluateScriptPath: string;
 
-  constructor() {
+  constructor(private readonly mysqlRepo: MysqlTrainingRepository) {
     const stockTraining = path.resolve(
       process.cwd(),
       process.env.STOCK_TRAINING_PATH ?? path.join('..', 'stock-training'),
     );
-    this.scriptPath = path.join(stockTraining, 'ml', 'random_forest', 'predict.py');
+    this.scriptPath = path.join(stockTraining, 'ml', 'experiments', 'predict.py');
     this.evaluateScriptPath = path.join(stockTraining, 'ml', 'random_forest', 'evaluate.py');
   }
 
@@ -80,7 +94,64 @@ export class PredictorService {
   }
 
   async predict(features: MlFeatures, threshold = 0.3): Promise<PredictResult> {
-    const payload = { ...features, _threshold: threshold };
+    let payload: Record<string, unknown>;
+
+    if (features.ticker && features.date && features.candle_time_et) {
+      // Historical mode: fetch candle data from MySQL, convert to candles array for Python
+      const rows = await this.mysqlRepo.getTickerRowsForDate(features.ticker, features.date, '1m');
+
+      if (!rows.length) {
+        return { tradeable: false, prob: 0, threshold, error: `No data for ${features.ticker} on ${features.date}` };
+      }
+
+      // Find target row index by candle_time_et
+      let targetIdx = rows.length - 1;
+      for (let i = 0; i < rows.length; i++) {
+        if (String(rows[i].candle_time_et) === features.candle_time_et) {
+          targetIdx = i;
+        }
+      }
+
+      // Convert MySQL rows to candle format for Python
+      const candles = rows.map((r, i) => ({
+        t: i,
+        o: Number(r.open ?? 0),
+        h: Number(r.high ?? 0),
+        l: Number(r.low ?? 0),
+        c: Number(r.close ?? 0),
+        v: Number(r.volume ?? 0),
+      }));
+
+      // Pass candle_time_et and candle_idx arrays from MySQL so Python can
+      // derive correct time-based and index-based features
+      const candleTimesEt = rows.map((r) => String(r.candle_time_et ?? '09:30'));
+      const candleIdxArr = rows.map((r) => Number(r.candle_idx ?? 0));
+
+      // Pass along key metadata from the MySQL rows
+      const targetRow = rows[targetIdx];
+      payload = {
+        candles,
+        target_idx: targetIdx,
+        candle_times_et: candleTimesEt,
+        candle_idx_arr: candleIdxArr,
+        atr: Number(targetRow.atr ?? 0),
+        high_of_day: Number(targetRow.high_of_day ?? 0),
+        low_of_day: Number(targetRow.low_of_day ?? 0),
+        pre_market_high: Number(targetRow.pre_market_high ?? 0),
+        change_pct_at_candle: Number(targetRow.change_pct_at_candle ?? 0),
+        // Pass enriched columns that MySQL already has (so Python doesn't recompute)
+        shares_outstanding: Number(targetRow.shares_outstanding ?? 0),
+        market_cap: Number(targetRow.market_cap ?? 0),
+        gap_pct: Number(targetRow.gap_pct ?? 0),
+        premarket_volume: Number(targetRow.premarket_volume ?? 0),
+        _threshold: threshold,
+      };
+      this.logger.log(`Historical predict: ${features.ticker} ${features.date} ${features.candle_time_et} (${rows.length} candles, target=${targetIdx})`);
+    } else {
+      // Live mode: pass through candles array as-is
+      payload = { ...features, _threshold: threshold };
+    }
+
     const input = JSON.stringify(payload);
 
     return new Promise((resolve, reject) => {

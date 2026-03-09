@@ -1,0 +1,15 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Kill port 3033",
+            "type": "shell",
+            "command": "lsof -ti:3033 | xargs kill -9 2>/dev/null; echo 'Port 3033 cleared'",
+            "presentation": {
+                "reveal": "silent",
+                "close": true
+            },
+            "problemMatcher": []
+        }
+    ]
+}

@@ -1,10 +1,14 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { json } from 'express';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bodyParser: false });
+
+  // Increase body limit for predict endpoint (candle history arrays for live mode)
+  app.use(json({ limit: '5mb' }));
 
   app.useGlobalPipes(
     new ValidationPipe({

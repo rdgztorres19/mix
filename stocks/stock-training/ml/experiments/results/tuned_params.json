@@ -1,0 +1,20 @@
+[
+  {
+    "model": "LightGBM",
+    "feature_set": "D_all",
+    "target": "bin_mfr10m_1p5",
+    "cv_prec07": 0.8795,
+    "best_params": {
+      "n_estimators": 108,
+      "max_depth": 10,
+      "learning_rate": 0.01013002472397197,
+      "subsample": 0.7916076839100632,
+      "colsample_bytree": 0.5951066551543946,
+      "min_child_samples": 48,
+      "reg_alpha": 0.2055669374394506,
+      "reg_lambda": 0.6334227850201701,
+      "num_leaves": 94
+    },
+    "time_s": 582.0
+  }
+]

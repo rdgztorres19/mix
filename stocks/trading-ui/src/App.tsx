@@ -810,6 +810,13 @@ export default function App() {
                   simMode={simMode}
                   onCandleClick={simMode ? handleCandleClick : undefined}
                   strategy={currentPattern ? { name: currentPattern.name, viable: currentPattern.viable, entry: null, stop: null, target_1: null, target_2: null, pattern_signals: [] } : snapshot.strategy}
+                  atr={snapshot.atr}
+                  highOfDay={snapshot.high_of_day}
+                  lowOfDay={snapshot.low_of_day}
+                  preMarketHigh={snapshot.pre_market_high}
+                  changePct={snapshot.change_pct}
+                  ticker={ticker}
+                  selectedDate={selectedDate}
                 />
               )}
               {tab === '5m' && (
@@ -825,6 +832,13 @@ export default function App() {
                   simMode={simMode}
                   onCandleClick={simMode ? handleCandleClick : undefined}
                   strategy={currentPattern ? { name: currentPattern.name, viable: currentPattern.viable, entry: null, stop: null, target_1: null, target_2: null, pattern_signals: [] } : snapshot.strategy}
+                  atr={snapshot.atr}
+                  highOfDay={snapshot.high_of_day}
+                  lowOfDay={snapshot.low_of_day}
+                  preMarketHigh={snapshot.pre_market_high}
+                  changePct={snapshot.change_pct}
+                  ticker={ticker}
+                  selectedDate={selectedDate}
                 />
               )}
 

@@ -18,6 +18,8 @@ UI (React + Vite) → http://localhost:5173
   └── Agent analysis panel (decision, entry/stop/targets, R:R, justification)
 ```
 
+node scripts/debug-predict.js AIFF 2026-03-04 9:30 16:00 0.7
+
 ## Fast vs Agentic — Cuándo usar cada modo
 
 | Si… | Usa | Tiempo típico |
@@ -140,56 +142,185 @@ GET /scanner/snapshot/NVDA
 ```
 
 ### Predict — ¿Se puede operar? (ML)
-```bash
-POST /predict?threshold=0.3
-Content-Type: application/json
 
+El endpoint `/predict` invoca un modelo LightGBM (binario: ¿sube ≥1.5% en 10 min?) entrenado con ~1M velas de 1 minuto.
+
+#### Flujo completo NestJS → Python
+
+```
+NestJS (predictor.service.ts)
+  │
+  ├─ 1. Fetch ALL candles from MySQL (training_1m) for ticker+date
+  │     SELECT * FROM training_1m WHERE symbol=? AND date=? ORDER BY candle_idx ASC
+  │
+  ├─ 2. Build payload JSON with raw OHLCV + metadata
+  │
+  └─ 3. Spawn: python3 predict.py  (stdin=JSON, stdout=JSON)
+         │
+         ├─ build_dataframe()  →  DataFrame base (~23 columnas)
+         ├─ add_features()     →  +56 features engineered (RSI, momentum, etc.)
+         ├─ scaler.transform() →  StandardScaler (normaliza 79 features)
+         └─ model.predict_proba() → probabilidad clase +1 (long)
+```
+
+#### Lo que NestJS envía a Python (payload JSON)
+
+**Todas las velas del día** hasta la vela objetivo, más metadata:
+
+```jsonc
 {
-  "candle_idx": 1,
-  "open": 5.2,
-  "high": 5.5,
-  "low": 5.1,
-  "close": 5.4,
-  "volume": 1000000,
-  "atr": 0.15,
-  "vwap": 5.3,
-  "high_of_day": 5.6,
-  "low_of_day": 5.0,
-  "change_pct_at_candle": 2.5,
-  "ema9": 5.25,
-  "ema20": 5.2,
-  "pre_market_high": 5.4,
-  "shares_outstanding": 50000000,
-  "market_cap": 270000000,
-  "gap_pct": 5.0,
-  "premarket_volume": 500000,
-  "momentum_acumulado": 0.02,
-  "change_1m": 0.5,
-  "change_5m": 1.2,
-  "change_10m": 2.0,
-  "minutes_since_hod": 30
+  // ── Velas (TODAS las del día hasta target) ──
+  "candles": [
+    { "t": 0, "o": 5.20, "h": 5.50, "l": 5.10, "c": 5.40, "v": 150000 },
+    { "t": 1, "o": 5.40, "h": 5.55, "l": 5.35, "c": 5.45, "v": 120000 },
+    // ... cada vela de 1 minuto desde premarket hasta la vela actual
+  ],
+  "target_idx": 45,                // índice de la vela a predecir (dentro del array)
+
+  // ── Arrays de MySQL (para features de tiempo e índice correctos) ──
+  "candle_times_et": ["06:07", "06:15", ..., "09:45"],  // hora ET de cada vela
+  "candle_idx_arr": [3, 4, 5, ..., 48],                 // candle_idx original de MySQL
+
+  // ── Metadata (valores escalares del row target en MySQL) ──
+  "atr": 0.15,                     // Average True Range
+  "high_of_day": 5.80,             // High of Day hasta ese momento
+  "low_of_day": 5.00,              // Low of Day hasta ese momento
+  "pre_market_high": 5.60,         // High del premarket
+  "change_pct_at_candle": 0.025,   // Cambio % desde prev close (fracción, no %)
+  "shares_outstanding": 50000000,  // Acciones en circulación
+  "market_cap": 270000000,         // Market cap en USD
+  "gap_pct": 0.05,                 // Gap % de apertura (fracción)
+  "premarket_volume": 500000,      // Volumen total premarket
+
+  // ── Config ──
+  "_threshold": 0.6                // Umbral de probabilidad para señal
 }
 ```
 
-**Query params:** `threshold` (opcional, default 0.3 — recall ~91%). Valores más bajos = más señales, más falsas alarmas.
+#### Lo que Python calcula internamente
 
-**Response:**
+Python recibe los datos crudos y computa **todos** los features en dos etapas:
+
+**Etapa 1 — `build_dataframe()`** (columnas base desde OHLCV):
+
+| Columna | Cómo se calcula |
+|---------|-----------------|
+| `ema9`, `ema20` | EMA exponencial sobre closes |
+| `vwap` | VWAP acumulado: Σ(TP×vol) / Σ(vol) |
+| `change_1m` | (close - close[-1]) / close[-1] |
+| `change_5m` | (close - close[-5]) / close[-5] |
+| `change_10m` | (close - close[-10]) / close[-10] |
+| `momentum_acumulado` | (close - close[0]) / close[0] |
+| `minutes_since_hod` | candle_idx actual - candle_idx del HOD |
+
+**Etapa 2 — `add_features()`** (56 features engineered):
+
+| Categoría | Features | Descripción |
+|-----------|----------|-------------|
+| **Volumen** | `volume_rel` | vol / rolling_mean(vol, 20) |
+| | `volume_spike` | volume_rel > 3.0 |
+| | `volume_acceleration` | volume_rel - volume_rel[-1] |
+| | `cumulative_volume_ratio` | cumsum(vol) / estimated_daily_vol |
+| | `relative_dollar_volume` | (close×vol) / rolling_mean(close×vol, 20) |
+| | `dollar_volume` | close × volume |
+| | `float_rotation` | cumsum(vol) / shares_outstanding |
+| **Momentum** | `rsi` | RSI(14) |
+| | `mom_5`, `mom_10` | close - close[-5], close - close[-10] |
+| | `roc_3/5/10/20` | Rate of Change a 3,5,10,20 períodos |
+| | `momentum_acceleration` | mom_5 - mom_5[-1] |
+| | `momentum_divergence` | z(price_mom) - z(vol_mom) |
+| **Volatilidad** | `volatility_15m` | rolling_std(returns, 15) |
+| | `volatility_ratio` | volatility_15m / rolling_mean(volatility_15m, 30) |
+| | `consolidation_score` | 1 - (range_5bars / range_20bars) |
+| | `bar_range_vs_atr` | (high-low) / atr |
+| **Distancias** | `dist_vwap_pct` | (close - vwap) / vwap |
+| | `dist_hod_pct` | (close - high_of_day) / high_of_day |
+| | `dist_lod_pct` | (close - low_of_day) / low_of_day |
+| | `dist_pm_high` | (close - pre_market_high) / pre_market_high |
+| | `dist_ema9`, `dist_ema20` | (close - ema) / ema |
+| | `dist_gap` | distancia al gap |
+| | `dist_to_round_number` | distancia al número redondo más cercano |
+| **Breakouts** | `break_hod` | 1 si close > high_of_day anterior |
+| | `break_pm_high` | 1 si close > pre_market_high |
+| | `range_expansion` | 1 si rango actual > rango previo × 1.5 |
+| | `vwap_cross_up` | 1 si cruzó VWAP hacia arriba |
+| | `gap_filled` | 1 si el gap fue llenado |
+| **Price Action** | `body_pct` | \|close-open\| / (high-low) |
+| | `upper_wick_pct` | upper_wick / (high-low) |
+| | `lower_wick_pct` | lower_wick / (high-low) |
+| | `is_green` | 1 si close > open |
+| | `consecutive_green/red` | velas verdes/rojas consecutivas |
+| | `pct_of_day_range` | (close-low_of_day) / day_range |
+| | `relative_range` | (high-low) / rolling_mean(range, 20) |
+| | `spread_estimate` | estimación del spread |
+| **Volumen avanzado** | `obv_slope_5` | pendiente del OBV (5 períodos) |
+| | `volume_price_trend` | VPT acumulado |
+| **Returns** | `return_lag_1/2/3` | returns retrasados 1, 2, 3 períodos |
+| | `atr_rel` | atr / close |
+| **Tiempo** | `minute_of_day` | minuto del día (ej: 570 = 9:30) |
+| | `time_since_open_min` | minutos desde market open |
+| | `is_premarket` | 1 si antes de 9:30 |
+| | `is_open` | 1 si 9:30-9:35 |
+| | `is_first_30min` | 1 si 9:30-10:00 |
+| | `is_midday` | 1 si 12:00-15:00 |
+| | `is_power_hour` | 1 si 15:00-16:00 |
+| | `is_last_hour` | 1 si 15:00-16:00 |
+
+**Total: 79 features** → StandardScaler → LightGBM predict_proba
+
+#### Modelo
+
+| Propiedad | Valor |
+|-----------|-------|
+| Algoritmo | LightGBM (binary) |
+| Feature set | D_all (79 features) |
+| Target | bin_mfr10m_1p5 (max_future_return_10m ≥ 1.5%) |
+| Clases | 0 (no sube ≥1.5%), 1 (sí sube ≥1.5%) |
+| Threshold | 0.6 (prob clase 1 para señal long) |
+| Scaler | StandardScaler |
+| Archivos | `stock-training/ml/experiments/results/best_model/` — model.joblib, scaler.joblib, meta.json |
+
+#### Respuesta de Python
+
 ```json
 {
   "tradeable": true,
-  "prob": 0.4521,
-  "threshold": 0.3
+  "prob": 0.7234,
+  "threshold": 0.6
 }
 ```
 
-**Ejemplo con curl:**
+- `prob`: probabilidad de que la acción suba ≥1.5% en los próximos 10 minutos
+- `tradeable`: `prob >= threshold`
+
+#### API
+
 ```bash
-curl -X POST http://localhost:3100/predict \
-  -H "Content-Type: application/json" \
-  -d '{"open":5.2,"high":5.5,"low":5.1,"close":5.4,"volume":1000000,"atr":0.15,"vwap":5.3}'
+# Modo histórico (NestJS busca velas en MySQL automáticamente)
+POST /predict?threshold=0.6
+{
+  "ticker": "ASNS",
+  "date": "2025-09-02",
+  "candle_time_et": "09:45"
+}
+
+# Modo live (enviar velas directamente)
+POST /predict?threshold=0.6
+{
+  "candles": [{"t": 1741267800, "o": 5.2, "h": 5.5, "l": 5.1, "c": 5.4, "v": 150000}, ...],
+  "target_idx": 45,
+  "atr": 0.15,
+  "high_of_day": 5.8,
+  "low_of_day": 5.0,
+  "pre_market_high": 5.6,
+  "shares_outstanding": 50000000,
+  "market_cap": 270000000,
+  "gap_pct": 0.05,
+  "premarket_volume": 500000
+}
 ```
 
-Las features que no envíes se rellenan con 0. Requiere que `stock-training` esté en `../stock-training` (o `STOCK_TRAINING_PATH` en `.env`).
+Requiere que `stock-training` esté en `../stock-training` (o `STOCK_TRAINING_PATH` en `.env`).
 
 ## Agent Tool Loop
 
@@ -250,3 +381,151 @@ El agente puede ejecutar código Python cuando necesita cálculos complejos o vi
 - Minimum 2:1 Risk/Reward ratio
 - Stop loss required on every trade
 - Position size = max_risk ÷ per_share_risk
+
+---
+
+## Reentrenar el modelo ML
+
+Todo vive en `stock-training/ml/`. El proceso tiene 3 pasos: explorar → tunear → entrenar.
+
+### Paso 1 — Explorar combinaciones (grid search)
+
+El grid prueba todas las combinaciones de modelo × feature_set × target **sin tunear hiperparámetros** (usa defaults). Sirve para identificar qué combinación tiene mejor precision@threshold.
+
+```bash
+cd stock-training/ml
+
+# Grid completo (todos los modelos × feature sets × targets)
+python3 -m experiments.run_grid
+
+# Grid selectivo (más rápido)
+python3 -m experiments.run_grid \
+  --models LightGBM XGBoost \
+  --fsets D_all B_enriched \
+  --targets bin_mfr10m_1p5 mc_1p5
+
+# Grid rápido (subsampled, para CatBoost/RandomForest que son lentos)
+python3 -m experiments.run_fast_grid \
+  --models CatBoost RandomForest \
+  --fsets D_all B_enriched \
+  --targets bin_mfr10m_1p5 mc_1p5
+```
+
+Resultados se guardan en `experiments/results/grid_results.csv`. Columnas clave:
+- `prec@0.6`, `signals@0.6` — precisión y volumen de señales a threshold 0.6
+- `prec@0.7`, `signals@0.7` — precisión y volumen a threshold 0.7
+
+**Cómo analizar resultados:**
+```bash
+# Ver mejores por precision@0.6 con señales suficientes
+head -1 experiments/results/grid_results.csv  # ver headers
+cat experiments/results/grid_results.csv | sort -t',' -k26 -rn | head -10
+
+# Filtrar solo binarios con LightGBM
+grep "LightGBM.*bin_mfr10m" experiments/results/grid_results.csv
+```
+
+**Modelos disponibles:** XGBoost, LightGBM, CatBoost, RandomForest, ExtraTrees, LogisticRegression
+
+**Feature sets:** A_base, B_enriched, C_price_action, D_all, F_price_vol_time
+
+**Targets disponibles:**
+| Target | Tipo | Descripción |
+|--------|------|-------------|
+| `bin_mfr10m_1p5` | binario | max_future_return_10m ≥ 1.5% |
+| `bin_mfr10m_1p0` | binario | max_future_return_10m ≥ 1.0% |
+| `bin_mfr10m_2p0` | binario | max_future_return_10m ≥ 2.0% |
+| `bin_fr5m_*` | binario | future_return_5m ≥ umbral |
+| `bin_break_hod` | binario | rompe high of day en 10 min |
+| `mc_1p5` | multiclass | -1/0/+1 según ±1.5% |
+| `mc_2p0` | multiclass | -1/0/+1 según ±2.0% |
+| `mc_2p5` | multiclass | -1/0/+1 según ±2.5% |
+
+### Paso 2 — Tunear hiperparámetros (Optuna)
+
+Una vez identificada la mejor combinación, editar `CONFIGS` en `experiments/tune_focused.py`:
+
+```python
+# experiments/tune_focused.py — línea ~37
+CONFIGS = [
+    ("LightGBM", "D_all", "bin_mfr10m_1p5"),
+    # Agregar más combinaciones si quieres comparar:
+    # ("XGBoost", "D_all", "bin_mfr10m_1p5"),
+]
+```
+
+Parámetros de tuning (mismo archivo):
+```python
+SUBSAMPLE = 200_000  # filas para tuning (velocidad)
+N_TRIALS  = 60       # intentos de Optuna
+N_SPLITS  = 3        # folds de walk-forward CV
+EMBARGO   = 30       # gap entre train/val (evita leakage)
+```
+
+Ejecutar:
+```bash
+cd stock-training/ml
+python3 experiments/tune_focused.py
+```
+
+Guarda los mejores hiperparámetros en `experiments/results/tuned_params.json`.
+
+### Paso 3 — Entrenar modelo final
+
+Toma los params tuneados y entrena con el dataset completo (~1M filas). Guarda modelo, scaler, y metadata.
+
+```bash
+cd stock-training/ml
+python3 -m experiments.train_best --rank 1
+```
+
+`--rank 1` = el mejor config de tuned_params.json. Si tuneaste múltiples configs, `--rank 2` sería el segundo mejor, etc.
+
+**Archivos generados en `experiments/results/best_model/`:**
+- `model.joblib` — modelo LightGBM/XGBoost serializado
+- `scaler.joblib` — StandardScaler fitted
+- `meta.json` — metadata: feature_columns, target, class_labels, tuned_params, test_metrics
+
+El endpoint `/predict` lee automáticamente de `best_model/` — no necesita reinicio. `predict.py` detecta si es binary o multiclass desde `meta.json`.
+
+### Verificar el modelo entrenado
+
+```bash
+# Ver métricas del modelo guardado
+cat stock-training/ml/experiments/results/best_model/meta.json | python3 -m json.tool
+
+# Test end-to-end con debug-predict.js (requiere NestJS corriendo)
+cd trading-agent
+node scripts/debug-predict.js AIFF 2026-03-04 09:30 10:00 0.6
+#                              ^      ^         ^     ^    ^threshold
+#                              |      |         |     └ hora fin ET
+#                              |      |         └ hora inicio ET  
+#                              |      └ fecha
+#                              └ ticker
+```
+
+El debug-predict muestra cada vela con su probabilidad, si generó señal, el MFR10m real, y si el modelo acertó (Match ✅/❌).
+
+### Ejemplo completo de reentrenamiento
+
+```bash
+# 1. Explorar qué combinación es mejor
+cd stock-training/ml
+python3 -m experiments.run_grid --models LightGBM XGBoost --fsets D_all --targets bin_mfr10m_1p5
+
+# 2. Editar CONFIGS en tune_focused.py con la mejor combinación
+#    (ver arriba) ("LightGBM", "D_all", "bin_fr5m_1p5"),
+
+# 3. Tunear
+python3 experiments/tune_focused.py
+
+# 4. Entrenar y guardar
+python3 -m experiments.train_best --rank 1
+
+# 5. Verificar
+cat experiments/results/best_model/meta.json | python3 -m json.tool
+
+# 6. Test con debug-predict (NestJS debe estar corriendo)
+cd ../trading-agent
+node scripts/debug-predict.js AIFF 2026-03-04 09:30 10:00 0.6
+```

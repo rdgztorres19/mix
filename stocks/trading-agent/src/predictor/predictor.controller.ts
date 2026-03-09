@@ -1,31 +1,35 @@
 import { Controller, Post, Get, Body, Query, HttpException, HttpStatus, Logger } from '@nestjs/common';
-import { IsNumber, IsOptional, Min, Max } from 'class-validator';
-import { PredictorService, MlFeatures } from './predictor.service';
+import { IsOptional, IsArray, IsString, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import { PredictorService, MlFeatures, CandleData } from './predictor.service';
+
+class CandleDto implements CandleData {
+  @IsOptional() t: number;
+  @IsOptional() o: number;
+  @IsOptional() h: number;
+  @IsOptional() l: number;
+  @IsOptional() c: number;
+  @IsOptional() v: number;
+}
 
 class PredictDto implements MlFeatures {
-  @IsOptional() candle_idx?: number;
-  @IsOptional() open?: number;
-  @IsOptional() high?: number;
-  @IsOptional() low?: number;
-  @IsOptional() close?: number;
-  @IsOptional() volume?: number;
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CandleDto)
+  candles?: CandleDto[];
+
+  @IsOptional() target_idx?: number;
   @IsOptional() atr?: number;
-  @IsOptional() vwap?: number;
   @IsOptional() high_of_day?: number;
   @IsOptional() low_of_day?: number;
-  @IsOptional() change_pct_at_candle?: number;
-  @IsOptional() ema9?: number;
-  @IsOptional() ema20?: number;
   @IsOptional() pre_market_high?: number;
-  @IsOptional() shares_outstanding?: number;
-  @IsOptional() market_cap?: number;
-  @IsOptional() gap_pct?: number;
-  @IsOptional() premarket_volume?: number;
-  @IsOptional() momentum_acumulado?: number;
-  @IsOptional() change_1m?: number;
-  @IsOptional() change_5m?: number;
-  @IsOptional() change_10m?: number;
-  @IsOptional() minutes_since_hod?: number;
+  @IsOptional() change_pct_at_candle?: number;
+
+  /** Historical mode (NestJS handles MySQL lookup) */
+  @IsOptional() @IsString() ticker?: string;
+  @IsOptional() @IsString() date?: string;
+  @IsOptional() @IsString() candle_time_et?: string;
 }
 
 @Controller('predict')

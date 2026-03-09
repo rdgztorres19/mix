@@ -17,6 +17,6 @@ import { StockDataSourceFactory } from './datasource/datasource.factory';
     StockDataSourceFactory,
   ],
   controllers: [ScannerController],
-  exports: [ScannerService],
+  exports: [ScannerService, MysqlTrainingRepository],
 })
 export class ScannerModule {}

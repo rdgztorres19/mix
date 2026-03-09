@@ -9,7 +9,8 @@
     "start:dev": "nest start --watch --builder swc",
     "start:prod": "node dist/src/main",
     "embed": "ts-node -r tsconfig-paths/register scripts/embed-knowledge.ts",
-    "debug-metrics": "node scripts/debug-stock-metrics.js -- GXAI 2026-03-05 9:31 5m"
+    "debug-metrics": "node scripts/debug-stock-metrics.js --",
+    "debug-predict": "node scripts/debug-predict.js --"
   },
   "dependencies": {
     "@langchain/core": "^0.3.0",
