@@ -31,10 +31,11 @@ let CollectorCron = class CollectorCron {
    * Pre-market scan to seed the initial watchlist.
    */ async runDailyScan() {
         this.logger.log('⏰ Daily pre-market MoMo scan (8:00 AM ET)…');
+        await this.collector.resetActiveSymbols();
         await this.collector.scanMomo();
     }
     /**
-   * Every 30 minutes during 9:00–20:00 UTC (covers 4 AM – 4 PM ET).
+   * Every 5 minutes during 9:00–20:00 UTC (covers 4 AM – 4 PM ET).
    * Catches new movers that appear during the trading day.
    */ async runPeriodicScan() {
         this.logger.log('🔄 Periodic MoMo scan…');

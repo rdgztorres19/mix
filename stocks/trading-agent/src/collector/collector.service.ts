@@ -246,6 +246,20 @@ export class CollectorService implements OnModuleInit {
   }
 
   /**
+   * Clear active symbols for a fresh trading day.
+   */
+  async resetActiveSymbols(): Promise<void> {
+    const symbols = [...this.activeSymbols.keys()];
+    if (symbols.length) {
+      this.momoStream.unsubscribe(symbols);
+    }
+    this.activeSymbols.clear();
+    await this.mysqlRepo.deactivateAllSymbols();
+    this.gateway.emitSymbolsUpdate([]);
+    this.logger.log('Active symbols cleared for new day');
+  }
+
+  /**
    * Scan MoMo for hot tickers and add any new ones.
    */
   async scanMomo(): Promise<string[]> {

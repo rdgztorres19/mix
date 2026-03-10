@@ -212,6 +212,20 @@ let CollectorService = class CollectorService {
         this.logger.debug(`${symbol} ${row.candle_time_et} | c=${row.close.toFixed(3)} v=${row.volume} ` + `vwap=${row.vwap.toFixed(3)} ema9=${row.ema9.toFixed(3)} atr=${row.atr.toFixed(3)}`);
     }
     /**
+   * Clear active symbols for a fresh trading day.
+   */ async resetActiveSymbols() {
+        const symbols = [
+            ...this.activeSymbols.keys()
+        ];
+        if (symbols.length) {
+            this.momoStream.unsubscribe(symbols);
+        }
+        this.activeSymbols.clear();
+        await this.mysqlRepo.deactivateAllSymbols();
+        this.gateway.emitSymbolsUpdate([]);
+        this.logger.log('Active symbols cleared for new day');
+    }
+    /**
    * Scan MoMo for hot tickers and add any new ones.
    */ async scanMomo() {
         this.logger.log('Scanning MoMo for hot tickers…');
