@@ -59,7 +59,7 @@ _ts_decorate([
     _ts_metadata("design:returntype", Promise)
 ], CollectorCron.prototype, "runDailyScan", null);
 _ts_decorate([
-    (0, _schedule.Cron)('*/30 9-20 * * 1-5'),
+    (0, _schedule.Cron)('*/5 9-20 * * 1-5'),
     _ts_metadata("design:type", Function),
     _ts_metadata("design:paramtypes", []),
     _ts_metadata("design:returntype", Promise)

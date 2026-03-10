@@ -29,7 +29,7 @@ export class CollectorCron {
    * Every 30 minutes during 9:00–20:00 UTC (covers 4 AM – 4 PM ET).
    * Catches new movers that appear during the trading day.
    */
-  @Cron('*/30 9-20 * * 1-5')
+  @Cron('*/5 9-20 * * 1-5')
   async runPeriodicScan(): Promise<void> {
     this.logger.log('🔄 Periodic MoMo scan…');
     await this.collector.scanMomo();
