@@ -8,6 +8,7 @@ import { AnalysisLogModule } from './analysis-log/analysis-log.module';
 import { CacheModule } from './cache/cache.module';
 import { PredictorModule } from './predictor/predictor.module';
 import { CollectorModule } from './collector/collector.module';
+import { TraderModule } from './trader/trader.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { CollectorModule } from './collector/collector.module';
     CacheModule,
     PredictorModule,
     CollectorModule,
+    TraderModule,
   ],
 })
 export class AppModule {}

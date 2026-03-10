@@ -8,12 +8,13 @@
  * 4. Wire Alpaca subscriptions through AlpacaStreamService
  */
 
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, Inject, Optional } from '@nestjs/common';
 import axios from 'axios';
 import { MysqlTrainingRepository } from '../scanner/mysql/mysql-training.repository';
 import { ScannerService, Candle } from '../scanner/scanner.service';
 import { MomoStreamService } from './momo-stream.service';
 import { CollectorGateway } from './collector.gateway';
+import { AutoTraderService } from '../trader/auto-trader.service';
 import {
   CollectorCandle,
   SymbolMetadata,
@@ -39,8 +40,11 @@ export class CollectorService implements OnModuleInit {
     private readonly scannerService: ScannerService,
     private readonly momoStream: MomoStreamService,
     private readonly gateway: CollectorGateway,
+    @Optional() @Inject(AutoTraderService) private readonly autoTrader?: AutoTraderService,
   ) {
     this.momoBase = process.env.MOMO_BASE_URL ?? 'https://momoscreener.com/api/p';
+    // Inject gateway into autoTrader (avoids circular module dependency)
+    if (this.autoTrader) this.autoTrader.setGateway(this.gateway);
   }
 
   async onModuleInit(): Promise<void> {
@@ -55,12 +59,14 @@ export class CollectorService implements OnModuleInit {
       (symbol, candle) => this.onLiveTick(symbol, candle),
     );
 
-    // 3. Load persisted symbols from previous session
+    // 3. Load persisted symbols from previous session (parallel in batches of 5)
     const persisted = await this.mysqlRepo.getActiveSymbols();
     if (persisted.length) {
       this.logger.log(`Restoring ${persisted.length} persisted symbols: ${persisted.map((s) => s.symbol).join(', ')}`);
-      for (const { symbol } of persisted) {
-        await this.addSymbol(symbol, 'restored', true);
+      const BATCH = 5;
+      for (let i = 0; i < persisted.length; i += BATCH) {
+        const batch = persisted.slice(i, i + BATCH);
+        await Promise.all(batch.map(({ symbol }) => this.addSymbol(symbol, 'restored', true)));
       }
     }
 
@@ -131,6 +137,10 @@ export class CollectorService implements OnModuleInit {
    * Deletes existing data for symbol+date and reinserts cleanly.
    */
   async backfillFromMomo(symbol: string): Promise<void> {
+    if (this.isAfterHoursNow()) {
+      this.logger.log(`Backfill skipped (after hours): ${symbol}`);
+      return;
+    }
     const state = this.activeSymbols.get(symbol);
     if (!state) return;
 
@@ -170,17 +180,18 @@ export class CollectorService implements OnModuleInit {
       o: c.o, h: c.h, l: c.l, c: c.c, v: c.v, t: c.t,
     }));
 
-    // Delete all existing data for this symbol+date, then insert fresh
+    // Delete all existing data for this symbol+date, then bulk-insert fresh
     const deleted = await this.mysqlRepo.deleteCandlesForSymbolDate(symbol, todayET);
     if (deleted > 0) {
       this.logger.log(`Deleted ${deleted} old rows for ${symbol} on ${todayET}`);
     }
 
+    const allRows: Record<string, unknown>[] = [];
     for (let i = 0; i < state.history.length; i++) {
       const historySlice = state.history.slice(0, i + 1);
-      const row = computeCandleRow(symbol, historySlice, state.metadata);
-      await this.mysqlRepo.upsertCandle(row as unknown as Record<string, unknown>);
+      allRows.push(computeCandleRow(symbol, historySlice, state.metadata) as unknown as Record<string, unknown>);
     }
+    await this.mysqlRepo.bulkUpsertCandles(allRows);
 
     this.logger.log(
       `Backfilled ${symbol}: ${todayCandles.length} candles inserted clean`,
@@ -220,6 +231,13 @@ export class CollectorService implements OnModuleInit {
 
     // Push to UI via WebSocket
     this.gateway.emitCandleUpdate(row);
+
+    // Auto-predict + auto-trade (fire-and-forget, don't block candle pipeline)
+    if (this.autoTrader) {
+      this.autoTrader.onCandleClosed(row).catch((err) =>
+        this.logger.warn(`AutoTrader error: ${(err as Error).message}`),
+      );
+    }
 
     this.logger.debug(
       `${symbol} ${row.candle_time_et} | c=${row.close.toFixed(3)} v=${row.volume} ` +
@@ -283,9 +301,13 @@ export class CollectorService implements OnModuleInit {
    * and upsert only candles newer than what we already have.
    * This fills gaps left by Alpaca IEX's limited coverage.
    */
-  async refreshAllFromMomo(): Promise<void> {
+  async refreshAllFromMomo(options: { force?: boolean } = {}): Promise<{ skipped: boolean; reason?: string }> {
+    if (!options.force && this.isAfterHoursNow()) {
+      this.logger.log('MoMo refresh skipped (after hours)');
+      return { skipped: true, reason: 'after_hours' };
+    }
     const symbols = [...this.activeSymbols.keys()];
-    if (!symbols.length) return;
+    if (!symbols.length) return { skipped: true, reason: 'no_active_symbols' };
     this.logger.log(`MoMo refresh: updating ${symbols.length} symbols…`);
     const todayET = this.getTodayDateET();
 
@@ -332,6 +354,7 @@ export class CollectorService implements OnModuleInit {
     }
 
     this.logger.log(`MoMo refresh complete for ${symbols.length} symbols`);
+    return { skipped: false };
   }
 
   /**
@@ -346,5 +369,22 @@ export class CollectorService implements OnModuleInit {
    */
   private getTodayDateET(): string {
     return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+  }
+
+  private getMinuteOfDayET(): number {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/New_York',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).formatToParts(new Date());
+    const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '0';
+    const h = parseInt(get('hour'), 10);
+    const m = parseInt(get('minute'), 10);
+    return h * 60 + m;
+  }
+
+  private isAfterHoursNow(): boolean {
+    return this.getMinuteOfDayET() >= 16 * 60;
   }
 }

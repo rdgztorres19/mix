@@ -26,6 +26,37 @@ export interface SymbolsUpdatePayload {
   symbols: string[];
 }
 
+export interface PredictSignalPayload {
+  symbol: string;
+  date: string;
+  time: string;
+  prob: number;
+  threshold: number;
+  tradeable: boolean;
+  close: number;
+}
+
+export interface TradeEntryPayload {
+  symbol: string;
+  date: string;
+  time: string;
+  price: number;
+  qty: number;
+  dollarAmount: number;
+  orderId: string;
+}
+
+export interface TradeExitPayload {
+  symbol: string;
+  date: string;
+  time: string;
+  entryPrice: number;
+  exitPrice: number;
+  qty: number;
+  pnl: number;
+  candlesHeld: number;
+}
+
 const BACKEND_URL = 'http://localhost:3033/collector';
 
 /**
@@ -37,12 +68,21 @@ export function useCollectorSocket(
   date: string | null,
   onCandle: (payload: CandleUpdatePayload) => void,
   onSymbols?: (symbols: string[]) => void,
+  onPredictSignal?: (payload: PredictSignalPayload) => void,
+  onTradeEntry?: (payload: TradeEntryPayload) => void,
+  onTradeExit?: (payload: TradeExitPayload) => void,
 ) {
   const socketRef = useRef<Socket | null>(null);
   const onCandleRef = useRef(onCandle);
   const onSymbolsRef = useRef(onSymbols);
+  const onPredictRef = useRef(onPredictSignal);
+  const onEntryRef = useRef(onTradeEntry);
+  const onExitRef = useRef(onTradeExit);
   onCandleRef.current = onCandle;
   onSymbolsRef.current = onSymbols;
+  onPredictRef.current = onPredictSignal;
+  onEntryRef.current = onTradeEntry;
+  onExitRef.current = onTradeExit;
 
   const [activeSymbols, setActiveSymbols] = useState<string[]>([]);
 
@@ -81,6 +121,19 @@ export function useCollectorSocket(
     socket.on('symbols:update', (payload: SymbolsUpdatePayload) => {
       setActiveSymbols(payload.symbols);
       onSymbolsRef.current?.(payload.symbols);
+    });
+
+    // Auto-predict signals (all symbols, no filter)
+    socket.on('predict:signal', (payload: PredictSignalPayload) => {
+      onPredictRef.current?.(payload);
+    });
+
+    socket.on('trade:entry', (payload: TradeEntryPayload) => {
+      onEntryRef.current?.(payload);
+    });
+
+    socket.on('trade:exit', (payload: TradeExitPayload) => {
+      onExitRef.current?.(payload);
     });
 
     return () => {

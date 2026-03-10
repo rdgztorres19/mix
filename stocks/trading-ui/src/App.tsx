@@ -11,6 +11,7 @@ import StrategyInfoPanel from './components/StrategyInfoPanel';
 import LogsPanel from './components/LogsPanel';
 import BacktestPage from './components/BacktestPage';
 import { useCollectorSocket } from './hooks/useCollectorSocket';
+import type { PredictSignalPayload, TradeEntryPayload, TradeExitPayload } from './hooks/useCollectorSocket';
 import type { StockSnapshot, AnalyzeResponse, CatalystAnalysis, MomoStock } from './types';
 
 type Page = 'trading' | 'backtest';
@@ -48,6 +49,7 @@ export default function App() {
   const [showMomo, setShowMomo] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
+  const [syncLoading, setSyncLoading] = useState(false);
 
   // Date picker: today by default, historical dates → MySQL (stock-training)
   const getTodayET = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
@@ -59,6 +61,33 @@ export default function App() {
   const [replayCutoffMs, setReplayCutoffMs] = useState<number | null>(null);
   // Patrón actual (polling cada 1s)
   const [currentPattern, setCurrentPattern] = useState<{ name: string | null; viable: boolean } | null>(null);
+
+  // ── Trade signals & toasts ──
+  interface Toast { id: number; msg: string; color: string; ts: number }
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const toastIdRef = useRef(0);
+  const addToast = useCallback((msg: string, color = '#22c55e') => {
+    const id = ++toastIdRef.current;
+    setToasts((prev) => [...prev.slice(-9), { id, msg, color, ts: Date.now() }]);
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 8000);
+  }, []);
+
+  // Audio beep via Web Audio API (no files needed)
+  const playBeep = useCallback((freq = 880, duration = 0.18) => {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.35, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + duration);
+    } catch { /* audio not available */ }
+  }, []);
 
   // ── Real-time collector ──
   const chart1mRef = useRef<CandleChartHandle>(null);
@@ -83,6 +112,35 @@ export default function App() {
         return newOnes.length ? [...prev, ...newOnes] : prev;
       });
     }, []),
+    // predict:signal
+    useCallback((sig: PredictSignalPayload) => {
+      const pctStr = (sig.prob * 100).toFixed(1);
+      if (sig.tradeable) {
+        playBeep(880, 0.18);
+        setTimeout(() => playBeep(1100, 0.15), 200);
+        addToast(`🟢 ${sig.symbol} ${sig.time} — prob ${pctStr}%  BUY SIGNAL`, '#22c55e');
+      } else {
+        addToast(`⚪ ${sig.symbol} ${sig.time} — prob ${pctStr}%`, '#64748b');
+      }
+    }, [playBeep, addToast]),
+    // trade:entry
+    useCallback((entry: TradeEntryPayload) => {
+      playBeep(660, 0.25);
+      addToast(
+        `📥 BOUGHT ${entry.symbol} ${entry.time} — ${entry.qty.toFixed(4)} @ $${entry.price.toFixed(2)} ($${entry.dollarAmount.toFixed(0)})`,
+        '#3b82f6',
+      );
+    }, [playBeep, addToast]),
+    // trade:exit
+    useCallback((exit: TradeExitPayload) => {
+      const pnlColor = exit.pnl >= 0 ? '#22c55e' : '#ef4444';
+      const pnlSign = exit.pnl >= 0 ? '+' : '';
+      playBeep(440, 0.3);
+      addToast(
+        `📤 SOLD ${exit.symbol} ${exit.time} — ${pnlSign}$${exit.pnl.toFixed(2)} (${exit.candlesHeld} candles)`,
+        pnlColor,
+      );
+    }, [playBeep, addToast]),
   );
 
   /** Convert a datetime-local string (treated as ET) to unix ms */
@@ -147,6 +205,26 @@ export default function App() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [simMode, simDatetime, selectedDate]);
+
+  const handleSyncToday = useCallback(async () => {
+    if (syncLoading) return;
+    setSyncLoading(true);
+    try {
+      const { data } = await axios.post<{ ok: boolean; skipped?: boolean; reason?: string }>(
+        '/api/collector/sync-today',
+      );
+      if (data.skipped) {
+        const reason = data.reason === 'after_hours' ? 'after hours' : 'no symbols activos';
+        addToast(`Sync hoy omitido: ${reason}`, '#f59e0b');
+      } else {
+        addToast('Sync hoy iniciado', '#22c55e');
+      }
+    } catch (e: any) {
+      addToast(e?.response?.data?.message || e.message || 'Sync hoy fallo', '#ef4444');
+    } finally {
+      setSyncLoading(false);
+    }
+  }, [addToast, syncLoading]);
 
   const runAnalysis = useCallback(async () => {
     if (!ticker) return;
@@ -574,6 +652,26 @@ export default function App() {
             <span style={{ fontSize: 10, color: '#64748b', whiteSpace: 'nowrap' }}>ET</span>
           </div>
 
+          <button
+            onClick={handleSyncToday}
+            disabled={!isToday || syncLoading}
+            title={isToday ? 'Sync candles del dia de hoy (momo)' : 'Solo disponible para hoy'}
+            style={{
+              padding: '7px 10px',
+              background: syncLoading ? '#1f2937' : 'rgba(14,165,233,0.15)',
+              border: `1px solid ${syncLoading ? '#334155' : 'rgba(14,165,233,0.5)'}`,
+              borderRadius: 8,
+              color: syncLoading ? '#64748b' : '#38bdf8',
+              cursor: (!isToday || syncLoading) ? 'not-allowed' : 'pointer',
+              fontSize: 12,
+              fontWeight: 700,
+              fontFamily: "'JetBrains Mono', monospace",
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {syncLoading ? 'Sync...' : 'Sync hoy'}
+          </button>
+
         </div>
 
         {/* Analyze button */}
@@ -994,6 +1092,43 @@ export default function App() {
 
       {showGuide && <StrategyGuide onClose={() => setShowGuide(false)} />}
       {showLogs && <LogsPanel onClose={() => setShowLogs(false)} />}
+
+      {/* ── Trade signal toasts (bottom-right) ── */}
+      {toasts.length > 0 && (
+        <div style={{
+          position: 'fixed',
+          bottom: 16,
+          right: 16,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 6,
+          zIndex: 9999,
+          maxWidth: 420,
+          pointerEvents: 'none',
+        }}>
+          {toasts.map((t) => (
+            <div
+              key={t.id}
+              style={{
+                padding: '10px 16px',
+                background: '#131820',
+                border: `1px solid ${t.color}55`,
+                borderLeft: `4px solid ${t.color}`,
+                borderRadius: 8,
+                color: t.color,
+                fontSize: 12,
+                fontWeight: 600,
+                fontFamily: "'JetBrains Mono', monospace",
+                boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                animation: 'fadeInRight 0.3s ease',
+                pointerEvents: 'auto',
+              }}
+            >
+              {t.msg}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

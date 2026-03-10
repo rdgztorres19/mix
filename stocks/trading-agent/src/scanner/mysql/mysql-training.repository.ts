@@ -246,6 +246,41 @@ export class MysqlTrainingRepository {
   }
 
   /**
+   * Bulk-insert rows using multi-row REPLACE (much faster than one-by-one).
+   * Splits into chunks of 500 to avoid exceeding MySQL packet limits.
+   */
+  async bulkUpsertCandles(rows: Record<string, unknown>[]): Promise<void> {
+    const p = this.getPool();
+    if (!p || !rows.length) return;
+
+    const cols = [
+      'symbol', 'date', 'candle_idx', 'candle_time_et',
+      'open', 'high', 'low', 'close', 'volume',
+      'atr', 'vwap', 'ema9', 'ema20',
+      'high_of_day', 'low_of_day',
+      'change_pct_at_candle', 'pre_market_high', 'session',
+      'shares_outstanding', 'market_cap', 'gap_pct', 'premarket_volume',
+      'change_1m', 'change_5m', 'change_10m', 'minutes_since_hod',
+    ];
+
+    const CHUNK = 500;
+    for (let i = 0; i < rows.length; i += CHUNK) {
+      const chunk = rows.slice(i, i + CHUNK);
+      const placeholderRow = `(${cols.map(() => '?').join(',')})`;
+      const placeholders = chunk.map(() => placeholderRow).join(',');
+      const values = chunk.flatMap((row) => cols.map((c) => row[c] ?? null));
+      try {
+        await p.query(
+          `REPLACE INTO training_1m (${cols.join(',')}) VALUES ${placeholders}`,
+          values,
+        );
+      } catch (e) {
+        this.logger.warn(`bulkUpsertCandles chunk failed: ${(e as Error).message}`);
+      }
+    }
+  }
+
+  /**
    * Delete all candles for a symbol on a given date.
    * Used before backfill to ensure clean data.
    */

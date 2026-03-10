@@ -121,4 +121,50 @@ export class CollectorGateway
   emitSymbolsUpdate(symbols: string[]): void {
     this.server.emit('symbols:update', { symbols });
   }
+
+  /**
+   * Emit an ML predict signal (every candle close when auto-predict is on).
+   */
+  emitPredictSignal(payload: {
+    symbol: string;
+    date: string;
+    time: string;
+    prob: number;
+    threshold: number;
+    tradeable: boolean;
+    close: number;
+  }): void {
+    this.server.emit('predict:signal', payload);
+  }
+
+  /**
+   * Emit a trade entry notification.
+   */
+  emitTradeEntry(payload: {
+    symbol: string;
+    date: string;
+    time: string;
+    price: number;
+    qty: number;
+    dollarAmount: number;
+    orderId: string;
+  }): void {
+    this.server.emit('trade:entry', payload);
+  }
+
+  /**
+   * Emit a trade exit notification.
+   */
+  emitTradeExit(payload: {
+    symbol: string;
+    date: string;
+    time: string;
+    entryPrice: number;
+    exitPrice: number;
+    qty: number;
+    pnl: number;
+    candlesHeld: number;
+  }): void {
+    this.server.emit('trade:exit', payload);
+  }
 }

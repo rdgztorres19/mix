@@ -22,6 +22,7 @@ const _mysqltrainingrepository = require("../scanner/mysql/mysql-training.reposi
 const _scannerservice = require("../scanner/scanner.service");
 const _momostreamservice = require("./momo-stream.service");
 const _collectorgateway = require("./collector.gateway");
+const _autotraderservice = require("../trader/auto-trader.service");
 const _indicatorcalculator = require("./indicator.calculator");
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
@@ -37,6 +38,11 @@ function _ts_decorate(decorators, target, key, desc) {
 function _ts_metadata(k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 }
+function _ts_param(paramIndex, decorator) {
+    return function(target, key) {
+        decorator(target, key, paramIndex);
+    };
+}
 let CollectorService = class CollectorService {
     async onModuleInit() {
         this.logger.log('CollectorService initializing…');
@@ -44,12 +50,14 @@ let CollectorService = class CollectorService {
         await this.mysqlRepo.ensureCollectorTable();
         // 2. Wire MoMo stream → candle closed callback + live tick callback
         this.momoStream.init((symbol, candle)=>this.onCandleClosed(symbol, candle), (symbol, candle)=>this.onLiveTick(symbol, candle));
-        // 3. Load persisted symbols from previous session
+        // 3. Load persisted symbols from previous session (parallel in batches of 5)
         const persisted = await this.mysqlRepo.getActiveSymbols();
         if (persisted.length) {
             this.logger.log(`Restoring ${persisted.length} persisted symbols: ${persisted.map((s)=>s.symbol).join(', ')}`);
-            for (const { symbol } of persisted){
-                await this.addSymbol(symbol, 'restored', true);
+            const BATCH = 5;
+            for(let i = 0; i < persisted.length; i += BATCH){
+                const batch = persisted.slice(i, i + BATCH);
+                await Promise.all(batch.map(({ symbol })=>this.addSymbol(symbol, 'restored', true)));
             }
         }
         this.logger.log(`CollectorService ready — ${this.activeSymbols.size} active symbols`);
@@ -108,6 +116,10 @@ let CollectorService = class CollectorService {
    * Backfill today's 1m candles from MoMo API.
    * Deletes existing data for symbol+date and reinserts cleanly.
    */ async backfillFromMomo(symbol) {
+        if (this.isAfterHoursNow()) {
+            this.logger.log(`Backfill skipped (after hours): ${symbol}`);
+            return;
+        }
         const state = this.activeSymbols.get(symbol);
         if (!state) return;
         const todayET = this.getTodayDateET();
@@ -154,16 +166,17 @@ let CollectorService = class CollectorService {
                 v: c.v,
                 t: c.t
             }));
-        // Delete all existing data for this symbol+date, then insert fresh
+        // Delete all existing data for this symbol+date, then bulk-insert fresh
         const deleted = await this.mysqlRepo.deleteCandlesForSymbolDate(symbol, todayET);
         if (deleted > 0) {
             this.logger.log(`Deleted ${deleted} old rows for ${symbol} on ${todayET}`);
         }
+        const allRows = [];
         for(let i = 0; i < state.history.length; i++){
             const historySlice = state.history.slice(0, i + 1);
-            const row = (0, _indicatorcalculator.computeCandleRow)(symbol, historySlice, state.metadata);
-            await this.mysqlRepo.upsertCandle(row);
+            allRows.push((0, _indicatorcalculator.computeCandleRow)(symbol, historySlice, state.metadata));
         }
+        await this.mysqlRepo.bulkUpsertCandles(allRows);
         this.logger.log(`Backfilled ${symbol}: ${todayCandles.length} candles inserted clean`);
     }
     /**
@@ -192,6 +205,10 @@ let CollectorService = class CollectorService {
         await this.mysqlRepo.upsertCandle(row);
         // Push to UI via WebSocket
         this.gateway.emitCandleUpdate(row);
+        // Auto-predict + auto-trade (fire-and-forget, don't block candle pipeline)
+        if (this.autoTrader) {
+            this.autoTrader.onCandleClosed(row).catch((err)=>this.logger.warn(`AutoTrader error: ${err.message}`));
+        }
         this.logger.debug(`${symbol} ${row.candle_time_et} | c=${row.close.toFixed(3)} v=${row.volume} ` + `vwap=${row.vwap.toFixed(3)} ema9=${row.ema9.toFixed(3)} atr=${row.atr.toFixed(3)}`);
     }
     /**
@@ -242,11 +259,21 @@ let CollectorService = class CollectorService {
    * Periodic refresh: fetch latest candles from MoMo for all active symbols
    * and upsert only candles newer than what we already have.
    * This fills gaps left by Alpaca IEX's limited coverage.
-   */ async refreshAllFromMomo() {
+   */ async refreshAllFromMomo(options = {}) {
+        if (!options.force && this.isAfterHoursNow()) {
+            this.logger.log('MoMo refresh skipped (after hours)');
+            return {
+                skipped: true,
+                reason: 'after_hours'
+            };
+        }
         const symbols = [
             ...this.activeSymbols.keys()
         ];
-        if (!symbols.length) return;
+        if (!symbols.length) return {
+            skipped: true,
+            reason: 'no_active_symbols'
+        };
         this.logger.log(`MoMo refresh: updating ${symbols.length} symbols…`);
         const todayET = this.getTodayDateET();
         for (const symbol of symbols){
@@ -297,6 +324,9 @@ let CollectorService = class CollectorService {
             await new Promise((r)=>setTimeout(r, 500));
         }
         this.logger.log(`MoMo refresh complete for ${symbols.length} symbols`);
+        return {
+            skipped: false
+        };
     }
     /**
    * Get list of actively tracked symbols.
@@ -312,24 +342,45 @@ let CollectorService = class CollectorService {
             timeZone: 'America/New_York'
         });
     }
-    constructor(mysqlRepo, scannerService, momoStream, gateway){
+    getMinuteOfDayET() {
+        const parts = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'America/New_York',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        }).formatToParts(new Date());
+        const get = (type)=>parts.find((p)=>p.type === type)?.value ?? '0';
+        const h = parseInt(get('hour'), 10);
+        const m = parseInt(get('minute'), 10);
+        return h * 60 + m;
+    }
+    isAfterHoursNow() {
+        return this.getMinuteOfDayET() >= 16 * 60;
+    }
+    constructor(mysqlRepo, scannerService, momoStream, gateway, autoTrader){
         this.mysqlRepo = mysqlRepo;
         this.scannerService = scannerService;
         this.momoStream = momoStream;
         this.gateway = gateway;
+        this.autoTrader = autoTrader;
         this.logger = new _common.Logger(CollectorService.name);
         this.activeSymbols = new Map();
         this.momoBase = process.env.MOMO_BASE_URL ?? 'https://momoscreener.com/api/p';
+        // Inject gateway into autoTrader (avoids circular module dependency)
+        if (this.autoTrader) this.autoTrader.setGateway(this.gateway);
     }
 };
 CollectorService = _ts_decorate([
     (0, _common.Injectable)(),
+    _ts_param(4, (0, _common.Optional)()),
+    _ts_param(4, (0, _common.Inject)(_autotraderservice.AutoTraderService)),
     _ts_metadata("design:type", Function),
     _ts_metadata("design:paramtypes", [
         typeof _mysqltrainingrepository.MysqlTrainingRepository === "undefined" ? Object : _mysqltrainingrepository.MysqlTrainingRepository,
         typeof _scannerservice.ScannerService === "undefined" ? Object : _scannerservice.ScannerService,
         typeof _momostreamservice.MomoStreamService === "undefined" ? Object : _momostreamservice.MomoStreamService,
-        typeof _collectorgateway.CollectorGateway === "undefined" ? Object : _collectorgateway.CollectorGateway
+        typeof _collectorgateway.CollectorGateway === "undefined" ? Object : _collectorgateway.CollectorGateway,
+        typeof _autotraderservice.AutoTraderService === "undefined" ? Object : _autotraderservice.AutoTraderService
     ])
 ], CollectorService);
 
