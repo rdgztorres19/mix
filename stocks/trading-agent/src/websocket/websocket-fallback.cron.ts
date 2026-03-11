@@ -28,41 +28,53 @@ export class WebSocketFallbackCron {
       .split(',')
       .map(s => s.trim());
 
-    this.logger.log(`🔍 WebSocket Fallback Cron initialized - Symbols: [${this.symbols.join(', ')}]`);
+    this.logger.log(`🔍 WebSocket Fallback Cron initialized - uses dynamic symbols from CollectorService`);
   }
 
   /**
    * Runs every 61 seconds (1 second after each minute ends).
-   * Checks if WebSocket received bars for each symbol in the last minute.
-   * If missing data detected, fetches via REST API fallback.
+   * When WebSocket connected: check if bars received; if missing, fetch via REST.
+   * When WebSocket disconnected: fetch bars for all active symbols via REST (historical fallback).
    */
   @Cron('1 * * * * *', { name: 'websocket-fallback-check' })
   async checkWebSocketHealth(): Promise<void> {
-    if (!this.enabled) {
-      return;
-    }
+    if (!this.enabled || !this.collector) return;
 
-    // Skip if WebSocket is not connected (will use normal API flow)
+    const activeSymbols = this.collector.getActiveSymbolList();
+    if (activeSymbols.length === 0) return;
+
+    const now = Math.floor(Date.now() / 1000);
+    const expectedBarTime = this.getExpectedBarTime(now);
+
     if (!this.alpacaWebSocket.isConnected()) {
-      this.logger.debug('🔌 WebSocket not connected - skipping fallback check');
+      this.logger.log(`🔌 WebSocket disconnected - fetching fallback for ${activeSymbols.length} symbols via REST`);
+      for (const symbol of activeSymbols) {
+        await this.fetchFallbackData(symbol, expectedBarTime);
+      }
       return;
     }
 
-    const now = Math.floor(Date.now() / 1000); // Current unix timestamp
-    const expectedBarTime = this.getExpectedBarTime(now); // Expected bar time for previous minute
-    
-    this.logger.debug(`🕒 Checking for bars at expected time: ${new Date(expectedBarTime * 1000).toISOString()}`);
-
-    for (const symbol of this.symbols) {
+    for (const symbol of activeSymbols) {
       await this.checkSymbolData(symbol, expectedBarTime);
     }
   }
 
+  /** Normalize timestamp to unix seconds (handles number seconds, number ms, or ISO string) */
+  private toUnixSeconds(v: number | string | null | undefined): number | null {
+    if (v == null) return null;
+    if (typeof v === 'number') {
+      return v > 1e12 ? Math.floor(v / 1000) : v;
+    }
+    const parsed = Date.parse(String(v));
+    return Number.isFinite(parsed) ? Math.floor(parsed / 1000) : null;
+  }
+
   private async checkSymbolData(symbol: string, expectedBarTime: number): Promise<void> {
-    const lastBarTime = this.alpacaWebSocket.getLastBarTime(symbol);
+    const raw = this.alpacaWebSocket.getLastBarTime(symbol);
+    const lastBarTimeSec = this.toUnixSeconds(raw);
     
-    // Check if we received data for the expected minute
-    const isDataMissing = !lastBarTime || Math.abs(lastBarTime - expectedBarTime) > 30; // 30 second tolerance
+    // Check if we received data for the expected minute (30 second tolerance)
+    const isDataMissing = lastBarTimeSec == null || Math.abs(lastBarTimeSec - expectedBarTime) > 30;
 
     if (isDataMissing) {
       this.logger.warn(`⚠️ Missing WebSocket data for ${symbol} at ${new Date(expectedBarTime * 1000).toISOString()}`);

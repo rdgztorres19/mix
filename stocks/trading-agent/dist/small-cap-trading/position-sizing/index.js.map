@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../src/small-cap-trading/position-sizing/index.ts"],"sourcesContent":["export { PositionSizer } from './position-sizer';\n"],"names":["PositionSizer"],"mappings":";;;;+BAASA;;;eAAAA,4BAAa;;;+BAAQ"}

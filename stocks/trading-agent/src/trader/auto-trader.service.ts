@@ -176,13 +176,15 @@ export class AutoTraderService {
         return;
       }
 
-      const order = await this.alpaca.buyMarket(row.symbol, dollarAmount);
+      // Use bracket order with aggressive limit entry, TP 2% and SL 1.5%
+      const order = await this.alpaca.buyBracketLimit(row.symbol, dollarAmount, row.close);
       const fillPrice = this.parseFillPrice(order, row.close);
       const qty = this.parseFillQty(order, dollarAmount, row.close);
 
       await this.positions.openPosition(row.symbol, fillPrice, qty, row.candle_idx, order.id);
       this.notifyEntry(row, fillPrice, qty, dollarAmount, order.id);
     } catch (err) {
+      console.log(err);
       this.logger.error(`Failed to enter ${row.symbol}: ${(err as Error).message}`);
     }
   }

@@ -28,7 +28,10 @@ export class AlpacaWebSocketService implements IWebSocketDataSource {
   private ws: WebSocket | null = null;
   private isAuthenticated = false;
   private subscriptions = new Set<string>();
+  /** Saved before disconnect so we can re-subscribe on reconnect */
+  private lastSubscriptionsBeforeDisconnect: string[] = [];
   private readonly barCallbacks: Array<(bar: RealTimeBar) => void> = [];
+  private readonly authCallbacks: Array<() => void | Promise<void>> = [];
   
   // Track last received bar time for each symbol (for fallback detection)
   private readonly lastBarTimes = new Map<string, number>();
@@ -132,6 +135,11 @@ export class AlpacaWebSocketService implements IWebSocketDataSource {
     this.barCallbacks.push(callback);
   }
 
+  /** Called after authentication (including reconnect). Use to refresh subscriptions from CollectorService. */
+  onAuthenticated(callback: () => void | Promise<void>): void {
+    this.authCallbacks.push(callback);
+  }
+
   private handleOpen(): void {
     this.logger.log('✅ WebSocket connected - authenticating...');
     
@@ -175,9 +183,19 @@ export class AlpacaWebSocketService implements IWebSocketDataSource {
   private async handleAuthenticated(): Promise<void> {
     this.logger.log('🎉 Authentication successful - Ready for dynamic subscriptions');
     this.isAuthenticated = true;
-    
-    // Note: No auto-subscription to static symbols
-    // Dynamic subscriptions will be managed by WebSocketInitService
+
+    if (this.lastSubscriptionsBeforeDisconnect.length > 0) {
+      this.logger.log(`🔄 Re-subscribing to ${this.lastSubscriptionsBeforeDisconnect.length} symbols: [${this.lastSubscriptionsBeforeDisconnect.join(', ')}]`);
+      await this.subscribe(this.lastSubscriptionsBeforeDisconnect);
+    }
+
+    for (const cb of this.authCallbacks) {
+      try {
+        await cb();
+      } catch (err) {
+        this.logger.error(`Auth callback error: ${(err as Error).message}`);
+      }
+    }
   }
 
   private handleBar(msg: AlpacaWebSocketMessage): void {
@@ -194,9 +212,20 @@ export class AlpacaWebSocketService implements IWebSocketDataSource {
       return;
     }
 
+    const ts = msg.t;
+    let tsSec: number;
+    if (typeof ts === 'number' && Number.isFinite(ts)) {
+      tsSec = ts > 1e12 ? Math.floor(ts / 1000) : ts;
+    } else if (typeof ts === 'string') {
+      const ms = Date.parse(ts);
+      tsSec = Number.isFinite(ms) ? Math.floor(ms / 1000) : 0;
+    } else {
+      tsSec = 0;
+    }
+
     const bar: RealTimeBar = {
       symbol: msg.S,
-      timestamp: msg.t,
+      timestamp: tsSec,
       open: msg.o,
       high: msg.h,
       low: msg.l,
@@ -206,8 +235,8 @@ export class AlpacaWebSocketService implements IWebSocketDataSource {
       tradeCount: msg.n
     };
 
-    // Update last bar time for fallback detection
-    this.lastBarTimes.set(bar.symbol, bar.timestamp);
+    // Update last bar time for fallback detection (always unix seconds)
+    this.lastBarTimes.set(bar.symbol, tsSec);
 
     // Validate timestamp before logging
     let timestampStr = 'Invalid Date';
@@ -243,6 +272,7 @@ export class AlpacaWebSocketService implements IWebSocketDataSource {
 
   private handleClose(code: number, reason: Buffer): void {
     this.logger.warn(`🔌 WebSocket closed - Code: ${code}, Reason: ${reason}`);
+    this.lastSubscriptionsBeforeDisconnect = Array.from(this.subscriptions);
     this.isAuthenticated = false;
     this.subscriptions.clear();
 

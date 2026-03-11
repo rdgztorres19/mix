@@ -576,6 +576,7 @@ export class PredictorService {
 
     const slice = rows.slice(startIdx, startIdx + count);
     const candles = this.rowsToCandleData(slice, dateStr);
+    candles.sort((a, b) => a.t - b.t);
     return { candles };
   }
 

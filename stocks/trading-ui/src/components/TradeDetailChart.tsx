@@ -125,13 +125,14 @@ export function TradeDetailChart({
   useEffect(() => {
     if (!chartRef.current || !candleSeriesRef.current || !volSeriesRef.current || !candles.length) return;
 
-    const sampleDate = new Date(candles[0].t);
+    const sorted = [...candles].sort((a, b) => a.t - b.t);
+    const sampleDate = new Date(sorted[0].t);
     const utcStr = sampleDate.toLocaleString('en-US', { timeZone: 'UTC', hour12: false });
     const etStr = sampleDate.toLocaleString('en-US', { timeZone: 'America/New_York', hour12: false });
     const etOffsetSec = (new Date(etStr).getTime() - new Date(utcStr).getTime()) / 1000;
     const toET = (utcMs: number) => Math.floor(utcMs / 1000) + etOffsetSec;
 
-    const candleData: CandlestickData[] = candles.map((c) => ({
+    const candleData: CandlestickData[] = sorted.map((c) => ({
       time: toET(c.t) as any,
       open: c.o,
       high: c.h,
@@ -139,7 +140,7 @@ export function TradeDetailChart({
       close: c.c,
     }));
 
-    const volData: HistogramData[] = candles.map((c) => ({
+    const volData: HistogramData[] = sorted.map((c) => ({
       time: toET(c.t) as any,
       value: c.v,
       color: c.c >= c.o ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)',

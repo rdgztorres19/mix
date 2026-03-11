@@ -149,7 +149,7 @@ export class MysqlTrainingRepository {
     if (!p) return [];
     try {
       const [rows] = await p.query<mysql.RowDataPacket[]>(
-        `SELECT symbol, source, added_at FROM collector_symbols WHERE active = 1`,
+        `SELECT symbol, source, added_at FROM collector_symbols WHERE DATE(added_at) = CURDATE()`,
       );
       return rows.map((r) => ({
         symbol: String(r.symbol),

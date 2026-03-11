@@ -51,6 +51,7 @@ export class PredictorController {
     @Body() body: PredictDto,
     @Query('threshold') thresholdStr?: string,
   ) {
+    console.time(`Predict`);
     const threshold = thresholdStr ? parseFloat(thresholdStr) : 0.3;
     if (isNaN(threshold) || threshold < 0 || threshold > 1) {
       throw new HttpException('threshold must be between 0 and 1', HttpStatus.BAD_REQUEST);
@@ -67,6 +68,8 @@ export class PredictorController {
         `Predict failed: ${err.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    } finally {
+      console.timeEnd(`Predict`);
     }
   }
 
