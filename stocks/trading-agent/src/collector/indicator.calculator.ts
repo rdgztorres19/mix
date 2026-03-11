@@ -49,6 +49,8 @@ export interface CandleRow {
   change_5m: number;
   change_10m: number;
   minutes_since_hod: number;
+  // Keep original timestamp for accurate UI formatting
+  original_timestamp_ms?: number;
 }
 
 const ATR_PERIOD = 14;
@@ -168,6 +170,7 @@ export function computeCandleRow(
     change_5m,
     change_10m,
     minutes_since_hod,
+    original_timestamp_ms: candle.t,
   };
 }
 

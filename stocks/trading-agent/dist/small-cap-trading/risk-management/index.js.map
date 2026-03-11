@@ -1,1 +1,0 @@
-{"version":3,"sources":["../../../src/small-cap-trading/risk-management/index.ts"],"sourcesContent":["export { RiskManager } from './risk-manager';\nexport type { RiskValidationResult } from './risk-manager';\n"],"names":["RiskManager"],"mappings":";;;;+BAASA;;;eAAAA,wBAAW;;;6BAAQ"}

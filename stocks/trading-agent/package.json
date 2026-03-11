@@ -10,7 +10,16 @@
     "start:prod": "node dist/src/main",
     "embed": "ts-node -r tsconfig-paths/register scripts/embed-knowledge.ts",
     "debug-metrics": "node scripts/debug-stock-metrics.js --",
-    "debug-predict": "node scripts/debug-predict.js --"
+    "debug-predict": "node scripts/debug-predict.js --",
+    "verify-sync": "node scripts/verify-data-sync.js",
+    "quick-test": "node scripts/quick-sync-test.js",
+    "historical-test": "node scripts/historical-sync-test.js",
+    "sync-help": "node scripts/sync-readme.js",
+    "compare-ohlcv": "node scripts/exact-ohlcv-compare.js",
+    "debug-dates": "node scripts/debug-date-ranges.js",
+    "simple-dates": "node scripts/simple-date-debug.js",
+    "verify-fixed": "node scripts/fixed-sync-verification.js",
+    "test-websocket": "npm run build && node scripts/test-websocket.js"
   },
   "dependencies": {
     "@langchain/core": "^0.3.0",

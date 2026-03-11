@@ -1,0 +1,49 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "🔍 Test VS Code Debug",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/vscode-debug-test.js",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "openOnSessionStart",
+      "stopOnEntry": false,
+      "trace": true
+    },
+    {
+      "name": "🐛 Debug Sync Verification - FIXED",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/fixed-sync-verification.js",
+      "args": ["CRCG"],
+      "env": {
+        "NODE_ENV": "development",
+        "DEBUG": "true"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "openOnSessionStart",
+      "stopOnEntry": false,
+      "trace": false,
+      "skipFiles": [
+        "<node_internals>/**",
+        "node_modules/**"
+      ]
+    },
+    {
+      "name": "🔧 Debug with Inspector",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/fixed-sync-verification.js",
+      "args": ["CRCG"],
+      "runtimeArgs": ["--inspect-brk=9229"],
+      "port": 9229,
+      "env": {
+        "NODE_ENV": "development",
+        "DEBUG": "true"
+      },
+      "console": "integratedTerminal",
+      "restart": true
+    }
+  ]
+}

@@ -60,6 +60,12 @@ export interface BacktestRow {
   match: boolean;
   pnl: number;
   cumPnl: number;
+  /** Precio de entrada (close de la vela señal) cuando tradeable */
+  entryPrice?: number;
+  /** Precio donde se alcanzó el beneficio (maxHigh en ventana MFR) */
+  exitPrice?: number;
+  /** Vela/horario donde se alcanzó el beneficio */
+  exitTime?: string;
 }
 
 export interface BacktestSummary {
@@ -225,22 +231,37 @@ export class PredictorService {
 
   /**
    * Compute max_future_return_10m on-the-fly when DB value is null.
+   * Returns mfr plus exitPrice/exitTime when future candles are available.
    * (max(high[t+1..t+10]) - close[t]) / close[t]
    */
   private computeMfr(
     rows: Record<string, unknown>[],
     idx: number,
-  ): number {
-    const dbVal = rows[idx].max_future_return_10m;
-    if (dbVal != null) return Number(dbVal);
+  ): { mfr: number; exitPrice?: number; exitTime?: string } {
     const closeT = Number(rows[idx].close ?? 0);
-    if (closeT <= 0 || idx + 10 >= rows.length) return 0;
-    let maxHigh = 0;
-    for (let j = idx + 1; j <= idx + 10; j++) {
-      const h = Number(rows[j]?.high ?? 0);
-      if (h > maxHigh) maxHigh = h;
+    const canScan = closeT > 0 && idx + 10 < rows.length;
+
+    if (canScan) {
+      let maxHigh = 0;
+      let exitIdx = -1;
+      for (let j = idx + 1; j <= idx + 10; j++) {
+        const h = Number(rows[j]?.high ?? 0);
+        if (h > maxHigh) {
+          maxHigh = h;
+          exitIdx = j;
+        }
+      }
+      const mfr = (maxHigh - closeT) / closeT;
+      return {
+        mfr,
+        exitPrice: maxHigh,
+        exitTime: exitIdx >= 0 ? String(rows[exitIdx]?.candle_time_et ?? '') : undefined,
+      };
     }
-    return (maxHigh - closeT) / closeT;
+
+    const dbVal = rows[idx].max_future_return_10m;
+    const mfr = dbVal != null ? Number(dbVal) : 0;
+    return { mfr };
   }
 
   // ─── Backtest: candle-by-candle predict over a date/time range ─────────
@@ -323,7 +344,7 @@ export class PredictorService {
         // prediction failed for this candle — skip
       }
 
-      const mfr = this.computeMfr(rows, idx);
+      const { mfr, exitPrice, exitTime } = this.computeMfr(rows, idx);
       const realGood = mfr >= 0.015;
       if (tradeable && realGood) tp++;
       else if (tradeable && !realGood) fp++;
@@ -348,6 +369,9 @@ export class PredictorService {
         match,
         pnl: Math.round(pnl * 100) / 100,
         cumPnl: Math.round(cumPnL * 100) / 100,
+        ...(tradeable && { entryPrice: Number(targetRow.close ?? 0) }),
+        ...(tradeable && exitPrice != null && { exitPrice }),
+        ...(tradeable && exitTime != null && exitTime !== '' && { exitTime }),
       });
     }
 
@@ -461,7 +485,7 @@ export class PredictorService {
           tradeable = result.tradeable ?? false;
         } catch { /* skip */ }
 
-        const mfr = this.computeMfr(rows, idx);
+        const { mfr, exitPrice, exitTime } = this.computeMfr(rows, idx);
         const realGood = mfr >= 0.015;
         if (tradeable && realGood) tp++;
         else if (tradeable && !realGood) fp++;
@@ -479,6 +503,9 @@ export class PredictorService {
           prob, tradeable, mfr, realGood, match,
           pnl: Math.round(pnl * 100) / 100,
           cumPnl: Math.round(cumPnL * 100) / 100,
+          ...(tradeable && { entryPrice: Number(targetRow.close ?? 0) }),
+          ...(tradeable && exitPrice != null && { exitPrice }),
+          ...(tradeable && exitTime != null && exitTime !== '' && { exitTime }),
         };
 
         sub.next({ data: { type: 'row', row, progress: n + 1 } } as MessageEvent);
@@ -508,6 +535,72 @@ export class PredictorService {
       sub.next({ data: { type: 'error', message: err.message } } as MessageEvent);
       sub.complete();
     }
+  }
+
+  /**
+   * Get 1m candles for backtest popup: from entry candle forward.
+   * Used when user clicks a tradeable row to see entry → exit chart.
+   */
+  /** Normalize HH:MM or HH:MM:SS to HH:MM for matching */
+  private normalizeTimeEt(s: string): string {
+    const t = String(s ?? '').trim();
+    if (t.length >= 5) return t.slice(0, 5); // "09:40" or "09:40:00" -> "09:40"
+    return t;
+  }
+
+  async getBacktestCandles(
+    ticker: string,
+    dateStr: string,
+    fromTime: string,
+    count = 12,
+  ): Promise<{ candles: CandleData[] }> {
+    const rows = await this.mysqlRepo.getTickerRowsForDate(ticker.toUpperCase(), dateStr, '1m');
+    if (!rows.length) {
+      this.logger.warn(`getBacktestCandles: no rows for ${ticker} ${dateStr}`);
+      return { candles: [] };
+    }
+
+    const fromNorm = this.normalizeTimeEt(fromTime);
+    let startIdx = -1;
+    for (let i = 0; i < rows.length; i++) {
+      if (this.normalizeTimeEt(String(rows[i].candle_time_et ?? '')) === fromNorm) {
+        startIdx = i;
+        break;
+      }
+    }
+    if (startIdx < 0) {
+      const sample = rows.slice(0, 5).map((r) => String(r.candle_time_et ?? ''));
+      this.logger.warn(`getBacktestCandles: fromTime=${fromTime} (norm=${fromNorm}) not found. Sample: ${sample.join(', ')}`);
+      return { candles: [] };
+    }
+
+    const slice = rows.slice(startIdx, startIdx + count);
+    const candles = this.rowsToCandleData(slice, dateStr);
+    return { candles };
+  }
+
+  private rowsToCandleData(rows: Record<string, unknown>[], dateStr: string): CandleData[] {
+    const pad = (n: number) => String(Math.max(0, Math.floor(n))).padStart(2, '0');
+    const candles: CandleData[] = [];
+    for (const r of rows) {
+      const timeEt = this.normalizeTimeEt(String(r.candle_time_et ?? '00:00')) || '00:00';
+      const parts = timeEt.split(':');
+      const h = parseInt(parts[0] ?? '0', 10) || 0;
+      const m = parseInt(parts[1] ?? '0', 10) || 0;
+      const [, mo, d] = String(dateStr).split('-').map(Number);
+      const isEDT = (mo > 3 && mo < 11) || (mo === 3 && d >= 8) || (mo === 11 && d < 7);
+      const offset = isEDT ? '-04:00' : '-05:00';
+      const ts = new Date(`${dateStr}T${pad(h)}:${pad(m)}:00${offset}`).getTime();
+      candles.push({
+        t: ts,
+        o: Number(r.open ?? 0),
+        h: Number(r.high ?? 0),
+        l: Number(r.low ?? 0),
+        c: Number(r.close ?? 0),
+        v: Number(r.volume ?? 0),
+      });
+    }
+    return candles;
   }
 
   private callPredictRaw(payload: Record<string, unknown>): Promise<PredictResult> {

@@ -96,6 +96,35 @@ export class PredictorController {
   }
 
   /**
+   * GET /predict/backtest-candles?ticker=X&date=YYYY-MM-DD&fromTime=09:35&count=12
+   * Returns OHLC candles from entry candle forward for popup chart.
+   */
+  @Get('backtest-candles')
+  async getBacktestCandles(
+    @Query('ticker') ticker: string,
+    @Query('date') date: string,
+    @Query('fromTime') fromTime: string,
+    @Query('count') countStr?: string,
+  ) {
+    if (!ticker || !date || !fromTime) {
+      throw new HttpException('ticker, date and fromTime are required', HttpStatus.BAD_REQUEST);
+    }
+    const count = countStr ? parseInt(countStr, 10) : 12;
+    if (isNaN(count) || count < 1 || count > 50) {
+      throw new HttpException('count must be 1–50', HttpStatus.BAD_REQUEST);
+    }
+    try {
+      return this.predictor.getBacktestCandles(ticker, date, fromTime, count);
+    } catch (err) {
+      this.logger.error(`getBacktestCandles failed: ${err.message}`);
+      throw new HttpException(
+        err.message || 'Failed to fetch candles',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
    * GET /predict/backtest/stream?ticker=X&date=2026-03-05&fromTime=09:30&toTime=16:00&threshold=0.6&investment=200
    * SSE stream: emits row-by-row backtest results in real time.
    */

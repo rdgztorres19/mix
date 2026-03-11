@@ -1,5 +1,6 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import axios from 'axios';
+import { TradeDetailChart } from './TradeDetailChart';
 
 interface BacktestRow {
   time: string;
@@ -7,6 +8,9 @@ interface BacktestRow {
   volume: number; prob: number; tradeable: boolean;
   mfr: number; realGood: boolean; match: boolean;
   pnl: number; cumPnl: number;
+  entryPrice?: number;
+  exitPrice?: number;
+  exitTime?: string;
 }
 
 interface BacktestSummary {
@@ -39,8 +43,44 @@ export default function BacktestPage() {
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [stocks, setStocks] = useState<StockItem[]>([]);
   const [stocksLoading, setStocksLoading] = useState(false);
+  const [selectedRow, setSelectedRow] = useState<BacktestRow | null>(null);
+  const [modalCandles, setModalCandles] = useState<Array<{ t: number; o: number; h: number; l: number; c: number; v: number }>>([]);
+  const [modalCandlesLoading, setModalCandlesLoading] = useState(false);
+  const [modalCandlesError, setModalCandlesError] = useState(false);
   const esRef = useRef<EventSource | null>(null);
   const tableContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // Fetch candles for trade detail popup when a tradeable row is selected
+  useEffect(() => {
+    if (!selectedRow || !ticker || !date) {
+      setModalCandles([]);
+      setModalCandlesError(false);
+      return;
+    }
+    setModalCandlesLoading(true);
+    setModalCandles([]);
+    setModalCandlesError(false);
+    const params = new URLSearchParams({
+      ticker: ticker.toUpperCase(),
+      date,
+      fromTime: selectedRow.time,
+      count: '12',
+    });
+    axios
+      .get<{ candles: Array<{ t: number; o: number; h: number; l: number; c: number; v: number }> }>(
+        `/api/predict/backtest-candles?${params}`,
+        { timeout: 8000 }
+      )
+      .then(({ data }) => {
+        setModalCandles(data.candles ?? []);
+        setModalCandlesError(false);
+      })
+      .catch(() => {
+        setModalCandles([]);
+        setModalCandlesError(true);
+      })
+      .finally(() => setModalCandlesLoading(false));
+  }, [selectedRow, ticker, date]);
 
   // Load stocks when date changes
   const loadStocks = useCallback((d: string) => {
@@ -344,7 +384,7 @@ export default function BacktestPage() {
             }}>
               <thead>
                 <tr>
-                  {['Time', 'Open', 'High', 'Low', 'Close', 'Vol', 'Prob', 'Trade', 'MFR10m', 'Real', 'Match', 'P/L', 'Cumul'].map((h) => (
+                  {['Time', 'Open', 'High', 'Low', 'Close', 'Vol', 'Prob', 'Trade', 'MFR10m', 'Real', 'Match', 'Entrada', 'Salida', 'Vela Salida', 'P/L', 'Cumul'].map((h) => (
                     <th key={h} style={{
                       padding: '8px 8px', textAlign: 'right', color: '#475569',
                       fontWeight: 600, fontSize: 10, textTransform: 'uppercase',
@@ -363,11 +403,13 @@ export default function BacktestPage() {
                   return (
                     <tr
                       key={i}
+                      onClick={() => isSignal && setSelectedRow(r)}
                       style={{
                         borderBottom: '1px solid #111827',
                         background: isSignal
                           ? (r.match ? 'rgba(34,197,94,0.04)' : 'rgba(239,68,68,0.04)')
                           : 'transparent',
+                        cursor: isSignal ? 'pointer' : 'default',
                       }}
                     >
                       <td style={cs}>{r.time}</td>
@@ -409,6 +451,15 @@ export default function BacktestPage() {
                             {r.match ? '✓' : '✗'}
                           </span>
                         ) : <span style={{ color: '#1e293b' }}>—</span>}
+                      </td>
+                      <td style={cs}>
+                        {isSignal && r.entryPrice != null ? r.entryPrice.toFixed(3) : '—'}
+                      </td>
+                      <td style={cs}>
+                        {isSignal && r.exitPrice != null ? r.exitPrice.toFixed(3) : '—'}
+                      </td>
+                      <td style={cs}>
+                        {isSignal && r.exitTime ? r.exitTime : '—'}
                       </td>
                       <td style={{
                         ...cs,
@@ -458,6 +509,86 @@ export default function BacktestPage() {
           )}
         </div>
       </div>
+
+      {/* Trade detail popup */}
+      {selectedRow && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 100,
+            background: 'rgba(0,0,0,0.6)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center',
+          }}
+          onClick={() => setSelectedRow(null)}
+        >
+          <div
+            style={{
+              background: '#0f172a', borderRadius: 12, border: '1px solid #1e293b',
+              minWidth: 420, maxWidth: '90vw', maxHeight: '85vh', overflow: 'hidden',
+              display: 'flex', flexDirection: 'column',
+              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '14px 18px', borderBottom: '1px solid #1e293b',
+            }}>
+              <span style={{ fontSize: 14, fontWeight: 700, fontFamily: mono, color: '#e2e8f0' }}>
+                {ticker} @ {selectedRow.time}
+                {selectedRow.entryPrice != null && ` – Entrada $${selectedRow.entryPrice.toFixed(3)}`}
+                {selectedRow.exitPrice != null && ` → Salida $${selectedRow.exitPrice.toFixed(3)}`}
+              </span>
+              <button
+                onClick={() => setSelectedRow(null)}
+                style={{
+                  background: 'transparent', border: 'none', color: '#94a3b8',
+                  cursor: 'pointer', fontSize: 18, padding: '2px 8px', lineHeight: 1,
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <div style={{ padding: 16, flex: 1, minHeight: 280 }}>
+              {modalCandlesLoading ? (
+                <div style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  justifyContent: 'center', height: 280, gap: 12, color: '#64748b',
+                }}>
+                  <div style={{
+                    width: 28, height: 28, border: '2px solid #1e293b',
+                    borderTop: '2px solid #3b82f6', borderRadius: '50%',
+                    animation: 'spin 0.8s linear infinite',
+                  }} />
+                  <span style={{ fontSize: 12 }}>Cargando velas…</span>
+                  <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+                </div>
+              ) : !modalCandles.length ? (
+                <div style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  height: 280, color: '#64748b', fontSize: 13, gap: 6,
+                }}>
+                  {modalCandlesError ? (
+                    <>
+                      <span>Error al cargar. ¿Backend en puerto 3033?</span>
+                      <span style={{ fontSize: 11 }}>GET /predict/backtest-candles</span>
+                    </>
+                  ) : (
+                    'Sin datos para esta vela'
+                  )}
+                </div>
+              ) : (
+                <TradeDetailChart
+                  candles={modalCandles}
+                  entryPrice={selectedRow.entryPrice ?? selectedRow.close}
+                  exitPrice={selectedRow.exitPrice}
+                  exitTime={selectedRow.exitTime}
+                  height={280}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

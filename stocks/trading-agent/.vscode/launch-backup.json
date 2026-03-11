@@ -1,0 +1,45 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Test Simple",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/debug-test.js",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "console": "integratedTerminal",
+      "stopOnEntry": false
+    },
+    {
+      "name": "Debug Sync Verification",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/fixed-sync-verification.js",
+      "args": ["CRCG"],
+      "env": {
+        "NODE_ENV": "development",
+        "DEBUG": "true"
+      },
+      "console": "integratedTerminal",
+      "stopOnEntry": false,
+      "restart": true,
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    },
+    {
+      "name": "Debug Sync Multiple Symbols",
+      "type": "node", 
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/fixed-sync-verification.js",
+      "args": ["CRCG", "ATPC"],
+      "env": {
+        "NODE_ENV": "development",
+        "DEBUG": "true"
+      },
+      "console": "integratedTerminal"
+    }
+  ]
+}

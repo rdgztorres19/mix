@@ -9,12 +9,14 @@
  */
 
 import { Injectable, Logger, OnModuleInit, Inject, Optional } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import axios from 'axios';
 import { MysqlTrainingRepository } from '../scanner/mysql/mysql-training.repository';
 import { ScannerService, Candle } from '../scanner/scanner.service';
 import { MomoStreamService } from './momo-stream.service';
 import { CollectorGateway } from './collector.gateway';
 import { AutoTraderService } from '../trader/auto-trader.service';
+import type { WebSocketInitService } from '../websocket/websocket-init.service';
 import {
   CollectorCandle,
   SymbolMetadata,
@@ -34,8 +36,10 @@ export class CollectorService implements OnModuleInit {
   private readonly logger = new Logger(CollectorService.name);
   private readonly activeSymbols = new Map<string, SymbolState>();
   private readonly momoBase: string;
+  private webSocketInit?: WebSocketInitService;
 
   constructor(
+    private readonly moduleRef: ModuleRef,
     private readonly mysqlRepo: MysqlTrainingRepository,
     private readonly scannerService: ScannerService,
     private readonly momoStream: MomoStreamService,
@@ -50,14 +54,26 @@ export class CollectorService implements OnModuleInit {
   async onModuleInit(): Promise<void> {
     this.logger.log('CollectorService initializing…');
 
+    // Resolve WebSocketInitService lazily via ModuleRef to avoid circular DI issues
+    try {
+      this.webSocketInit = this.moduleRef.get<WebSocketInitService>('WEB_SOCKET_INIT_SERVICE', {
+        strict: false,
+      });
+      this.logger.log('WebSocketInitService resolved via ModuleRef');
+    } catch (err) {
+      this.logger.warn('WebSocketInitService not registered in DI container');
+    }
+
     // 1. Ensure persistence table exists
     await this.mysqlRepo.ensureCollectorTable();
 
-    // 2. Wire MoMo stream → candle closed callback + live tick callback
+    // 2. Wire MoMo stream callbacks but service is DISABLED
+    // MoMo is completely disabled - no connection will be established
     this.momoStream.init(
       (symbol, candle) => this.onCandleClosed(symbol, candle),
       (symbol, candle) => this.onLiveTick(symbol, candle),
     );
+    this.logger.log('🚫 MoMo stream service is DISABLED - Alpaca WebSocket + 61s fallback only');
 
     // 3. Load persisted symbols from previous session (parallel in batches of 5)
     const persisted = await this.mysqlRepo.getActiveSymbols();
@@ -69,6 +85,12 @@ export class CollectorService implements OnModuleInit {
         await Promise.all(batch.map(({ symbol }) => this.addSymbol(symbol, 'restored', true)));
       }
     }
+
+    // 4. Wait a moment for WebSocket connections to initialize
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
+    // 5. Migrate to Alpaca if available and symbols exist
+    await this.migrateToAlpacaIfAvailable();
 
     this.logger.log(`CollectorService ready — ${this.activeSymbols.size} active symbols`);
   }
@@ -125,8 +147,21 @@ export class CollectorService implements OnModuleInit {
     // Backfill today's candles
     await this.backfillFromMomo(symbol);
 
-    // Subscribe to MoMo real-time live quotes
-    this.momoStream.subscribe([symbol]);
+    // Subscribe to Alpaca WebSocket (primary and only real-time source)
+    const alpacaConnected = this.webSocketInit?.isAlpacaConnected() ?? false;
+    
+    if (alpacaConnected && this.webSocketInit) {
+      try {
+        const activeSymbols = this.getActiveSymbolList();
+        await this.webSocketInit.refreshSubscriptions(activeSymbols);
+        this.logger.log(`✅ ${symbol} subscribed to Alpaca WebSocket (premium)`);
+      } catch (error) {
+        this.logger.warn(`Failed to subscribe ${symbol} to Alpaca: ${(error as Error).message}`);
+        this.logger.warn(`Relying on 61s historical fallback only`);
+      }
+    } else {
+      this.logger.warn(`⚠️ Alpaca WebSocket not available for ${symbol} - relying on 61s historical fallback`);
+    }
 
     // Notify UI clients
     this.gateway.emitSymbolsUpdate(this.getActiveSymbolList());
@@ -213,7 +248,12 @@ export class CollectorService implements OnModuleInit {
    */
   async onCandleClosed(symbol: string, candle: CollectorCandle): Promise<void> {
     const state = this.activeSymbols.get(symbol);
-    if (!state) return;
+    if (!state) {
+      this.logger.warn(`onCandleClosed: No state found for symbol ${symbol}`);
+      return;
+    }
+
+    this.logger.log(`🕯️  onCandleClosed: ${symbol} at ${new Date(candle.t).toISOString()} close=${candle.c.toFixed(3)}`);
 
     // Deduplicate: if the last candle in history has the same minute, replace it
     const last = state.history[state.history.length - 1];
@@ -226,23 +266,29 @@ export class CollectorService implements OnModuleInit {
     // Compute indicators and build MySQL row
     const row = computeCandleRow(symbol, state.history, state.metadata);
 
-    // Upsert into MySQL
-    await this.mysqlRepo.upsertCandle(row as unknown as Record<string, unknown>);
+    try {
+      // Upsert into MySQL
+      await this.mysqlRepo.upsertCandle(row as unknown as Record<string, unknown>);
+      this.logger.debug(`✅ MySQL upsert successful: ${symbol} ${row.candle_time_et}`);
 
-    // Push to UI via WebSocket
-    this.gateway.emitCandleUpdate(row);
+      // Push to UI via WebSocket
+      this.gateway.emitCandleUpdate(row);
+      this.logger.debug(`📡 Emitted to WebSocket gateway: ${symbol} ${row.candle_time_et}`);
 
-    // Auto-predict + auto-trade (fire-and-forget, don't block candle pipeline)
-    if (this.autoTrader) {
-      this.autoTrader.onCandleClosed(row).catch((err) =>
-        this.logger.warn(`AutoTrader error: ${(err as Error).message}`),
+      // Auto-predict + auto-trade (fire-and-forget, don't block candle pipeline)
+      if (this.autoTrader) {
+        this.autoTrader.onCandleClosed(row).catch((err) =>
+          this.logger.warn(`AutoTrader error: ${(err as Error).message}`),
+        );
+      }
+
+      this.logger.log(
+        `${symbol} ${row.candle_time_et} | c=${row.close.toFixed(3)} v=${row.volume} ` +
+        `vwap=${row.vwap.toFixed(3)} ema9=${row.ema9.toFixed(3)} atr=${row.atr.toFixed(3)}`,
       );
+    } catch (error) {
+      this.logger.error(`Error processing candle for ${symbol}: ${(error as Error).message}`);
     }
-
-    this.logger.debug(
-      `${symbol} ${row.candle_time_et} | c=${row.close.toFixed(3)} v=${row.volume} ` +
-      `vwap=${row.vwap.toFixed(3)} ema9=${row.ema9.toFixed(3)} atr=${row.atr.toFixed(3)}`,
-    );
   }
 
   /**
@@ -250,13 +296,22 @@ export class CollectorService implements OnModuleInit {
    */
   async resetActiveSymbols(): Promise<void> {
     const symbols = [...this.activeSymbols.keys()];
-    if (symbols.length) {
-      this.momoStream.unsubscribe(symbols);
+    
+    // Clear Alpaca WebSocket subscriptions only (MoMo is disabled)
+    if (symbols.length && this.webSocketInit) {
+      try {
+        await this.webSocketInit.refreshSubscriptions([]); // Empty array clears all
+        this.logger.log(`🚫 Cleared all Alpaca WebSocket subscriptions`);
+      } catch (error) {
+        this.logger.warn(`Failed to clear Alpaca WebSocket subscriptions: ${(error as Error).message}`);
+      }
     }
+    
     this.activeSymbols.clear();
     await this.mysqlRepo.deactivateAllSymbols();
     this.gateway.emitSymbolsUpdate([]);
-    this.logger.log('Active symbols cleared for new day');
+    
+    this.logger.log('🔄 Active symbols cleared for new trading day');
   }
 
   /**
@@ -372,10 +427,89 @@ export class CollectorService implements OnModuleInit {
   }
 
   /**
+   * Setup Alpaca WebSocket subscriptions (MoMo completely disabled).
+   */
+  async migrateToAlpacaIfAvailable(): Promise<void> {
+    if (!this.webSocketInit) {
+      this.logger.warn('WebSocketInitService not available - using 61s historical fallback only');
+      return;
+    }
+
+    const alpacaConnected = this.webSocketInit.isAlpacaConnected();
+    const activeSymbols = this.getActiveSymbolList();
+
+    if (alpacaConnected && activeSymbols.length > 0) {
+      this.logger.log(`🔄 Setting up ${activeSymbols.length} symbols on Alpaca WebSocket...`);
+      
+      try {
+        await this.webSocketInit.refreshSubscriptions(activeSymbols);
+        this.logger.log(`✅ ${activeSymbols.length} symbols active on Alpaca WebSocket`);
+      } catch (error) {
+        this.logger.error(`❌ Failed to setup Alpaca: ${(error as Error).message}`);
+        this.logger.warn(`Relying on 61s historical fallback only`);
+      }
+    } else if (activeSymbols.length > 0) {
+      this.logger.warn(`⚠️ Alpaca WebSocket not available for ${activeSymbols.length} symbols - 61s historical fallback only`);
+    }
+  }
+
+  /**
    * Get list of actively tracked symbols.
    */
   getActiveSymbolList(): string[] {
     return [...this.activeSymbols.keys()];
+  }
+
+  /**
+   * Debug: get status of active symbols (MoMo disabled).
+   */
+  getDebugStatus(): {
+    activeSymbols: string[];
+    subscribedSymbols: string[]; // Always empty since MoMo is disabled
+    wsConnected: boolean; // Always false since MoMo is disabled
+    symbolCount: number;
+  } {
+    return {
+      activeSymbols: this.getActiveSymbolList(),
+      subscribedSymbols: [], // MoMo disabled, always empty
+      wsConnected: false, // MoMo disabled, always false
+      symbolCount: this.activeSymbols.size,
+    };
+  }
+
+  /**
+   * Debug: force re-subscription to Alpaca WebSocket only.
+   */
+  async forceResubscribeAll(): Promise<{ ok: boolean; resubscribed: string[] }> {
+    const symbols = this.getActiveSymbolList();
+    this.logger.log(`Force re-subscribing to ${symbols.length} symbols on Alpaca only: ${symbols.join(', ')}`);
+    
+    if (symbols.length > 0 && this.webSocketInit) {
+      try {
+        await this.webSocketInit.refreshSubscriptions(symbols);
+        this.logger.log(`✅ Re-subscribed ${symbols.length} symbols to Alpaca`);
+      } catch (error) {
+        this.logger.error(`❌ Failed to re-subscribe to Alpaca: ${(error as Error).message}`);
+        return { ok: false, resubscribed: [] };
+      }
+    }
+    
+    return { ok: true, resubscribed: symbols };
+  }
+
+  /**
+   * Debug: reset WebSocket statistics counters.
+   */
+  resetWebSocketStats(): void {
+    this.momoStream.resetStats();
+    this.logger.log('WebSocket statistics reset');
+  }
+
+  /**
+   * Debug: get WebSocket stream statistics.
+   */
+  getWebSocketStats() {
+    return this.momoStream.getStats();
   }
 
   /**

@@ -30,7 +30,7 @@ export class CollectorCron {
    * Every 5 minutes during 9:00–20:00 UTC (covers 4 AM – 4 PM ET).
    * Catches new movers that appear during the trading day.
    */
-  @Cron('*/5 9-20 * * 1-5')
+  @Cron('*/30 9-20 * * 1-5')
   async runPeriodicScan(): Promise<void> {
     this.logger.log('🔄 Periodic MoMo scan…');
     await this.collector.scanMomo();
@@ -40,7 +40,7 @@ export class CollectorCron {
    * Every 5 minutes during market hours: refresh candles from MoMo
    * to fill gaps that Alpaca IEX free tier misses.
    */
-  @Cron('*/5 13-21 * * 1-5')
+  @Cron('*/60 13-21 * * 1-5')
   async runMomoRefresh(): Promise<void> {
     this.logger.log('🕐 MoMo candle refresh (filling IEX gaps)…');
     await this.collector.refreshAllFromMomo();
