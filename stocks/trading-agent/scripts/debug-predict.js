@@ -6,12 +6,14 @@
  * to predict.py and displays a table showing:
  *   - Time ET, OHLCV
  *   - Model probability & tradeable flag
- *   - Actual max_future_return_10m (did it really move ≥1.5%?)
+ *   - Actual max_future_return_10m
+ *   - TP/SL result: did price hit +TP% before -SL%? (win/loss/neutral)
  *
  * Usage:
  *   npm run debug-predict -- TPET 2026-03-06
  *   npm run debug-predict -- TPET 2026-03-06 09:30 10:00
- *   npm run debug-predict -- TPET 2026-03-06 09:30 10:00 0.4   ← threshold custom
+ *   npm run debug-predict -- TPET 2026-03-06 09:30 10:00 0.6      ← threshold
+ *   npm run debug-predict -- TPET 2026-03-06 09:30 10:00 0.6 1.5 0.5  ← threshold, TP%, SL%
  */
 
 const { spawn } = require('child_process');
@@ -22,11 +24,46 @@ const MARKET_OPEN = '09:30';
 
 // ─── Parse args ──────────────────────────────────────────────────────────────
 const args = process.argv.slice(2).filter(a => a !== '--');
-const ticker = (args[0] || 'TPET').toUpperCase(); // default to TPET for testing
-const dateStr = args[1] || new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); //Example: "2026-03-06"
-const fromTime = args[2] || MARKET_OPEN; //example: "09:30"
-const toTime = args[3] || '16:00'; //example: "10:00"
-const THRESHOLD = parseFloat(args[4]) || 0.6; // 5th arg: threshold (default 0.6)
+const ticker = (args[0] || 'TPET').toUpperCase();
+const dateStr = args[1] || new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+const fromTime = args[2] || MARKET_OPEN;
+const toTime = args[3] || '16:00';
+const THRESHOLD = parseFloat(args[4]) || 0.6;
+const TP_PCT = parseFloat(args[5]) || 1.5;   // take profit % (default 1.5)
+const SL_PCT = parseFloat(args[6]) || 1.5;   // stop loss % (default 1.5)
+
+/**
+ * Simulate: did price hit +TP% before -SL% in next 10 candles?
+ * @param {Array<{o,h,l,c}>} futureCandles - next 10 candles OHLC
+ * @param {number} refClose - close of reference bar
+ * @param {number} tpPct - take profit as decimal (e.g. 0.015)
+ * @param {number} slPct - stop loss as decimal (e.g. 0.015)
+ * @returns {'win'|'loss'|'neutral'}
+ */
+function hitTpBeforeSl(futureCandles, refClose, tpPct, slPct) {
+  if (!futureCandles.length || refClose <= 0) return 'neutral';
+  const levelUp = refClose * (1 + tpPct);
+  const levelDown = refClose * (1 - slPct);
+  let prevClose = refClose;
+  for (let j = 0; j < Math.min(10, futureCandles.length); j++) {
+    const { o: openJ, h: highJ, l: lowJ, c: closeJ } = futureCandles[j];
+    if (prevClose < openJ) {
+      if (prevClose < levelUp && levelUp < openJ) return 'win';
+    } else if (prevClose > openJ) {
+      if (openJ < levelDown && levelDown < prevClose) return 'loss';
+    }
+    const touchUp = highJ >= levelUp;
+    const touchDown = lowJ <= levelDown;
+    if (touchUp && touchDown) {
+      if (closeJ >= openJ) return 'loss';
+      return 'win';
+    }
+    if (touchUp) return 'win';
+    if (touchDown) return 'loss';
+    prevClose = closeJ;
+  }
+  return 'neutral';
+}
 
 function timeToMin(t) {
   const [h, m] = t.split(':').map(Number);
@@ -63,7 +100,8 @@ function callPredict(payload) {
 
 // ─── Main ────────────────────────────────────────────────────────────────────
 async function main() {
-  console.log(`\n🔮 Debug Predict: ${ticker} | ${dateStr} | ${fromTime}–${toTime} | threshold=${THRESHOLD}`);
+  console.log(`\n🔮 Debug Predict: ${ticker} | ${dateStr} | ${fromTime}–${toTime}`);
+  console.log(`   Threshold=${THRESHOLD} | TP=${TP_PCT}% | SL=${SL_PCT}%`);
   console.log('─'.repeat(120));
 
   const conn = await mysql.createConnection({
@@ -119,6 +157,8 @@ async function main() {
 
   // Table header
   const INVESTMENT = 200; // dollars per trade
+  const tpDec = TP_PCT / 100;
+  const slDec = SL_PCT / 100;
   const hdr = [
     'Time'.padEnd(6),
     'Open'.padStart(8),
@@ -129,7 +169,8 @@ async function main() {
     'Prob'.padStart(7),
     'Trade'.padStart(6),
     'MFR10m'.padStart(8),
-    'Real≥1.5%'.padStart(10),
+    `Real≥${TP_PCT}%`.padStart(10),
+    `TP/SL`.padStart(8),
     'Match'.padStart(6),
     'P/L $200'.padStart(10),
     'Cumul'.padStart(10),
@@ -171,11 +212,22 @@ async function main() {
       process.stderr.write(`  ⚠ ${time}: ${e.message}\n`);
     }
 
-    // Actual: max_future_return_10m
+    // Actual: max_future_return_10m & TP/SL simulation
     const mfr = Number(targetRow.max_future_return_10m || 0);
-    const realGood = mfr >= 0.015; // ≥1.5%
+    const realGood = mfr >= tpDec;
+    const futureCandles = rows.slice(idx + 1, idx + 11).map((r) => ({
+      o: Number(r.open || 0),
+      h: Number(r.high || 0),
+      l: Number(r.low || 0),
+      c: Number(r.close || 0),
+    }));
+    const tpSlResult = hitTpBeforeSl(futureCandles, Number(targetRow.close || 0), tpDec, slDec);
+    // Solo mostrar win/loss/— cuando Trade=true (entramos); si no entramos, dejar vacío
+    const tpSlStr = tradeable
+      ? (tpSlResult === 'win' ? '  win' : tpSlResult === 'loss' ? ' loss' : '  —')
+      : '    ';
 
-    // Confusion matrix
+    // Confusion matrix (Real≥TP% vs tradeable)
     if (tradeable && realGood) tp++;
     else if (tradeable && !realGood) fp++;
     else if (!tradeable && realGood) fn++;
@@ -183,8 +235,13 @@ async function main() {
 
     const match = tradeable === realGood;
 
-    // P/L: if we traded, gain/loss = $INVESTMENT * actual return
-    const pnl = tradeable ? INVESTMENT * mfr : 0;
+    // P/L: if traded, use TP/SL outcome when available; else mfr
+    let pnl = 0;
+    if (tradeable) {
+      if (tpSlResult === 'win') pnl = INVESTMENT * tpDec;
+      else if (tpSlResult === 'loss') pnl = -INVESTMENT * slDec;
+      else pnl = INVESTMENT * mfr;
+    }
     cumPnL += pnl;
 
     const line = [
@@ -198,6 +255,7 @@ async function main() {
       (tradeable ? '  ✅' : '  ❌').padStart(6),
       (mfr * 100).toFixed(2).padStart(7) + '%',
       (realGood ? '  ✅' : '  ❌').padStart(10),
+      tpSlStr.padStart(8),
       match ? '  ✅' : '  ❌',
       (pnl >= 0 ? '+' : '') + pnl.toFixed(2).padStart(9),
       (cumPnL >= 0 ? '+' : '') + cumPnL.toFixed(2).padStart(9),

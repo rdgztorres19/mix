@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 """
-train_best.py — Train the best model with tuned hyperparameters.
-Reads best_params.json from tuning, trains on full training set, saves to best_model/.
+train_best.py — Train models with tuned hyperparameters.
+Reads tuned_params.json from tuning, trains on full training set.
+Saves to best_models/{model}_{feature_set}_{target}/.
 
 Usage:
   cd stock-training/ml
-  python -m experiments.train_best
-  python -m experiments.train_best --rank 1        # train only the #1 config
+  python -m experiments.train_best              # train the #1 config (best cv_prec07)
+  python -m experiments.train_best --rank 2     # train the #2 config
+  python -m experiments.train_best --all        # train all configs from tuned_params.json
 """
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -27,12 +30,17 @@ from experiments.target_variants import compute_target_variants, TARGET_META
 from experiments.evaluator import evaluate_model, print_result, RESULTS_DIR
 from experiments.run_grid import compute_sample_weights
 
-BEST_MODEL_DIR = RESULTS_DIR / "best_model"
-BEST_MODEL_DIR.mkdir(exist_ok=True)
+BEST_MODELS_DIR = RESULTS_DIR / "best_models"
+BEST_MODELS_DIR.mkdir(exist_ok=True)
 TUNED_PARAMS_PATH = RESULTS_DIR / "tuned_params.json"
 
 
-def train_best(rank: int = 1):
+def _safe_dir_name(s: str) -> str:
+    """Sanitize string for use in directory name."""
+    return re.sub(r"[^\w\-]", "_", s)
+
+
+def train_best(rank: int | None = 1, train_all: bool = False):
     if not TUNED_PARAMS_PATH.exists():
         print(f"No tuned_params.json found. Run tune_focused.py first.")
         return
@@ -40,13 +48,25 @@ def train_best(rank: int = 1):
     with open(TUNED_PARAMS_PATH) as f:
         all_best = json.load(f)
 
-    # Sort by cv_prec07 descending, pick by rank
+    # Sort by cv_prec07 descending
     all_best.sort(key=lambda x: x.get("cv_prec07", 0), reverse=True)
-    if rank < 1 or rank > len(all_best):
-        print(f"Rank {rank} not found (have {len(all_best)} configs)")
-        return
-    cfg = all_best[rank - 1]
 
+    if train_all:
+        configs_to_train = list(enumerate(all_best, start=1))
+    else:
+        if rank is None or rank < 1 or rank > len(all_best):
+            print(f"Rank {rank} not found (have {len(all_best)} configs)")
+            return
+        configs_to_train = [(rank, all_best[rank - 1])]
+
+    for r, cfg in configs_to_train:
+        _train_one(cfg, rank=r)
+
+    if train_all:
+        print(f"\nAll {len(configs_to_train)} models saved to {BEST_MODELS_DIR}/")
+
+
+def _train_one(cfg: dict, rank: int = 1):
     model_name = cfg["model"]
     fset_name = cfg["feature_set"]
     target_name = cfg["target"]
@@ -152,13 +172,13 @@ def train_best(rank: int = 1):
     )
     print_result(result)
 
-    # Save model
-    model_path = BEST_MODEL_DIR / "model.joblib"
-    scaler_path = BEST_MODEL_DIR / "scaler.joblib"
-    meta_path = BEST_MODEL_DIR / "meta.json"
+    # Save to best_models/{model}_{feature_set}_{target}/
+    subdir = _safe_dir_name(f"{model_name}_{fset_name}_{target_name}")
+    output_dir = BEST_MODELS_DIR / subdir
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    joblib.dump(model, model_path)
-    joblib.dump(scaler, scaler_path)
+    joblib.dump(model, output_dir / "model.joblib")
+    joblib.dump(scaler, output_dir / "scaler.joblib")
 
     meta = {
         "model_name": model_name,
@@ -176,19 +196,23 @@ def train_best(rank: int = 1):
         meta["label_map"] = {str(k): int(v) for k, v in label_map.items()}
         meta["inv_label_map"] = {str(k): int(v) for k, v in inv_map.items()}
 
-    with open(meta_path, "w") as f:
+    with open(output_dir / "meta.json", "w") as f:
         json.dump(meta, f, indent=2)
 
-    print(f"\nModel saved to {BEST_MODEL_DIR}/")
+    print(f"\nModel saved to {output_dir}/")
     print(f"  model.joblib, scaler.joblib, meta.json")
     return result
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--rank", type=int, default=1)
+    parser.add_argument("--rank", type=int, default=None, help="Train only this rank (1=best cv_prec07)")
+    parser.add_argument("--all", action="store_true", help="Train all configs from tuned_params.json")
     args = parser.parse_args()
-    train_best(rank=args.rank)
+    if args.all:
+        train_best(rank=None, train_all=True)
+    else:
+        train_best(rank=args.rank or 1, train_all=False)
 
 
 if __name__ == "__main__":

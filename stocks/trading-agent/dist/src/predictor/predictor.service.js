@@ -165,6 +165,42 @@ let PredictorService = PredictorService_1 = class PredictorService {
             proc.stdin.write(input, () => proc.stdin.end());
         });
     }
+    computeTpSlExit(rows, idx, tpPct, slPct) {
+        const refClose = Number(rows[idx]?.close ?? 0);
+        if (refClose <= 0)
+            return { tpSlResult: 'neutral' };
+        const levelUp = refClose * (1 + tpPct);
+        const levelDown = refClose * (1 - slPct);
+        let prevClose = refClose;
+        for (let j = 1; j <= Math.min(10, rows.length - idx - 1); j++) {
+            const r = rows[idx + j];
+            if (!r)
+                break;
+            const openJ = Number(r.open ?? 0);
+            const highJ = Number(r.high ?? 0);
+            const lowJ = Number(r.low ?? 0);
+            const closeJ = Number(r.close ?? 0);
+            if (prevClose < openJ && prevClose < levelUp && levelUp < openJ) {
+                return { tpSlResult: 'win', exitPrice: levelUp, exitTime: String(r.candle_time_et ?? '') };
+            }
+            if (prevClose > openJ && openJ < levelDown && levelDown < prevClose) {
+                return { tpSlResult: 'loss', exitPrice: levelDown, exitTime: String(r.candle_time_et ?? '') };
+            }
+            const touchUp = highJ >= levelUp;
+            const touchDown = lowJ <= levelDown;
+            if (touchUp && touchDown) {
+                const hit = closeJ >= openJ ? 'loss' : 'win';
+                const price = closeJ >= openJ ? levelDown : levelUp;
+                return { tpSlResult: hit, exitPrice: price, exitTime: String(r.candle_time_et ?? '') };
+            }
+            if (touchUp)
+                return { tpSlResult: 'win', exitPrice: levelUp, exitTime: String(r.candle_time_et ?? '') };
+            if (touchDown)
+                return { tpSlResult: 'loss', exitPrice: levelDown, exitTime: String(r.candle_time_et ?? '') };
+            prevClose = closeJ;
+        }
+        return { tpSlResult: 'neutral' };
+    }
     computeMfr(rows, idx) {
         const closeT = Number(rows[idx].close ?? 0);
         const canScan = closeT > 0 && idx + 10 < rows.length;
@@ -301,12 +337,12 @@ let PredictorService = PredictorService_1 = class PredictorService {
             },
         };
     }
-    backtestStream(ticker, dateStr, fromTime, toTime, threshold, investment) {
+    backtestStream(ticker, dateStr, fromTime, toTime, threshold, investment, tpPct = 1.5, slPct = 1.5) {
         return new rxjs_1.Observable((subscriber) => {
-            this._runBacktestStream(subscriber, ticker, dateStr, fromTime, toTime, threshold, investment);
+            this._runBacktestStream(subscriber, ticker, dateStr, fromTime, toTime, threshold, investment, tpPct, slPct);
         });
     }
-    async _runBacktestStream(sub, ticker, dateStr, fromTime, toTime, threshold, investment) {
+    async _runBacktestStream(sub, ticker, dateStr, fromTime, toTime, threshold, investment, tpPct, slPct) {
         try {
             const rows = await this.mysqlRepo.getTickerRowsForDate(ticker.toUpperCase(), dateStr, '1m');
             if (!rows.length) {
@@ -336,6 +372,8 @@ let PredictorService = PredictorService_1 = class PredictorService {
                 return;
             }
             sub.next({ data: { type: 'info', total: targets.length, ticker, date: dateStr } });
+            const tpDec = tpPct / 100;
+            const slDec = slPct / 100;
             let tp = 0, fp = 0, tn = 0, fn = 0, cumPnL = 0;
             for (let n = 0; n < targets.length; n++) {
                 if (sub.closed)
@@ -365,8 +403,9 @@ let PredictorService = PredictorService_1 = class PredictorService {
                     tradeable = result.tradeable ?? false;
                 }
                 catch { }
-                const { mfr, exitPrice, exitTime } = this.computeMfr(rows, idx);
-                const realGood = mfr >= 0.015;
+                const { mfr, exitPrice: mfrExitPrice, exitTime: mfrExitTime } = this.computeMfr(rows, idx);
+                const { tpSlResult, exitPrice: tpSlExitPrice, exitTime: tpSlExitTime } = this.computeTpSlExit(rows, idx, tpDec, slDec);
+                const realGood = mfr >= tpDec;
                 if (tradeable && realGood)
                     tp++;
                 else if (tradeable && !realGood)
@@ -376,7 +415,24 @@ let PredictorService = PredictorService_1 = class PredictorService {
                 else
                     tn++;
                 const match = tradeable === realGood;
-                const pnl = tradeable ? investment * mfr : 0;
+                let pnl = 0;
+                let exitPrice = mfrExitPrice;
+                let exitTime = mfrExitTime;
+                if (tradeable) {
+                    if (tpSlResult === 'win') {
+                        pnl = investment * tpDec;
+                        exitPrice = tpSlExitPrice;
+                        exitTime = tpSlExitTime;
+                    }
+                    else if (tpSlResult === 'loss') {
+                        pnl = -investment * slDec;
+                        exitPrice = tpSlExitPrice;
+                        exitTime = tpSlExitTime;
+                    }
+                    else {
+                        pnl = investment * mfr;
+                    }
+                }
                 cumPnL += pnl;
                 const row = {
                     time, open: Number(targetRow.open ?? 0), high: Number(targetRow.high ?? 0),
@@ -388,6 +444,7 @@ let PredictorService = PredictorService_1 = class PredictorService {
                     ...(tradeable && { entryPrice: Number(targetRow.close ?? 0) }),
                     ...(tradeable && exitPrice != null && { exitPrice }),
                     ...(tradeable && exitTime != null && exitTime !== '' && { exitTime }),
+                    ...(tradeable && { tpSlResult }),
                 };
                 sub.next({ data: { type: 'row', row, progress: n + 1 } });
             }

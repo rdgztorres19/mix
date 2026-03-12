@@ -29,7 +29,7 @@ export declare class PredictorController {
     getBacktestCandles(ticker: string, date: string, fromTime: string, countStr?: string): Promise<{
         candles: CandleData[];
     }>;
-    backtestStream(ticker: string, date: string, fromTime?: string, toTime?: string, thresholdStr?: string, investmentStr?: string): Observable<MessageEvent>;
+    backtestStream(ticker: string, date: string, fromTime?: string, toTime?: string, thresholdStr?: string, investmentStr?: string, tpPctStr?: string, slPctStr?: string): Observable<MessageEvent>;
     backtest(body: {
         ticker: string;
         date: string;

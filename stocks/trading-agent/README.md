@@ -19,6 +19,8 @@ UI (React + Vite) → http://localhost:5173
 ```
 
 node scripts/debug-predict.js AIFF 2026-03-04 9:30 16:00 0.7
+node debug-predict.js AIFF 2026-03-04 9:30 10:00 0.7
+node debug-predict.js GXAI 2026-03-05 9:30 11:00 0.7 1.5 1.5
 
 ## Fast vs Agentic — Cuándo usar cada modo
 

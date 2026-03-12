@@ -36,6 +36,8 @@ EMBARGO = 30
 # Top configs to tune — chosen by composite score (prec@0.7 + signal volume)
 CONFIGS = [
     ("LightGBM", "D_all", "bin_mfr10m_1p5"),
+    ("LightGBM", "D_all", "bin_tb10m_tp1p5_sl0p5"),
+    ("LightGBM", "D_all", "bin_tb10m_tp2p0_sl0p7"),
 ]
 
 
@@ -175,8 +177,11 @@ def main():
         else:
             obj_fn = lambda trial: lgbm_objective(trial, X_cv, y_cv, is_mc)
 
-        study = optuna.create_study(direction="maximize",
-                                    study_name=f"{model_name}_{fset_name}_{target_name}")
+        study = optuna.create_study(
+            direction="maximize",
+            study_name=f"{model_name}_{fset_name}_{target_name}",
+            sampler=optuna.samplers.TPESampler(seed=42, n_startup_trials=15),
+        )
         t0 = time.time()
         study.optimize(obj_fn, n_trials=N_TRIALS, show_progress_bar=True)
         elapsed = time.time() - t0

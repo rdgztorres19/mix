@@ -46,6 +46,8 @@ export interface EvaluateResult {
   confusion_matrix: number[][];
 }
 
+export type TpSlResult = 'win' | 'loss' | 'neutral';
+
 export interface BacktestRow {
   time: string;
   open: number;
@@ -62,10 +64,12 @@ export interface BacktestRow {
   cumPnl: number;
   /** Precio de entrada (close de la vela señal) cuando tradeable */
   entryPrice?: number;
-  /** Precio donde se alcanzó el beneficio (maxHigh en ventana MFR) */
+  /** Precio donde se alcanzó el beneficio (maxHigh en ventana MFR) o nivel TP/SL */
   exitPrice?: number;
   /** Vela/horario donde se alcanzó el beneficio */
   exitTime?: string;
+  /** TP/SL: win = tocó TP antes que SL, loss = tocó SL primero, neutral = no tocó ninguno en 10 velas */
+  tpSlResult?: TpSlResult;
 }
 
 export interface BacktestSummary {
@@ -228,6 +232,48 @@ export class PredictorService {
   }
 
   // ─── Helpers ───────────────────────────────────────────────────────────
+
+  /**
+   * Simulate: did price hit +TP% before -SL% in next 10 candles?
+   * Returns tpSlResult plus exitPrice/exitTime when TP or SL is hit.
+   */
+  private computeTpSlExit(
+    rows: Record<string, unknown>[],
+    idx: number,
+    tpPct: number,
+    slPct: number,
+  ): { tpSlResult: TpSlResult; exitPrice?: number; exitTime?: string } {
+    const refClose = Number(rows[idx]?.close ?? 0);
+    if (refClose <= 0) return { tpSlResult: 'neutral' };
+    const levelUp = refClose * (1 + tpPct);
+    const levelDown = refClose * (1 - slPct);
+    let prevClose = refClose;
+    for (let j = 1; j <= Math.min(10, rows.length - idx - 1); j++) {
+      const r = rows[idx + j];
+      if (!r) break;
+      const openJ = Number(r.open ?? 0);
+      const highJ = Number(r.high ?? 0);
+      const lowJ = Number(r.low ?? 0);
+      const closeJ = Number(r.close ?? 0);
+      if (prevClose < openJ && prevClose < levelUp && levelUp < openJ) {
+        return { tpSlResult: 'win', exitPrice: levelUp, exitTime: String(r.candle_time_et ?? '') };
+      }
+      if (prevClose > openJ && openJ < levelDown && levelDown < prevClose) {
+        return { tpSlResult: 'loss', exitPrice: levelDown, exitTime: String(r.candle_time_et ?? '') };
+      }
+      const touchUp = highJ >= levelUp;
+      const touchDown = lowJ <= levelDown;
+      if (touchUp && touchDown) {
+        const hit = closeJ >= openJ ? 'loss' : 'win';
+        const price = closeJ >= openJ ? levelDown : levelUp;
+        return { tpSlResult: hit, exitPrice: price, exitTime: String(r.candle_time_et ?? '') };
+      }
+      if (touchUp) return { tpSlResult: 'win', exitPrice: levelUp, exitTime: String(r.candle_time_et ?? '') };
+      if (touchDown) return { tpSlResult: 'loss', exitPrice: levelDown, exitTime: String(r.candle_time_et ?? '') };
+      prevClose = closeJ;
+    }
+    return { tpSlResult: 'neutral' };
+  }
 
   /**
    * Compute max_future_return_10m on-the-fly when DB value is null.
@@ -404,9 +450,11 @@ export class PredictorService {
     toTime: string,
     threshold: number,
     investment: number,
+    tpPct = 1.5,
+    slPct = 1.5,
   ): Observable<MessageEvent> {
     return new Observable((subscriber: Subscriber<MessageEvent>) => {
-      this._runBacktestStream(subscriber, ticker, dateStr, fromTime, toTime, threshold, investment);
+      this._runBacktestStream(subscriber, ticker, dateStr, fromTime, toTime, threshold, investment, tpPct, slPct);
     });
   }
 
@@ -418,6 +466,8 @@ export class PredictorService {
     toTime: string,
     threshold: number,
     investment: number,
+    tpPct: number,
+    slPct: number,
   ) {
     try {
       const rows = await this.mysqlRepo.getTickerRowsForDate(ticker.toUpperCase(), dateStr, '1m');
@@ -454,6 +504,8 @@ export class PredictorService {
       // Send total count so frontend can show progress
       sub.next({ data: { type: 'info', total: targets.length, ticker, date: dateStr } } as MessageEvent);
 
+      const tpDec = tpPct / 100;
+      const slDec = slPct / 100;
       let tp = 0, fp = 0, tn = 0, fn = 0, cumPnL = 0;
 
       for (let n = 0; n < targets.length; n++) {
@@ -485,15 +537,32 @@ export class PredictorService {
           tradeable = result.tradeable ?? false;
         } catch { /* skip */ }
 
-        const { mfr, exitPrice, exitTime } = this.computeMfr(rows, idx);
-        const realGood = mfr >= 0.015;
+        const { mfr, exitPrice: mfrExitPrice, exitTime: mfrExitTime } = this.computeMfr(rows, idx);
+        const { tpSlResult, exitPrice: tpSlExitPrice, exitTime: tpSlExitTime } = this.computeTpSlExit(rows, idx, tpDec, slDec);
+        const realGood = mfr >= tpDec;
         if (tradeable && realGood) tp++;
         else if (tradeable && !realGood) fp++;
         else if (!tradeable && realGood) fn++;
         else tn++;
 
         const match = tradeable === realGood;
-        const pnl = tradeable ? investment * mfr : 0;
+
+        let pnl = 0;
+        let exitPrice = mfrExitPrice;
+        let exitTime = mfrExitTime;
+        if (tradeable) {
+          if (tpSlResult === 'win') {
+            pnl = investment * tpDec;
+            exitPrice = tpSlExitPrice;
+            exitTime = tpSlExitTime;
+          } else if (tpSlResult === 'loss') {
+            pnl = -investment * slDec;
+            exitPrice = tpSlExitPrice;
+            exitTime = tpSlExitTime;
+          } else {
+            pnl = investment * mfr;
+          }
+        }
         cumPnL += pnl;
 
         const row: BacktestRow = {
@@ -506,6 +575,7 @@ export class PredictorService {
           ...(tradeable && { entryPrice: Number(targetRow.close ?? 0) }),
           ...(tradeable && exitPrice != null && { exitPrice }),
           ...(tradeable && exitTime != null && exitTime !== '' && { exitTime }),
+          ...(tradeable && { tpSlResult }),
         };
 
         sub.next({ data: { type: 'row', row, progress: n + 1 } } as MessageEvent);

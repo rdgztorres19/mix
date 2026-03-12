@@ -148,14 +148,16 @@ let PredictorController = PredictorController_1 = class PredictorController {
             throw new common_1.HttpException(err.message || 'Failed to fetch candles', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    backtestStream(ticker, date, fromTime, toTime, thresholdStr, investmentStr) {
+    backtestStream(ticker, date, fromTime, toTime, thresholdStr, investmentStr, tpPctStr, slPctStr) {
         if (!ticker || !date) {
             throw new common_1.HttpException('ticker and date are required', common_1.HttpStatus.BAD_REQUEST);
         }
         const threshold = thresholdStr ? parseFloat(thresholdStr) : 0.6;
         const investment = investmentStr ? parseFloat(investmentStr) : 200;
-        this.logger.log(`SSE /predict/backtest/stream ${ticker} ${date} ${fromTime ?? '09:30'}-${toTime ?? '16:00'} thr=${threshold}`);
-        return this.predictor.backtestStream(ticker, date, fromTime ?? '09:30', toTime ?? '16:00', threshold, investment);
+        const tpPct = tpPctStr ? parseFloat(tpPctStr) : 1.5;
+        const slPct = slPctStr ? parseFloat(slPctStr) : 1.5;
+        this.logger.log(`SSE /predict/backtest/stream ${ticker} ${date} ${fromTime ?? '09:30'}-${toTime ?? '16:00'} thr=${threshold} TP=${tpPct}% SL=${slPct}%`);
+        return this.predictor.backtestStream(ticker, date, fromTime ?? '09:30', toTime ?? '16:00', threshold, investment, tpPct, slPct);
     }
     async backtest(body) {
         const { ticker, date, fromTime = '09:30', toTime = '16:00' } = body;
@@ -214,8 +216,10 @@ __decorate([
     __param(3, (0, common_1.Query)('toTime')),
     __param(4, (0, common_1.Query)('threshold')),
     __param(5, (0, common_1.Query)('investment')),
+    __param(6, (0, common_1.Query)('tpPct')),
+    __param(7, (0, common_1.Query)('slPct')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String, String, String]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String, String, String]),
     __metadata("design:returntype", rxjs_1.Observable)
 ], PredictorController.prototype, "backtestStream", null);
 __decorate([

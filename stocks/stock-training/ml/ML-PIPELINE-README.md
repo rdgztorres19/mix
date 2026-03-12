@@ -1,3 +1,32 @@
+Modelo	LightGBM
+Feature set	D_all (features completas)
+Target	bin_mfr10m_1p5
+Tipo	Binario (is_multiclass: false)
+Labels	0 (no sube), 1 (sube ≥1.5% en max future return 10 min)
+
+Train and Test
+
+python3 -m experiments.run_grid \
+  --models XGBoost LightGBM RandomForest \
+  --targets bin_first_touch_10m_2p5 bin_first_touch_10m_2p0 bin_first_touch_10m_1p5 bin_first_touch_10m_1p0 bin_tb10m_tp1p5_sl0p5 bin_tb10m_tp2p0_sl0p7 bin_tb10m_tp2p5_sl1p0
+
+python3 -m experiments.run_grid \
+  --models XGBoost LightGBM RandomForest \
+  --targets bin_first_touch_10m_2p5 bin_first_touch_10m_2p0 bin_first_touch_10m_1p5 bin_first_touch_10m_1p0 bin_tb10m_tp1p5_sl0p5 bin_tb10m_tp2p0_sl0p7 bin_tb10m_tp2p5_sl1p0 \
+  --fsets D_all
+
+Change in tune_focused to add models
+
+CONFIGS = [
+    ("LightGBM", "D_all", "bin_mfr10m_1p5"),
+    ("LightGBM", "D_all", "bin_tb10m_tp1p5_sl0p5"),
+    ("LightGBM", "D_all", "bin_tb10m_tp2p0_sl0p7"),
+]
+
+Execute: python3 experiments/tune_focused.py 2>&1 | tee /tmp/tune_output.txt
+
+python3 -m experiments.train_best --all 
+
 # ML Pipeline — Momentum Stock Long Trade Predictor
 
 ## Objetivo

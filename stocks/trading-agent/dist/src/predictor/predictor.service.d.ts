@@ -48,6 +48,7 @@ export interface EvaluateResult {
     };
     confusion_matrix: number[][];
 }
+export type TpSlResult = 'win' | 'loss' | 'neutral';
 export interface BacktestRow {
     time: string;
     open: number;
@@ -65,6 +66,7 @@ export interface BacktestRow {
     entryPrice?: number;
     exitPrice?: number;
     exitTime?: string;
+    tpSlResult?: TpSlResult;
 }
 export interface BacktestSummary {
     tp: number;
@@ -92,9 +94,10 @@ export declare class PredictorService {
     constructor(mysqlRepo: MysqlTrainingRepository);
     evaluate(threshold?: number): Promise<EvaluateResult>;
     predict(features: MlFeatures, threshold?: number): Promise<PredictResult>;
+    private computeTpSlExit;
     private computeMfr;
     backtest(ticker: string, dateStr: string, fromTime: string, toTime: string, threshold: number, investment: number): Promise<BacktestResult>;
-    backtestStream(ticker: string, dateStr: string, fromTime: string, toTime: string, threshold: number, investment: number): Observable<MessageEvent>;
+    backtestStream(ticker: string, dateStr: string, fromTime: string, toTime: string, threshold: number, investment: number, tpPct?: number, slPct?: number): Observable<MessageEvent>;
     private _runBacktestStream;
     private normalizeTimeEt;
     getBacktestCandles(ticker: string, dateStr: string, fromTime: string, count?: number): Promise<{

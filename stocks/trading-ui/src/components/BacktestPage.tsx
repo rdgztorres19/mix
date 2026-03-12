@@ -11,6 +11,7 @@ interface BacktestRow {
   entryPrice?: number;
   exitPrice?: number;
   exitTime?: string;
+  tpSlResult?: 'win' | 'loss' | 'neutral';
 }
 
 interface BacktestSummary {
@@ -33,8 +34,10 @@ export default function BacktestPage() {
   const [ticker, setTicker] = useState('');
   const [date, setDate] = useState('');
   const [fromTime, setFromTime] = useState('09:30');
-  const [toTime, setToTime] = useState('16:00');
-  const [threshold, setThreshold] = useState('0.7');
+  const [toTime, setToTime] = useState('11:00');
+  const [threshold, setThreshold] = useState('0.55');
+  const [tpPct, setTpPct] = useState('1.5');
+  const [slPct, setSlPct] = useState('1');
   const [investment, setInvestment] = useState('200');
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<BacktestRow[]>([]);
@@ -131,6 +134,8 @@ export default function BacktestPage() {
       fromTime,
       toTime,
       threshold,
+      tpPct,
+      slPct,
       investment,
     });
 
@@ -291,6 +296,12 @@ export default function BacktestPage() {
           <Field label="Threshold" width={60}>
             <input value={threshold} onChange={(e) => setThreshold(e.target.value)} style={inputStyle} />
           </Field>
+          <Field label="TP %" width={50}>
+            <input value={tpPct} onChange={(e) => setTpPct(e.target.value)} placeholder="1.5" style={inputStyle} />
+          </Field>
+          <Field label="SL %" width={50}>
+            <input value={slPct} onChange={(e) => setSlPct(e.target.value)} placeholder="1.5" style={inputStyle} />
+          </Field>
           <Field label="Inversión $" width={70}>
             <input value={investment} onChange={(e) => setInvestment(e.target.value)} style={inputStyle} />
           </Field>
@@ -375,6 +386,40 @@ export default function BacktestPage() {
           </div>
         )}
 
+        {/* Reporte de Wins (TP/SL) */}
+        {rows.length > 0 && (() => {
+          const wins = rows.filter((r) => r.tradeable && r.tpSlResult === 'win').length;
+          const losses = rows.filter((r) => r.tradeable && r.tpSlResult === 'loss').length;
+          const neutrals = rows.filter((r) => r.tradeable && r.tpSlResult === 'neutral').length;
+          const totalTraded = wins + losses + neutrals;
+          const winRate = wins + losses > 0 ? ((wins / (wins + losses)) * 100).toFixed(1) : '—';
+          return (
+            <div style={{
+              display: 'flex', gap: 8, padding: '0 20px 14px', flexWrap: 'wrap',
+              borderBottom: '1px solid #1e293b',
+            }}>
+              <span style={{ fontSize: 10, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, alignSelf: 'center' }}>
+                Reporte de Wins
+              </span>
+              <div style={{
+                display: 'flex', gap: 8, alignItems: 'center', fontSize: 12, fontFamily: mono,
+                padding: '6px 12px', background: '#111827', borderRadius: 8, border: '1px solid #1e293b',
+              }}>
+                <span style={{ color: '#22c55e', fontWeight: 600 }}>Wins {wins}</span>
+                <span style={{ color: '#334155' }}>|</span>
+                <span style={{ color: '#ef4444', fontWeight: 600 }}>Losses {losses}</span>
+                <span style={{ color: '#334155' }}>|</span>
+                <span style={{ color: '#64748b' }}>Neutrals {neutrals}</span>
+                <span style={{ color: '#334155' }}>|</span>
+                <span style={{ color: '#3b82f6', fontWeight: 700 }}>Win rate {winRate}%</span>
+                <span style={{ fontSize: 10, color: '#475569', marginLeft: 4 }}>
+                  ({totalTraded} operaciones)
+                </span>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Results table */}
         <div ref={tableContainerRef} style={{ flex: 1, overflowY: 'auto', padding: '8px 20px 20px' }}>
           {rows.length > 0 ? (
@@ -384,7 +429,7 @@ export default function BacktestPage() {
             }}>
               <thead>
                 <tr>
-                  {['Time', 'Open', 'High', 'Low', 'Close', 'Vol', 'Prob', 'Trade', 'MFR10m', 'Real', 'Match', 'Entrada', 'Salida', 'Vela Salida', 'P/L', 'Cumul'].map((h) => (
+                  {['Time', 'Open', 'High', 'Low', 'Close', 'Vol', 'Prob', 'Trade', 'MFR10m', 'Real', 'TP/SL', 'Match', 'Entrada', 'Salida', 'Vela Salida', 'P/L', 'Cumul'].map((h) => (
                     <th key={h} style={{
                       padding: '8px 8px', textAlign: 'right', color: '#475569',
                       fontWeight: 600, fontSize: 10, textTransform: 'uppercase',
@@ -441,6 +486,16 @@ export default function BacktestPage() {
                           display: 'inline-block', width: 8, height: 8, borderRadius: '50%',
                           background: r.realGood ? '#22c55e' : '#334155',
                         }} />
+                      </td>
+                      <td style={{ ...cs, textAlign: 'center' }}>
+                        {isSignal && r.tpSlResult ? (
+                          <span style={{
+                            fontSize: 11, fontWeight: 700,
+                            color: r.tpSlResult === 'win' ? '#22c55e' : r.tpSlResult === 'loss' ? '#ef4444' : '#64748b',
+                          }}>
+                            {r.tpSlResult === 'win' ? 'win' : r.tpSlResult === 'loss' ? 'loss' : '—'}
+                          </span>
+                        ) : <span style={{ color: '#1e293b' }}>—</span>}
                       </td>
                       <td style={{ ...cs, textAlign: 'center' }}>
                         {isSignal ? (
