@@ -115,6 +115,20 @@ export class WebSocketInitService implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
+   * Get Alpaca WebSocket subscription list for debug UI.
+   */
+  getAlpacaSubscriptions(): string[] {
+    return this.alpacaWebSocket.getSubscriptions();
+  }
+
+  /**
+   * Get last bar timestamps per symbol (unix seconds) for debug UI.
+   */
+  getLastBarTimesMap(): Record<string, number> {
+    return this.alpacaWebSocket.getLastBarTimesMap();
+  }
+
+  /**
    * Refresh subscriptions based on provided active symbols.
    * Called by CollectorService when symbols change.
    */

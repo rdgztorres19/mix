@@ -1,9 +1,15 @@
-import { Controller, Post, Get } from '@nestjs/common';
+import { Controller, Post, Get, Optional } from '@nestjs/common';
 import { CollectorService } from './collector.service';
+import { WebSocketInitService } from '../websocket/websocket-init.service';
+import { PositionTrackerService } from '../trader/position-tracker.service';
 
 @Controller('collector')
 export class CollectorController {
-  constructor(private readonly collector: CollectorService) {}
+  constructor(
+    private readonly collector: CollectorService,
+    @Optional() private readonly webSocketInit: WebSocketInitService | null,
+    @Optional() private readonly positionTracker: PositionTrackerService | null,
+  ) {}
 
   /**
    * POST /collector/sync-today
@@ -59,7 +65,7 @@ export class CollectorController {
 
   /**
    * GET /collector/debug-streams
-   * Debug endpoint: show status of both Alpaca and MoMo streams.
+   * Debug endpoint: show status of both Alpaca and MoMo streams, positions, last bar times.
    */
   @Get('debug-streams')
   async getStreamStatus(): Promise<{
@@ -67,14 +73,27 @@ export class CollectorController {
     momo: { connected: boolean; subscriptions: string[]; source: string };
     activeSymbols: string[];
     primaryStream: string;
+    positions: Array<{
+      id: number;
+      symbol: string;
+      entry_time: string;
+      entry_price: number;
+      qty: number;
+      entry_candle_idx: number;
+      candles_elapsed: number;
+      alpaca_order_id: string;
+    }>;
+    lastBarTimes: Record<string, number>;
   }> {
-    const alpacaConnected = this.collector['webSocketInit']?.isAlpacaConnected() ?? false;
-    const alpacaSubscriptions = alpacaConnected ? 
-      Array.from((this.collector['webSocketInit']?.['alpacaWebSocket'] as any)?.subscriptions || []) as string[] : [];
-    
+    const alpacaConnected = this.webSocketInit?.isAlpacaConnected() ?? false;
+    const alpacaSubscriptions = this.webSocketInit?.getAlpacaSubscriptions() ?? [];
+    const lastBarTimes = this.webSocketInit?.getLastBarTimesMap() ?? {};
+
     const momoConnected = this.collector['momoStream']?.isConnected() ?? false;
     const momoSubscriptions = this.collector['momoStream']?.getSubscribedSymbols() ?? [];
-    
+
+    const positions = this.positionTracker?.getAllOpen() ?? [];
+
     return {
       alpaca: {
         connected: alpacaConnected,
@@ -87,7 +106,18 @@ export class CollectorController {
         source: 'MoMo Fallback'
       },
       activeSymbols: this.collector.getActiveSymbolList(),
-      primaryStream: alpacaConnected ? 'Alpaca Premium' : 'MoMo Fallback'
+      primaryStream: alpacaConnected ? 'Alpaca Premium' : 'MoMo Fallback',
+      positions: positions.map(p => ({
+        id: p.id,
+        symbol: p.symbol,
+        entry_time: p.entry_time,
+        entry_price: p.entry_price,
+        qty: p.qty,
+        entry_candle_idx: p.entry_candle_idx,
+        candles_elapsed: p.candles_elapsed,
+        alpaca_order_id: p.alpaca_order_id,
+      })),
+      lastBarTimes,
     };
   }
 }

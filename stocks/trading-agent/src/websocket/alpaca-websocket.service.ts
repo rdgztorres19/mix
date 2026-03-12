@@ -127,8 +127,21 @@ export class AlpacaWebSocketService implements IWebSocketDataSource {
     return this.ws?.readyState === WebSocket.OPEN && this.isAuthenticated;
   }
 
+  getSubscriptions(): string[] {
+    return Array.from(this.subscriptions);
+  }
+
   getLastBarTime(symbol: string): number | null {
     return this.lastBarTimes.get(symbol) || null;
+  }
+
+  /** Returns map of symbol -> unix seconds for last received bar (for debug UI). */
+  getLastBarTimesMap(): Record<string, number> {
+    const out: Record<string, number> = {};
+    for (const [sym, sec] of this.lastBarTimes.entries()) {
+      out[sym] = sec;
+    }
+    return out;
   }
 
   onBar(callback: (bar: RealTimeBar) => void): void {

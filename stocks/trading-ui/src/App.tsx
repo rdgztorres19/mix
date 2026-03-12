@@ -9,6 +9,7 @@ import MomoDropdown from './components/MomoDropdown';
 import StrategyGuide from './components/StrategyGuide';
 import StrategyInfoPanel from './components/StrategyInfoPanel';
 import LogsPanel from './components/LogsPanel';
+import DebugPanel from './components/DebugPanel';
 import BacktestPage from './components/BacktestPage';
 import { useCollectorSocket } from './hooks/useCollectorSocket';
 import type { PredictSignalPayload, TradeEntryPayload, TradeExitPayload } from './hooks/useCollectorSocket';
@@ -49,6 +50,7 @@ export default function App() {
   const [showMomo, setShowMomo] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
   const [syncLoading, setSyncLoading] = useState(false);
 
   // Date picker: today by default, historical dates → MySQL (stock-training)
@@ -498,6 +500,26 @@ export default function App() {
             }}
           >
             📋
+          </button>
+          <button
+            onClick={() => setShowDebug(true)}
+            title="Debug: WebSocket, symbols, positions"
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: '50%',
+              background: 'rgba(245,158,11,0.15)',
+              border: '1px solid rgba(245,158,11,0.4)',
+              color: '#f59e0b',
+              fontSize: 14,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            🔧
           </button>
         </div>
 
@@ -1092,6 +1114,7 @@ export default function App() {
 
       {showGuide && <StrategyGuide onClose={() => setShowGuide(false)} />}
       {showLogs && <LogsPanel onClose={() => setShowLogs(false)} />}
+      {showDebug && <DebugPanel onClose={() => setShowDebug(false)} />}
 
       {/* ── Trade signal toasts (bottom-right) ── */}
       {toasts.length > 0 && (

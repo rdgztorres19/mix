@@ -149,7 +149,20 @@ def load_grid_results() -> pd.DataFrame:
     """Load all grid results from CSV."""
     if not GRID_CSV.exists():
         return pd.DataFrame()
-    return pd.read_csv(GRID_CSV)
+    df = pd.read_csv(GRID_CSV)
+    # Coerce numeric columns (pandas may infer object for prec@* due to @ in name)
+    num_cols = [
+        'accuracy', 'precision_macro', 'recall_macro', 'f1_macro', 'n_test',
+        'train_time_s', 'n_features', 'n_train',
+        'class_-1_precision', 'class_-1_recall', 'class_0_precision', 'class_0_recall',
+        'class_1_precision', 'class_1_recall',
+        'prec@0.4', 'prec@0.5', 'prec@0.6', 'prec@0.7', 'prec@0.8',
+        'signals@0.4', 'signals@0.5', 'signals@0.6', 'signals@0.7', 'signals@0.8',
+    ]
+    for c in num_cols:
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors='coerce')
+    return df
 
 
 def print_top_results(n: int = 20, sort_by: str = "prec@0.7"):

@@ -12,6 +12,6 @@ import { AutoTraderService } from './auto-trader.service';
     PositionTrackerService,
     AutoTraderService,
   ],
-  exports: [AutoTraderService],
+  exports: [AutoTraderService, PositionTrackerService],
 })
 export class TraderModule {}
