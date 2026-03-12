@@ -36,7 +36,7 @@ export class WebSocketFallbackCron {
    * When WebSocket connected: check if bars received; if missing, fetch via REST.
    * When WebSocket disconnected: fetch bars for all active symbols via REST (historical fallback).
    */
-  @Cron('1 * * * * *', { name: 'websocket-fallback-check' })
+  @Cron('1,5 * * * * *', { name: 'websocket-fallback-check' })
   async checkWebSocketHealth(): Promise<void> {
     if (!this.enabled || !this.collector) return;
 
@@ -47,6 +47,7 @@ export class WebSocketFallbackCron {
     const expectedBarTime = this.getExpectedBarTime(now);
 
     if (!this.alpacaWebSocket.isConnected()) {
+      this.alpacaWebSocket.triggerReconnectIfDisconnected();
       this.logger.log(`🔌 WebSocket disconnected - fetching fallback for ${activeSymbols.length} symbols via REST`);
       for (const symbol of activeSymbols) {
         await this.fetchFallbackData(symbol, expectedBarTime);
@@ -138,6 +139,8 @@ export class WebSocketFallbackCron {
         }
       } else {
         this.logger.warn(`⚠️ No fallback data available for ${symbol} at ${startTime}`);
+        const fallbackUrl = `https://data.alpaca.markets/v2/stocks/${symbol}/bars?feed=sip&timeframe=1Min&start=${startTime}&end=${endTime}&limit=1`;
+        this.logger.warn(`   URL: ${fallbackUrl}`);
       }
 
     } catch (error) {

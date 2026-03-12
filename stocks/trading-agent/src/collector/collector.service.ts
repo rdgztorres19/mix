@@ -478,9 +478,27 @@ export class CollectorService implements OnModuleInit {
   }
 
   /**
+   * Reload any symbols from DB that are missing from in-memory map.
+   * Called when Alpaca reconnects to pick up symbols added while disconnected.
+   */
+  async reloadMissingSymbolsFromDb(): Promise<number> {
+    const persisted = await this.mysqlRepo.getActiveSymbols();
+    const toAdd = persisted.filter((s) => !this.activeSymbols.has(s.symbol));
+    for (const { symbol } of toAdd) {
+      await this.addSymbol(symbol, 'restored', true);
+    }
+    if (toAdd.length > 0) {
+      this.logger.log(`📥 Reloaded ${toAdd.length} missing symbols from DB: ${toAdd.map((s) => s.symbol).join(', ')}`);
+    }
+    return toAdd.length;
+  }
+
+  /**
    * Debug: force re-subscription to Alpaca WebSocket only.
+   * First reloads any missing symbols from DB, then re-subscribes.
    */
   async forceResubscribeAll(): Promise<{ ok: boolean; resubscribed: string[] }> {
+    await this.reloadMissingSymbolsFromDb();
     const symbols = this.getActiveSymbolList();
     this.logger.log(`Force re-subscribing to ${symbols.length} symbols on Alpaca only: ${symbols.join(', ')}`);
     

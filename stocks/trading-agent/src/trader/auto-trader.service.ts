@@ -8,6 +8,7 @@
  */
 
 import { Injectable, Logger } from '@nestjs/common';
+import notifier from 'node-notifier';
 import { PredictorService, PredictResult } from '../predictor/predictor.service';
 import { AlpacaTraderService, AlpacaOrder } from './alpaca-trader.service';
 import { PositionTrackerService, AutoPosition } from './position-tracker.service';
@@ -216,5 +217,12 @@ export class AutoTraderService {
     this.logger.log(
       `ENTERED ${row.symbol}: qty=${qty.toFixed(4)} @ $${price.toFixed(2)} ($${dollarAmount.toFixed(2)})`,
     );
+
+    notifier.notify({
+      title: 'Compra ejecutada',
+      message: `${row.symbol} @ $${price.toFixed(2)} · $${dollarAmount.toFixed(2)} (${row.candle_time_et})`,
+      sound: true,
+      timeout: 10,
+    });
   }
 }

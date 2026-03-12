@@ -38,6 +38,8 @@ CONFIGS = [
     ("LightGBM", "D_all", "bin_mfr10m_1p5"),
     ("LightGBM", "D_all", "bin_tb10m_tp1p5_sl0p5"),
     ("LightGBM", "D_all", "bin_tb10m_tp2p0_sl0p7"),
+    ("LightGBM", "D_all", "bin_tb10m_tp4p0_sl2p0"),
+    ("LightGBM", "D_all", "bin_tb10m_tp5p0_sl2p5"),
 ]
 
 

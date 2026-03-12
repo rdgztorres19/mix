@@ -22,6 +22,7 @@ export class WebSocketInitService implements OnModuleInit, OnModuleDestroy {
 
     // Register before connect so callback runs on first auth and every reconnect
     this.alpacaWebSocket.onAuthenticated(async () => {
+      await this.collector.reloadMissingSymbolsFromDb();
       const activeSymbols = this.collector.getActiveSymbolList();
       if (activeSymbols.length > 0) {
         this.logger.log(`🔄 Post-auth: refreshing subscriptions for ${activeSymbols.length} active symbols: [${activeSymbols.join(', ')}]`);

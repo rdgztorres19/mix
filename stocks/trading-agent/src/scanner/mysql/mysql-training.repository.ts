@@ -144,18 +144,28 @@ export class MysqlTrainingRepository {
     }
   }
 
+  /**
+   * Get symbols to restore at startup: all from today (CURDATE) OR added in last 24h.
+   * Uses both criteria to handle timezone differences (ET vs UTC) and ensure we get "all from today".
+   */
   async getActiveSymbols(): Promise<{ symbol: string; source: string; added_at: string }[]> {
     const p = this.getPool();
     if (!p) return [];
     try {
       const [rows] = await p.query<mysql.RowDataPacket[]>(
-        `SELECT symbol, source, added_at FROM collector_symbols WHERE DATE(added_at) = CURDATE()`,
+        `SELECT symbol, source, added_at FROM collector_symbols
+         WHERE DATE(added_at) = CURDATE() OR added_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+         ORDER BY added_at DESC`,
       );
-      return rows.map((r) => ({
-        symbol: String(r.symbol),
-        source: String(r.source),
-        added_at: String(r.added_at),
-      }));
+      const seen = new Set<string>();
+      const result: { symbol: string; source: string; added_at: string }[] = [];
+      for (const r of rows) {
+        const sym = String(r.symbol);
+        if (seen.has(sym)) continue;
+        seen.add(sym);
+        result.push({ symbol: sym, source: String(r.source), added_at: String(r.added_at) });
+      }
+      return result;
     } catch (e) {
       this.logger.warn(`getActiveSymbols failed: ${(e as Error).message}`);
       return [];
