@@ -163,9 +163,10 @@ let PredictorController = class PredictorController {
         }
     }
     /**
-   * GET /predict/backtest/stream?ticker=X&date=2026-03-05&fromTime=09:30&toTime=16:00&threshold=0.6&investment=200&tpPct=1.5&slPct=1.5
+   * GET /predict/backtest/stream?ticker=X&date=...&fromTime=09:30&toTime=16:00&threshold=0.6&investment=200&tpPct=1.5&slPct=1.5&lookAhead=10
    * SSE stream: emits row-by-row backtest results in real time.
-   */ backtestStream(ticker, date, fromTime, toTime, thresholdStr, investmentStr, tpPctStr, slPctStr) {
+   * lookAhead: velas adelante para evaluar TP/SL y MFR (default 10).
+   */ backtestStream(ticker, date, fromTime, toTime, thresholdStr, investmentStr, tpPctStr, slPctStr, lookAheadStr) {
         if (!ticker || !date) {
             throw new _common.HttpException('ticker and date are required', _common.HttpStatus.BAD_REQUEST);
         }
@@ -173,8 +174,9 @@ let PredictorController = class PredictorController {
         const investment = investmentStr ? parseFloat(investmentStr) : 200;
         const tpPct = tpPctStr ? parseFloat(tpPctStr) : 1.5;
         const slPct = slPctStr ? parseFloat(slPctStr) : 1.5;
-        this.logger.log(`SSE /predict/backtest/stream ${ticker} ${date} ${fromTime ?? '09:30'}-${toTime ?? '16:00'} thr=${threshold} TP=${tpPct}% SL=${slPct}%`);
-        return this.predictor.backtestStream(ticker, date, fromTime ?? '09:30', toTime ?? '16:00', threshold, investment, tpPct, slPct);
+        const lookAhead = lookAheadStr ? Math.max(1, Math.min(60, parseInt(lookAheadStr, 10) || 10)) : 10;
+        this.logger.log(`SSE /predict/backtest/stream ${ticker} ${date} ${fromTime ?? '09:30'}-${toTime ?? '16:00'} thr=${threshold} TP=${tpPct}% SL=${slPct}% lookAhead=${lookAhead}`);
+        return this.predictor.backtestStream(ticker, date, fromTime ?? '09:30', toTime ?? '16:00', threshold, investment, tpPct, slPct, lookAhead);
     }
     /**
    * POST /predict/backtest
@@ -250,8 +252,10 @@ _ts_decorate([
     _ts_param(5, (0, _common.Query)('investment')),
     _ts_param(6, (0, _common.Query)('tpPct')),
     _ts_param(7, (0, _common.Query)('slPct')),
+    _ts_param(8, (0, _common.Query)('lookAhead')),
     _ts_metadata("design:type", Function),
     _ts_metadata("design:paramtypes", [
+        String,
         String,
         String,
         String,

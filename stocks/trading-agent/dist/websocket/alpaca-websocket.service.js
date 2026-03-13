@@ -89,6 +89,13 @@ let AlpacaWebSocketService = class AlpacaWebSocketService {
     isConnected() {
         return this.ws?.readyState === _ws.default.OPEN && this.isAuthenticated;
     }
+    /**
+   * Trigger reconnect if currently disconnected. Safe to call periodically (e.g. from cron).
+   */ triggerReconnectIfDisconnected() {
+        if (!this.config.enabled) return;
+        if (this.isConnected()) return;
+        this.scheduleReconnect();
+    }
     onBar(callback) {
         this.barCallbacks.push(callback);
     }
@@ -97,6 +104,16 @@ let AlpacaWebSocketService = class AlpacaWebSocketService {
     }
     getLastBarTime(symbol) {
         return this.lastBarTimes.get(symbol) || null;
+    }
+    getSubscriptions() {
+        return Array.from(this.subscriptions);
+    }
+    getLastBarTimesMap() {
+        const out = {};
+        for (const [sym, sec] of this.lastBarTimes.entries()){
+            out[sym] = sec;
+        }
+        return out;
     }
     handleOpen() {
         this.logger.log('✅ WebSocket connected — authenticating');
@@ -181,6 +198,7 @@ let AlpacaWebSocketService = class AlpacaWebSocketService {
         this.lastSubscriptionsBeforeDisconnect = [
             ...this.subscriptions
         ];
+        this.subscriptions.clear(); // Must clear so reconnect re-sends subscribe
         this.isAuthenticated = false;
         this.ws = null;
         if (!this.intentionalDisconnect) {

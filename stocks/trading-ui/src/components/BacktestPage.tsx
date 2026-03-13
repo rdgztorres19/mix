@@ -30,15 +30,35 @@ interface StockItem {
 
 const mono = "'JetBrains Mono', 'SF Mono', Menlo, Monaco, monospace";
 
+const BACKTEST_STORAGE_KEY = 'backtest_params';
+
+function loadBacktestParams(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(BACKTEST_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as Record<string, string>;
+    return typeof parsed === 'object' && parsed !== null ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveBacktestParams(params: Record<string, string>) {
+  try {
+    localStorage.setItem(BACKTEST_STORAGE_KEY, JSON.stringify(params));
+  } catch {}
+}
+
 export default function BacktestPage() {
-  const [ticker, setTicker] = useState('');
-  const [date, setDate] = useState('');
-  const [fromTime, setFromTime] = useState('09:30');
-  const [toTime, setToTime] = useState('11:00');
-  const [threshold, setThreshold] = useState('0.55');
-  const [tpPct, setTpPct] = useState('1.5');
-  const [slPct, setSlPct] = useState('1');
-  const [investment, setInvestment] = useState('200');
+  const [ticker, setTicker] = useState(() => loadBacktestParams().ticker ?? '');
+  const [date, setDate] = useState(() => loadBacktestParams().date ?? '');
+  const [fromTime, setFromTime] = useState(() => loadBacktestParams().fromTime ?? '09:30');
+  const [toTime, setToTime] = useState(() => loadBacktestParams().toTime ?? '11:00');
+  const [threshold, setThreshold] = useState(() => loadBacktestParams().threshold ?? '0.55');
+  const [tpPct, setTpPct] = useState(() => loadBacktestParams().tpPct ?? '1.5');
+  const [slPct, setSlPct] = useState(() => loadBacktestParams().slPct ?? '1');
+  const [lookAhead, setLookAhead] = useState(() => loadBacktestParams().lookAhead ?? '10');
+  const [investment, setInvestment] = useState(() => loadBacktestParams().investment ?? '200');
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<BacktestRow[]>([]);
   const [summary, setSummary] = useState<BacktestSummary | null>(null);
@@ -52,6 +72,21 @@ export default function BacktestPage() {
   const [modalCandlesError, setModalCandlesError] = useState(false);
   const esRef = useRef<EventSource | null>(null);
   const tableContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // Persist backtest params to localStorage for reuse
+  useEffect(() => {
+    saveBacktestParams({
+      ticker,
+      date,
+      fromTime,
+      toTime,
+      threshold,
+      tpPct,
+      slPct,
+      lookAhead,
+      investment,
+    });
+  }, [ticker, date, fromTime, toTime, threshold, tpPct, slPct, lookAhead, investment]);
 
   // Fetch candles for trade detail popup when a tradeable row is selected
   useEffect(() => {
@@ -85,7 +120,6 @@ export default function BacktestPage() {
       .finally(() => setModalCandlesLoading(false));
   }, [selectedRow, ticker, date]);
 
-  // Load stocks when date changes
   const loadStocks = useCallback((d: string) => {
     if (!d) { setStocks([]); return; }
     setStocksLoading(true);
@@ -95,13 +129,17 @@ export default function BacktestPage() {
       .finally(() => setStocksLoading(false));
   }, []);
 
+  // Load stocks when date changes (including initial load from storage)
+  useEffect(() => {
+    if (date) loadStocks(date);
+  }, [date, loadStocks]);
+
   const handleDateChange = (d: string) => {
     setDate(d);
     setTicker('');
     setRows([]);
     setSummary(null);
     setError('');
-    loadStocks(d);
   };
 
   const selectStock = (sym: string) => {
@@ -136,6 +174,7 @@ export default function BacktestPage() {
       threshold,
       tpPct,
       slPct,
+      lookAhead: lookAhead || '10',
       investment,
     });
 
@@ -302,6 +341,14 @@ export default function BacktestPage() {
           <Field label="SL %" width={50}>
             <input value={slPct} onChange={(e) => setSlPct(e.target.value)} placeholder="1.5" style={inputStyle} />
           </Field>
+          <Field label="Velas adelante" width={90}>
+            <input
+              value={lookAhead}
+              onChange={(e) => setLookAhead(e.target.value.replace(/\D/g, '').slice(0, 2) || '')}
+              placeholder="10"
+              style={inputStyle}
+            />
+          </Field>
           <Field label="Inversión $" width={70}>
             <input value={investment} onChange={(e) => setInvestment(e.target.value)} style={inputStyle} />
           </Field>
@@ -429,7 +476,7 @@ export default function BacktestPage() {
             }}>
               <thead>
                 <tr>
-                  {['Time', 'Open', 'High', 'Low', 'Close', 'Vol', 'Prob', 'Trade', 'MFR10m', 'Real', 'TP/SL', 'Match', 'Entrada', 'Salida', 'Vela Salida', 'P/L', 'Cumul'].map((h) => (
+                  {['Time', 'Open', 'High', 'Low', 'Close', 'Vol', 'Prob', 'Trade', `MFR${lookAhead || '10'}m`, 'Real', 'TP/SL', 'Match', 'Entrada', 'Salida', 'Vela Salida', 'P/L', 'Cumul'].map((h) => (
                     <th key={h} style={{
                       padding: '8px 8px', textAlign: 'right', color: '#475569',
                       fontWeight: 600, fontSize: 10, textTransform: 'uppercase',

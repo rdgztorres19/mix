@@ -209,9 +209,9 @@ let PredictorService = class PredictorService {
     }
     // ─── Helpers ───────────────────────────────────────────────────────────
     /**
-   * Simulate: did price hit +TP% before -SL% in next 10 candles?
+   * Simulate: did price hit +TP% before -SL% in next N candles?
    * Returns tpSlResult plus exitPrice/exitTime when TP or SL is hit.
-   */ computeTpSlExit(rows, idx, tpPct, slPct) {
+   */ computeTpSlExit(rows, idx, tpPct, slPct, lookAhead = 10) {
         const refClose = Number(rows[idx]?.close ?? 0);
         if (refClose <= 0) return {
             tpSlResult: 'neutral'
@@ -219,7 +219,8 @@ let PredictorService = class PredictorService {
         const levelUp = refClose * (1 + tpPct);
         const levelDown = refClose * (1 - slPct);
         let prevClose = refClose;
-        for(let j = 1; j <= Math.min(10, rows.length - idx - 1); j++){
+        const n = Math.min(lookAhead, rows.length - idx - 1);
+        for(let j = 1; j <= n; j++){
             const r = rows[idx + j];
             if (!r) break;
             const openJ = Number(r.open ?? 0);
@@ -268,16 +269,16 @@ let PredictorService = class PredictorService {
         };
     }
     /**
-   * Compute max_future_return_10m on-the-fly when DB value is null.
+   * Compute max future return over next N candles.
    * Returns mfr plus exitPrice/exitTime when future candles are available.
-   * (max(high[t+1..t+10]) - close[t]) / close[t]
-   */ computeMfr(rows, idx) {
+   * (max(high[t+1..t+N]) - close[t]) / close[t]
+   */ computeMfr(rows, idx, lookAhead = 10) {
         const closeT = Number(rows[idx].close ?? 0);
-        const canScan = closeT > 0 && idx + 10 < rows.length;
+        const canScan = closeT > 0 && idx + lookAhead < rows.length;
         if (canScan) {
             let maxHigh = 0;
             let exitIdx = -1;
-            for(let j = idx + 1; j <= idx + 10; j++){
+            for(let j = idx + 1; j <= idx + lookAhead; j++){
                 const h = Number(rows[j]?.high ?? 0);
                 if (h > maxHigh) {
                     maxHigh = h;
@@ -291,10 +292,14 @@ let PredictorService = class PredictorService {
                 exitTime: exitIdx >= 0 ? String(rows[exitIdx]?.candle_time_et ?? '') : undefined
             };
         }
-        const dbVal = rows[idx].max_future_return_10m;
-        const mfr = dbVal != null ? Number(dbVal) : 0;
+        if (lookAhead === 10) {
+            const dbVal = rows[idx].max_future_return_10m;
+            if (dbVal != null) return {
+                mfr: Number(dbVal)
+            };
+        }
         return {
-            mfr
+            mfr: 0
         };
     }
     // ─── Backtest: candle-by-candle predict over a date/time range ─────────
@@ -428,12 +433,12 @@ let PredictorService = class PredictorService {
         };
     }
     // ─── Backtest SSE stream ────────────────────────────────────────────
-    backtestStream(ticker, dateStr, fromTime, toTime, threshold, investment, tpPct = 1.5, slPct = 1.5) {
+    backtestStream(ticker, dateStr, fromTime, toTime, threshold, investment, tpPct = 1.5, slPct = 1.5, lookAhead = 10) {
         return new _rxjs.Observable((subscriber)=>{
-            this._runBacktestStream(subscriber, ticker, dateStr, fromTime, toTime, threshold, investment, tpPct, slPct);
+            this._runBacktestStream(subscriber, ticker, dateStr, fromTime, toTime, threshold, investment, tpPct, slPct, lookAhead);
         });
     }
-    async _runBacktestStream(sub, ticker, dateStr, fromTime, toTime, threshold, investment, tpPct, slPct) {
+    async _runBacktestStream(sub, ticker, dateStr, fromTime, toTime, threshold, investment, tpPct, slPct, lookAhead) {
         try {
             const rows = await this.mysqlRepo.getTickerRowsForDate(ticker.toUpperCase(), dateStr, '1m');
             if (!rows.length) {
@@ -519,8 +524,8 @@ let PredictorService = class PredictorService {
                     prob = result.prob ?? 0;
                     tradeable = result.tradeable ?? false;
                 } catch  {}
-                const { mfr, exitPrice: mfrExitPrice, exitTime: mfrExitTime } = this.computeMfr(rows, idx);
-                const { tpSlResult, exitPrice: tpSlExitPrice, exitTime: tpSlExitTime } = this.computeTpSlExit(rows, idx, tpDec, slDec);
+                const { mfr, exitPrice: mfrExitPrice, exitTime: mfrExitTime } = this.computeMfr(rows, idx, lookAhead);
+                const { tpSlResult, exitPrice: tpSlExitPrice, exitTime: tpSlExitTime } = this.computeTpSlExit(rows, idx, tpDec, slDec, lookAhead);
                 const realGood = mfr >= tpDec;
                 if (tradeable && realGood) tp++;
                 else if (tradeable && !realGood) fp++;

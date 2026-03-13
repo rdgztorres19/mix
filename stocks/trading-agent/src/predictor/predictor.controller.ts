@@ -128,8 +128,9 @@ export class PredictorController {
   }
 
   /**
-   * GET /predict/backtest/stream?ticker=X&date=2026-03-05&fromTime=09:30&toTime=16:00&threshold=0.6&investment=200&tpPct=1.5&slPct=1.5
+   * GET /predict/backtest/stream?ticker=X&date=...&fromTime=09:30&toTime=16:00&threshold=0.6&investment=200&tpPct=1.5&slPct=1.5&lookAhead=10
    * SSE stream: emits row-by-row backtest results in real time.
+   * lookAhead: velas adelante para evaluar TP/SL y MFR (default 10).
    */
   @Sse('backtest/stream')
   backtestStream(
@@ -141,6 +142,7 @@ export class PredictorController {
     @Query('investment') investmentStr?: string,
     @Query('tpPct') tpPctStr?: string,
     @Query('slPct') slPctStr?: string,
+    @Query('lookAhead') lookAheadStr?: string,
   ): Observable<MessageEvent> {
     if (!ticker || !date) {
       throw new HttpException('ticker and date are required', HttpStatus.BAD_REQUEST);
@@ -149,8 +151,9 @@ export class PredictorController {
     const investment = investmentStr ? parseFloat(investmentStr) : 200;
     const tpPct = tpPctStr ? parseFloat(tpPctStr) : 1.5;
     const slPct = slPctStr ? parseFloat(slPctStr) : 1.5;
-    this.logger.log(`SSE /predict/backtest/stream ${ticker} ${date} ${fromTime ?? '09:30'}-${toTime ?? '16:00'} thr=${threshold} TP=${tpPct}% SL=${slPct}%`);
-    return this.predictor.backtestStream(ticker, date, fromTime ?? '09:30', toTime ?? '16:00', threshold, investment, tpPct, slPct);
+    const lookAhead = lookAheadStr ? Math.max(1, Math.min(60, parseInt(lookAheadStr, 10) || 10)) : 10;
+    this.logger.log(`SSE /predict/backtest/stream ${ticker} ${date} ${fromTime ?? '09:30'}-${toTime ?? '16:00'} thr=${threshold} TP=${tpPct}% SL=${slPct}% lookAhead=${lookAhead}`);
+    return this.predictor.backtestStream(ticker, date, fromTime ?? '09:30', toTime ?? '16:00', threshold, investment, tpPct, slPct, lookAhead);
   }
 
   /**

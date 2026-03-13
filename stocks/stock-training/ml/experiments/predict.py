@@ -25,10 +25,12 @@ import pandas as pd
 
 warnings.filterwarnings("ignore")
 
-BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_model" 
+# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_model" 
 # BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "LightGBM_D_all_bin_mfr10m_1p5"
 # BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "LightGBM_D_all_bin_tb10m_tp1p5_sl0p5"
 # BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "LightGBM_D_all_bin_tb10m_tp2p0_sl0p7"
+BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "LightGBM_D_all_bin_tb10m_tp4p0_sl2p0"
+# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "LightGBM_D_all_bin_tb10m_tp5p0_sl2p5"
 DEFAULT_THRESHOLD = 0.6
 
 

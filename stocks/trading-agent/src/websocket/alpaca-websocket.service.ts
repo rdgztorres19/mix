@@ -157,6 +157,15 @@ export class AlpacaWebSocketService implements IWebSocketDataSource {
     return this.ws?.readyState === WebSocket.OPEN && this.isAuthenticated;
   }
 
+  /**
+   * Trigger reconnect if currently disconnected. Safe to call periodically (e.g. from cron).
+   */
+  triggerReconnectIfDisconnected(): void {
+    if (!this.config.enabled) return;
+    if (this.isConnected()) return;
+    this.scheduleReconnect();
+  }
+
   onBar(callback: (bar: RealTimeBar) => void): void {
     this.barCallbacks.push(callback);
   }
@@ -167,6 +176,18 @@ export class AlpacaWebSocketService implements IWebSocketDataSource {
 
   getLastBarTime(symbol: string): number | null {
     return this.lastBarTimes.get(symbol) || null;
+  }
+
+  getSubscriptions(): string[] {
+    return Array.from(this.subscriptions);
+  }
+
+  getLastBarTimesMap(): Record<string, number> {
+    const out: Record<string, number> = {};
+    for (const [sym, sec] of this.lastBarTimes.entries()) {
+      out[sym] = sec;
+    }
+    return out;
   }
 
   private handleOpen(): void {
@@ -279,6 +300,7 @@ export class AlpacaWebSocketService implements IWebSocketDataSource {
     this.logger.warn(`🔌 Socket closed ${code} ${reason}`);
 
     this.lastSubscriptionsBeforeDisconnect = [...this.subscriptions];
+    this.subscriptions.clear(); // Must clear so reconnect re-sends subscribe
 
     this.isAuthenticated = false;
     this.ws = null;
