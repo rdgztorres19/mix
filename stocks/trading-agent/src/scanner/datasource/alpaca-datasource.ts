@@ -442,4 +442,23 @@ export class AlpacaDataSource implements IStockDataSource {
     this.cache.clear();
     this.logger.log('🗑️ Alpaca cache cleared');
   }
+
+  /**
+   * Fetch 1m bars for a symbol on a specific date.
+   * Returns candles in {o,h,l,c,v,t} format with t in ms.
+   * Used by sync-symbol-date endpoint.
+   */
+  async fetch1mBarsForDate(
+    symbol: string,
+    dateStr: string,
+  ): Promise<Array<{ o: number; h: number; l: number; c: number; v: number; t: number }>> {
+    const bars = await this.fetchBarWithRetries(symbol, dateStr);
+    return bars
+      .map((bar) => {
+        const t = this.parseAlpacaTimestamp(bar.t);
+        if (t === null) return null;
+        return { o: bar.o, h: bar.h, l: bar.l, c: bar.c, v: bar.v, t };
+      })
+      .filter((c): c is NonNullable<typeof c> => c !== null && c.t > 0);
+  }
 }

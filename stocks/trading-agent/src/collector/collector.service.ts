@@ -12,11 +12,16 @@ import { Injectable, Logger, OnModuleInit, Inject, Optional } from '@nestjs/comm
 import { ModuleRef } from '@nestjs/core';
 import axios from 'axios';
 import { MysqlTrainingRepository } from '../scanner/mysql/mysql-training.repository';
+import { AlpacaDataSource } from '../scanner/datasource/alpaca-datasource';
 import { ScannerService, Candle } from '../scanner/scanner.service';
 import { MomoStreamService } from './momo-stream.service';
 import { CollectorGateway } from './collector.gateway';
 import { AutoTraderService } from '../trader/auto-trader.service';
 import type { WebSocketInitService } from '../websocket/websocket-init.service';
+import { buildTrainingRow } from '../training/training-row-builder';
+import { computePremarketVolume } from '../training/premarket-volume.feature';
+import { getFundamentals } from '../training/fundamental-cache';
+import type { TrainingCandle } from '../training/types';
 import {
   CollectorCandle,
   SymbolMetadata,
@@ -24,6 +29,11 @@ import {
   computeCandleRow,
   timestampToET,
 } from './indicator.calculator';
+import {
+  TopGainersSourceService,
+  type TopGainerSource,
+  getTopGainerSourceFromEnv,
+} from './top-gainers-source.service';
 
 interface SymbolState {
   symbol: string;
@@ -34,16 +44,21 @@ interface SymbolState {
 @Injectable()
 export class CollectorService implements OnModuleInit {
   private readonly logger = new Logger(CollectorService.name);
-  private readonly activeSymbols = new Map<string, SymbolState>();
+  /** All symbols we collect candle data for (Map for SymbolState) */
+  private readonly symbols = new Map<string, SymbolState>();
+  /** Subset for trading/prediction only; replaced every minute by cron */
+  private readonly activeSymbols = new Set<string>();
   private readonly momoBase: string;
   private webSocketInit?: WebSocketInitService;
 
   constructor(
     private readonly moduleRef: ModuleRef,
     private readonly mysqlRepo: MysqlTrainingRepository,
+    private readonly alpacaDataSource: AlpacaDataSource,
     private readonly scannerService: ScannerService,
     private readonly momoStream: MomoStreamService,
     private readonly gateway: CollectorGateway,
+    private readonly topGainersSource: TopGainersSourceService,
     @Optional() @Inject(AutoTraderService) private readonly autoTrader?: AutoTraderService,
   ) {
     this.momoBase = process.env.MOMO_BASE_URL ?? 'https://momoscreener.com/api/p';
@@ -82,7 +97,7 @@ export class CollectorService implements OnModuleInit {
       const BATCH = 5;
       for (let i = 0; i < persisted.length; i += BATCH) {
         const batch = persisted.slice(i, i + BATCH);
-        await Promise.all(batch.map(({ symbol }) => this.addSymbol(symbol, 'restored', true)));
+        await Promise.all(batch.map(({ symbol }) => this.addSymbolToCollection(symbol, 'restored', true)));
       }
     }
 
@@ -92,145 +107,48 @@ export class CollectorService implements OnModuleInit {
     // 5. Migrate to Alpaca if available and symbols exist
     await this.migrateToAlpacaIfAvailable();
 
-    this.logger.log(`CollectorService ready — ${this.activeSymbols.size} active symbols`);
+    this.logger.log(`CollectorService ready — ${this.symbols.size} symbols, ${this.activeSymbols.size} active (trading)`);
   }
 
   /**
-   * Add a new symbol to track. Fetches metadata, backfills today's candles,
-   * subscribes to Alpaca real-time trades.
+   * Add a new symbol to collection. Fetches from Alpaca, backfills today's candles,
+   * subscribes to Alpaca real-time trades. Does NOT add to activeSymbols (trading set).
    */
-  async addSymbol(symbol: string, source = 'momo', skipPersist = false): Promise<void> {
+  async addSymbolToCollection(symbol: string, source = 'cron', skipPersist = false): Promise<void> {
     symbol = symbol.toUpperCase();
-    if (this.activeSymbols.has(symbol)) return;
+    if (this.symbols.has(symbol)) return;
 
-    this.logger.log(`Adding symbol: ${symbol} (source: ${source})`);
+    this.logger.log(`Adding symbol to collection: ${symbol} (source: ${source})`);
 
-    // Fetch metadata from momo snapshot
-    let metadata: SymbolMetadata = {
-      priorClose: 0,
-      preMarketHigh: 0,
-      sharesOutstanding: 0,
-      marketCap: 0,
-      gapPct: 0,
-      premarketVolume: 0,
-    };
+    const todayET = this.getTodayDateET();
+    const result = await this._syncSymbolDateCore(symbol, todayET);
 
-    try {
-      const snap = await this.scannerService.getStockSnapshotFromMomo(symbol, undefined, '1m');
-      const priorCandles = snap.candles_1min;
-      const lastClose = priorCandles.length ? priorCandles[priorCandles.length - 1].c : snap.price;
-
-      metadata = {
-        priorClose: lastClose - lastClose * snap.change_pct, // approximate prior close
-        preMarketHigh: snap.pre_market_high ?? 0,
-        sharesOutstanding: 0, // not available from momo
-        marketCap: 0,
-        gapPct: snap.change_pct,
-        premarketVolume: 0,
-      };
-    } catch (err) {
-      this.logger.warn(`Failed to fetch metadata for ${symbol}: ${(err as Error).message}`);
+    if (!result.ok || !result.candles || !result.metadata) {
+      this.logger.warn(`addSymbolToCollection: ${symbol} - ${result.error ?? 'no data'}`);
+      return;
     }
 
     const state: SymbolState = {
       symbol,
-      metadata,
-      history: [],
+      metadata: result.metadata,
+      history: result.candles,
     };
-    this.activeSymbols.set(symbol, state);
+    this.symbols.set(symbol, state);
 
-    // Persist symbol
     if (!skipPersist) {
       await this.mysqlRepo.saveActiveSymbol(symbol, source);
     }
 
-    // Backfill today's candles
-    await this.backfillFromMomo(symbol);
-
-    // Subscribe to Alpaca WebSocket (primary and only real-time source)
-    const alpacaConnected = this.webSocketInit?.isAlpacaConnected() ?? false;
-    
-    if (alpacaConnected && this.webSocketInit) {
+    if (this.webSocketInit?.isAlpacaConnected() && this.webSocketInit) {
       try {
-        const activeSymbols = this.getActiveSymbolList();
-        await this.webSocketInit.refreshSubscriptions(activeSymbols);
-        this.logger.log(`✅ ${symbol} subscribed to Alpaca WebSocket (premium)`);
+        await this.webSocketInit.refreshSubscriptions(this.getSymbolsList());
+        this.logger.log(`✅ ${symbol} subscribed to Alpaca WebSocket`);
       } catch (error) {
         this.logger.warn(`Failed to subscribe ${symbol} to Alpaca: ${(error as Error).message}`);
-        this.logger.warn(`Relying on 61s historical fallback only`);
       }
-    } else {
-      this.logger.warn(`⚠️ Alpaca WebSocket not available for ${symbol} - relying on 61s historical fallback`);
     }
 
-    // Notify UI clients
     this.gateway.emitSymbolsUpdate(this.getActiveSymbolList());
-  }
-
-  /**
-   * Backfill today's 1m candles from MoMo API.
-   * Deletes existing data for symbol+date and reinserts cleanly.
-   */
-  async backfillFromMomo(symbol: string): Promise<void> {
-    if (this.isAfterHoursNow()) {
-      this.logger.log(`Backfill skipped (after hours): ${symbol}`);
-      return;
-    }
-    const state = this.activeSymbols.get(symbol);
-    if (!state) return;
-
-    const todayET = this.getTodayDateET();
-
-    this.logger.log(`Backfilling ${symbol} for ${todayET}`);
-
-    // Fetch 1m candles from MoMo
-    let allCandles: Candle[] = [];
-    try {
-      const url = `${this.momoBase}/ticker/chart?q=${symbol}&interval=1m`;
-      const res = await axios.get(url, { timeout: 10000 });
-      if (res.data?.error !== 0 || !res.data?.message?.history) {
-        this.logger.warn(`MoMo returned no data for ${symbol}`);
-        return;
-      }
-      const raw: [number, number, number, number, number, number][] = res.data.message.history;
-      allCandles = raw.slice().reverse().map(([o, h, l, c, v, t]) => ({ o, h, l, c, v, t }));
-    } catch (err) {
-      this.logger.warn(`MoMo fetch failed for ${symbol}: ${(err as Error).message}`);
-      return;
-    }
-
-    // Filter to today only
-    const todayCandles = allCandles.filter((c) => {
-      const { date } = timestampToET(c.t);
-      return date === todayET;
-    });
-
-    if (!todayCandles.length) {
-      this.logger.log(`No candles for ${symbol} today`);
-      return;
-    }
-
-    // Build history from today's candles
-    state.history = todayCandles.map((c) => ({
-      o: c.o, h: c.h, l: c.l, c: c.c, v: c.v, t: c.t,
-    }));
-
-    // Delete all existing data for this symbol+date, then bulk-insert fresh
-    const deleted = await this.mysqlRepo.deleteCandlesForSymbolDate(symbol, todayET);
-    if (deleted > 0) {
-      this.logger.log(`Deleted ${deleted} old rows for ${symbol} on ${todayET}`);
-    }
-
-    const allRows: Record<string, unknown>[] = [];
-    for (let i = 0; i < state.history.length; i++) {
-      const historySlice = state.history.slice(0, i + 1);
-      allRows.push(computeCandleRow(symbol, historySlice, state.metadata) as unknown as Record<string, unknown>);
-    }
-    await this.mysqlRepo.bulkUpsertCandles(allRows);
-
-    this.logger.log(
-      `Backfilled ${symbol}: ${todayCandles.length} candles inserted clean`,
-    );
   }
 
   /**
@@ -238,16 +156,17 @@ export class CollectorService implements OnModuleInit {
    * Pushes live (partial) candle to UI so the user sees it moving.
    */
   private onLiveTick(symbol: string, candle: CollectorCandle): void {
-    const state = this.activeSymbols.get(symbol);
+    const state = this.symbols.get(symbol);
     if (!state) return;
     this.gateway.emitCandleLive(symbol, candle);
   }
 
   /**
    * Called by CandleBuilder when a 1-minute candle closes from Alpaca real-time trades.
+   * Only runs prediction (autoTrader) for symbols in activeSymbols (trading set).
    */
   async onCandleClosed(symbol: string, candle: CollectorCandle): Promise<void> {
-    const state = this.activeSymbols.get(symbol);
+    const state = this.symbols.get(symbol);
     if (!state) {
       this.logger.warn(`onCandleClosed: No state found for symbol ${symbol}`);
       return;
@@ -275,8 +194,8 @@ export class CollectorService implements OnModuleInit {
       this.gateway.emitCandleUpdate(row);
       this.logger.debug(`📡 Emitted to WebSocket gateway: ${symbol} ${row.candle_time_et}`);
 
-      // Auto-predict + auto-trade (fire-and-forget, don't block candle pipeline)
-      if (this.autoTrader) {
+      // Auto-predict + auto-trade only for activeSymbols (trading set)
+      if (this.autoTrader && this.activeSymbols.has(symbol)) {
         this.autoTrader.onCandleClosed(row).catch((err) =>
           this.logger.warn(`AutoTrader error: ${(err as Error).message}`),
         );
@@ -292,142 +211,87 @@ export class CollectorService implements OnModuleInit {
   }
 
   /**
-   * Clear active symbols for a fresh trading day.
+   * Clear all symbols and activeSymbols for a fresh trading day.
    */
   async resetActiveSymbols(): Promise<void> {
-    const symbols = [...this.activeSymbols.keys()];
-    
-    // Clear Alpaca WebSocket subscriptions only (MoMo is disabled)
-    if (symbols.length && this.webSocketInit) {
+    const symbolList = this.getSymbolsList();
+
+    if (symbolList.length && this.webSocketInit) {
       try {
-        await this.webSocketInit.refreshSubscriptions([]); // Empty array clears all
+        await this.webSocketInit.refreshSubscriptions([]);
         this.logger.log(`🚫 Cleared all Alpaca WebSocket subscriptions`);
       } catch (error) {
         this.logger.warn(`Failed to clear Alpaca WebSocket subscriptions: ${(error as Error).message}`);
       }
     }
-    
+
+    this.symbols.clear();
     this.activeSymbols.clear();
     await this.mysqlRepo.deactivateAllSymbols();
     this.gateway.emitSymbolsUpdate([]);
-    
-    this.logger.log('🔄 Active symbols cleared for new trading day');
+
+    this.logger.log('🔄 Symbols and activeSymbols cleared');
   }
 
   /**
-   * Scan MoMo for hot tickers and add any new ones.
+   * Cron: fetch top gainers from env source, replace activeSymbols, add new to symbols.
    */
-  async scanMomo(): Promise<string[]> {
-    this.logger.log('Scanning MoMo for hot tickers…');
-    const url = `https://momoscreener.com/api/momo?int=5&change=3`;
-    let items: any[] = [];
-    try {
-      const res = await axios.get(url, { timeout: 10000 });
-      items = res.data?.message ?? [];
-    } catch (err) {
-      this.logger.warn(`MoMo scan failed: ${(err as Error).message}`);
-      return [];
+  async runTopGainersCron(): Promise<void> {
+    const source = getTopGainerSourceFromEnv();
+    const fetched = await this.topGainersSource.fetchSymbols(source);
+    if (!fetched.length) {
+      this.logger.debug('Top gainers cron: no symbols from source');
+      return;
     }
 
-    // Deduplicate by symbol
-    const seen = new Set<string>();
-    const newSymbols: string[] = [];
+    this.logger.log(`Top gainers cron (${source}): ${fetched.length} symbols`);
 
-    for (const item of items) {
-      const sym = (item.symbol || '').toUpperCase();
-      if (!sym || seen.has(sym)) continue;
-      seen.add(sym);
+    // Replace activeSymbols completely
+    this.activeSymbols.clear();
+    for (const s of fetched) this.activeSymbols.add(s.toUpperCase());
 
-      // Apply basic filters
-      const price = item.live?.lastPrice ?? item.stats?.price ?? 0;
-      const change = item.change ?? 0;
-      if (price < 2 || price > 20) continue;
-      if (change < 3) continue;
-
-      if (!this.activeSymbols.has(sym)) {
-        newSymbols.push(sym);
-      }
-    }
-
-    // Add new symbols
-    for (const sym of newSymbols) {
-      await this.addSymbol(sym, 'momo_scan');
-      // Small delay between API calls
-      await new Promise((r) => setTimeout(r, 500));
-    }
-
-    if (newSymbols.length) {
-      this.logger.log(`MoMo scan added ${newSymbols.length} new symbols: ${newSymbols.join(', ')}`);
-    } else {
-      this.logger.log(`MoMo scan: no new symbols (${this.activeSymbols.size} active)`);
-    }
-
-    return newSymbols;
-  }
-
-  /**
-   * Periodic refresh: fetch latest candles from MoMo for all active symbols
-   * and upsert only candles newer than what we already have.
-   * This fills gaps left by Alpaca IEX's limited coverage.
-   */
-  async refreshAllFromMomo(options: { force?: boolean } = {}): Promise<{ skipped: boolean; reason?: string }> {
-    if (!options.force && this.isAfterHoursNow()) {
-      this.logger.log('MoMo refresh skipped (after hours)');
-      return { skipped: true, reason: 'after_hours' };
-    }
-    const symbols = [...this.activeSymbols.keys()];
-    if (!symbols.length) return { skipped: true, reason: 'no_active_symbols' };
-    this.logger.log(`MoMo refresh: updating ${symbols.length} symbols…`);
-    const todayET = this.getTodayDateET();
-
-    for (const symbol of symbols) {
-      const state = this.activeSymbols.get(symbol);
-      if (!state) continue;
-
+    // Add new symbols to collection (Alpaca backfill) - only those not yet in symbols
+    const toAdd = fetched.filter((s) => !this.symbols.has(s.toUpperCase()));
+    for (const symbol of toAdd) {
       try {
-        const url = `${this.momoBase}/ticker/chart?q=${symbol}&interval=1m`;
-        const res = await axios.get(url, { timeout: 10000 });
-        if (res.data?.error !== 0 || !res.data?.message?.history) continue;
-
-        const raw: [number, number, number, number, number, number][] = res.data.message.history;
-        const allCandles = raw.slice().reverse().map(([o, h, l, c, v, t]) => ({ o, h, l, c, v, t }));
-
-        const todayCandles = allCandles.filter((c) => {
-          const { date, minuteOfDay } = timestampToET(c.t);
-          return date === todayET && minuteOfDay >= 570 && minuteOfDay < 960;
-        });
-
-        if (!todayCandles.length) continue;
-
-        // Replace history with MoMo's more complete data
-        state.history = todayCandles.map((c) => ({
-          o: c.o, h: c.h, l: c.l, c: c.c, v: c.v, t: c.t,
-        }));
-
-        // Upsert all candles (ON DUPLICATE KEY UPDATE handles existing ones)
-        let newCount = 0;
-        for (let i = 0; i < state.history.length; i++) {
-          const historySlice = state.history.slice(0, i + 1);
-          const row = computeCandleRow(symbol, historySlice, state.metadata);
-          await this.mysqlRepo.upsertCandle(row as unknown as Record<string, unknown>);
-          newCount++;
-        }
-
-        this.logger.debug(`MoMo refresh ${symbol}: ${newCount} candles upserted`);
+        await this.addSymbolToCollection(symbol, `cron_${source}`, false);
       } catch (err) {
-        this.logger.warn(`MoMo refresh failed for ${symbol}: ${(err as Error).message}`);
+        this.logger.warn(`Cron add ${symbol} failed: ${(err as Error).message}`);
       }
-
-      // Small delay between symbols to avoid hammering MoMo
-      await new Promise((r) => setTimeout(r, 500));
+      await new Promise((r) => setTimeout(r, 200));
     }
 
-    this.logger.log(`MoMo refresh complete for ${symbols.length} symbols`);
-    return { skipped: false };
+    if (this.webSocketInit) {
+      try {
+        await this.webSocketInit.refreshSubscriptions(this.getSymbolsList());
+      } catch (err) {
+        this.logger.warn(`Cron refresh subscriptions failed: ${(err as Error).message}`);
+      }
+    }
+
+    await this.mysqlRepo.deactivateAllSymbols();
+    for (const s of this.activeSymbols) {
+      await this.mysqlRepo.saveActiveSymbol(s, `cron_${source}`);
+    }
+
+    this.gateway.emitSymbolsUpdate(this.getActiveSymbolList());
+  }
+
+  /** @deprecated Use runTopGainersCron. Kept for backward compatibility. */
+  async scanMomo(): Promise<string[]> {
+    this.logger.warn('scanMomo is deprecated, use runTopGainersCron');
+    await this.runTopGainersCron();
+    return this.getActiveSymbolList();
+  }
+
+  /** @deprecated MoMo refresh no longer used. */
+  async refreshAllFromMomo(): Promise<{ skipped: boolean; reason?: string }> {
+    this.logger.warn('refreshAllFromMomo is deprecated');
+    return { skipped: true, reason: 'deprecated' };
   }
 
   /**
-   * Setup Alpaca WebSocket subscriptions (MoMo completely disabled).
+   * Setup Alpaca WebSocket subscriptions for all collected symbols.
    */
   async migrateToAlpacaIfAvailable(): Promise<void> {
     if (!this.webSocketInit) {
@@ -436,44 +300,54 @@ export class CollectorService implements OnModuleInit {
     }
 
     const alpacaConnected = this.webSocketInit.isAlpacaConnected();
-    const activeSymbols = this.getActiveSymbolList();
+    const symbolList = this.getSymbolsList();
 
-    if (alpacaConnected && activeSymbols.length > 0) {
-      this.logger.log(`🔄 Setting up ${activeSymbols.length} symbols on Alpaca WebSocket...`);
-      
+    if (alpacaConnected && symbolList.length > 0) {
+      this.logger.log(`🔄 Setting up ${symbolList.length} symbols on Alpaca WebSocket...`);
+
       try {
-        await this.webSocketInit.refreshSubscriptions(activeSymbols);
-        this.logger.log(`✅ ${activeSymbols.length} symbols active on Alpaca WebSocket`);
+        await this.webSocketInit.refreshSubscriptions(symbolList);
+        this.logger.log(`✅ ${symbolList.length} symbols active on Alpaca WebSocket`);
       } catch (error) {
         this.logger.error(`❌ Failed to setup Alpaca: ${(error as Error).message}`);
         this.logger.warn(`Relying on 61s historical fallback only`);
       }
-    } else if (activeSymbols.length > 0) {
-      this.logger.warn(`⚠️ Alpaca WebSocket not available for ${activeSymbols.length} symbols - 61s historical fallback only`);
+    } else if (symbolList.length > 0) {
+      this.logger.warn(`⚠️ Alpaca WebSocket not available for ${symbolList.length} symbols - 61s historical fallback only`);
     }
   }
 
   /**
-   * Get list of actively tracked symbols.
+   * Get list of symbols we collect candle data for (for Alpaca subscription).
    */
-  getActiveSymbolList(): string[] {
-    return [...this.activeSymbols.keys()];
+  getSymbolsList(): string[] {
+    return [...this.symbols.keys()];
   }
 
   /**
-   * Debug: get status of active symbols (MoMo disabled).
+   * Get list of actively traded symbols (for prediction/trading only).
+   */
+  getActiveSymbolList(): string[] {
+    return [...this.activeSymbols];
+  }
+
+  /**
+   * Debug: get status of symbols and activeSymbols.
    */
   getDebugStatus(): {
     activeSymbols: string[];
-    subscribedSymbols: string[]; // Always empty since MoMo is disabled
-    wsConnected: boolean; // Always false since MoMo is disabled
+    subscribedSymbols: string[];
+    symbols: string[];
+    wsConnected: boolean;
     symbolCount: number;
   } {
+    const symbolList = this.getSymbolsList();
     return {
       activeSymbols: this.getActiveSymbolList(),
-      subscribedSymbols: [], // MoMo disabled, always empty
-      wsConnected: false, // MoMo disabled, always false
-      symbolCount: this.activeSymbols.size,
+      subscribedSymbols: symbolList,
+      symbols: symbolList,
+      wsConnected: this.webSocketInit?.isAlpacaConnected() ?? false,
+      symbolCount: this.symbols.size,
     };
   }
 
@@ -483,9 +357,9 @@ export class CollectorService implements OnModuleInit {
    */
   async reloadMissingSymbolsFromDb(): Promise<number> {
     const persisted = await this.mysqlRepo.getActiveSymbols();
-    const toAdd = persisted.filter((s) => !this.activeSymbols.has(s.symbol));
+    const toAdd = persisted.filter((s) => !this.symbols.has(s.symbol));
     for (const { symbol } of toAdd) {
-      await this.addSymbol(symbol, 'restored', true);
+      await this.addSymbolToCollection(symbol, 'restored', true);
     }
     if (toAdd.length > 0) {
       this.logger.log(`📥 Reloaded ${toAdd.length} missing symbols from DB: ${toAdd.map((s) => s.symbol).join(', ')}`);
@@ -495,24 +369,23 @@ export class CollectorService implements OnModuleInit {
 
   /**
    * Debug: force re-subscription to Alpaca WebSocket only.
-   * First reloads any missing symbols from DB, then re-subscribes.
    */
   async forceResubscribeAll(): Promise<{ ok: boolean; resubscribed: string[] }> {
     await this.reloadMissingSymbolsFromDb();
-    const symbols = this.getActiveSymbolList();
-    this.logger.log(`Force re-subscribing to ${symbols.length} symbols on Alpaca only: ${symbols.join(', ')}`);
-    
-    if (symbols.length > 0 && this.webSocketInit) {
+    const symbolList = this.getSymbolsList();
+    this.logger.log(`Force re-subscribing to ${symbolList.length} symbols on Alpaca: ${symbolList.join(', ')}`);
+
+    if (symbolList.length > 0 && this.webSocketInit) {
       try {
-        await this.webSocketInit.refreshSubscriptions(symbols);
-        this.logger.log(`✅ Re-subscribed ${symbols.length} symbols to Alpaca`);
+        await this.webSocketInit.refreshSubscriptions(symbolList);
+        this.logger.log(`✅ Re-subscribed ${symbolList.length} symbols to Alpaca`);
       } catch (error) {
         this.logger.error(`❌ Failed to re-subscribe to Alpaca: ${(error as Error).message}`);
         return { ok: false, resubscribed: [] };
       }
     }
-    
-    return { ok: true, resubscribed: symbols };
+
+    return { ok: true, resubscribed: symbolList };
   }
 
   /**
@@ -552,5 +425,237 @@ export class CollectorService implements OnModuleInit {
 
   private isAfterHoursNow(): boolean {
     return this.getMinuteOfDayET() >= 16 * 60;
+  }
+
+  /**
+   * Core sync: fetch from Alpaca, build rows, insert. Returns candles and metadata for state.
+   */
+  private async _syncSymbolDateCore(
+    symbol: string,
+    dateStr: string,
+  ): Promise<{
+    ok: boolean;
+    rows: number;
+    error?: string;
+    candles?: CollectorCandle[];
+    metadata?: SymbolMetadata;
+  }> {
+    symbol = symbol.toUpperCase();
+    const candles = await this.alpacaDataSource.fetch1mBarsForDate(symbol, dateStr);
+    if (!candles.length) {
+      return { ok: false, rows: 0, error: 'no_data' };
+    }
+
+    const trainingCandles: TrainingCandle[] = candles.map((c) => ({ ...c }));
+
+    const prevDate = this.prevTradingDay(dateStr);
+    let priorClose = 0;
+    try {
+      const prevBars = await this.alpacaDataSource.fetch1mBarsForDate(symbol, prevDate);
+      if (prevBars.length) {
+        priorClose = prevBars[prevBars.length - 1].c;
+      }
+    } catch {
+      priorClose = trainingCandles[0]?.o ?? trainingCandles[0]?.c ?? 0;
+    }
+    if (priorClose <= 0) {
+      priorClose = trainingCandles[0]?.o ?? trainingCandles[0]?.c ?? 0;
+    }
+
+    const openDay = trainingCandles[0].o;
+    const firstRegular = trainingCandles.find((c) => {
+      const { minuteOfDay } = timestampToET(c.t);
+      return minuteOfDay >= 9 * 60 + 30;
+    });
+    const openFirst = firstRegular?.o ?? openDay;
+
+    const premarketVolume = computePremarketVolume(trainingCandles);
+
+    const preMarketCandles = trainingCandles.filter((c) => {
+      const { minuteOfDay } = timestampToET(c.t);
+      return minuteOfDay < 9 * 60 + 30;
+    });
+    const preMarketHigh = preMarketCandles.length
+      ? Math.max(...preMarketCandles.map((c) => c.h))
+      : null;
+
+    const fundamentals = await getFundamentals(symbol);
+    const metadata: SymbolMetadata = {
+      priorClose,
+      preMarketHigh: preMarketHigh ?? 0,
+      sharesOutstanding: fundamentals.sharesOutstanding ?? null,
+      marketCap: fundamentals.marketCap ?? null,
+      gapPct: priorClose > 0 ? (openFirst - priorClose) / priorClose : 0,
+      premarketVolume,
+    };
+
+    await this.mysqlRepo.deleteCandlesForSymbolDate(symbol, dateStr);
+
+    const rows: Record<string, unknown>[] = [];
+    for (let i = 0; i < trainingCandles.length; i++) {
+      const row = buildTrainingRow({
+        symbol,
+        date: dateStr,
+        candles: trainingCandles,
+        idx: i,
+        priorClose,
+        openDay,
+        openFirst,
+        premarketVolume,
+        preMarketHigh,
+        sharesOutstanding: fundamentals.sharesOutstanding,
+        marketCap: fundamentals.marketCap,
+      });
+      rows.push(row as unknown as Record<string, unknown>);
+    }
+
+    await this.mysqlRepo.bulkUpsertCandles(rows);
+
+    const collectorCandles: CollectorCandle[] = trainingCandles.map((c) => ({
+      o: c.o, h: c.h, l: c.l, c: c.c, v: c.v, t: c.t,
+    }));
+
+    return { ok: true, rows: rows.length, candles: collectorCandles, metadata };
+  }
+
+  /**
+   * Sync symbol+date from Alpaca: fetch 1m bars, delete existing rows,
+   * build training rows with unified features, bulk insert.
+   * POST /collector/sync-symbol-date with body { symbol, date }.
+   */
+  async syncSymbolDate(symbol: string, dateStr: string): Promise<{ ok: boolean; rows: number; error?: string }> {
+    symbol = symbol.toUpperCase();
+    try {
+      this.logger.log(`syncSymbolDate: ${symbol} ${dateStr}`);
+      const result = await this._syncSymbolDateCore(symbol, dateStr);
+      if (result.ok) {
+        this.logger.log(`syncSymbolDate: ${symbol} ${dateStr} inserted ${result.rows} rows`);
+      }
+      return { ok: result.ok, rows: result.rows, error: result.error };
+    } catch (err) {
+      const msg = (err as Error).message;
+      this.logger.error(`syncSymbolDate failed for ${symbol} ${dateStr}: ${msg}`);
+      return { ok: false, rows: 0, error: msg };
+    }
+  }
+
+  /**
+   * Sync today: fetch top gainers from HPG or Alpaca screener, then sync each from Alpaca.
+   * Replaces refreshAllFromMomo for the sync-today flow.
+   */
+  async syncTodayFromSource(source: TopGainerSource): Promise<{
+    ok: boolean;
+    symbols: number;
+    totalRows: number;
+    skipped?: boolean;
+    reason?: string;
+  }> {
+    // if (this.isAfterHoursNow()) {
+    //   this.logger.log('Sync today skipped (after hours)');
+    //   return { ok: false, symbols: 0, totalRows: 0, skipped: true, reason: 'after_hours' };
+    // }
+
+    const symbols = await this.topGainersSource.fetchSymbols(source);
+    if (!symbols.length) {
+      this.logger.warn('Sync today: no symbols from source');
+      return { ok: false, symbols: 0, totalRows: 0, skipped: true, reason: 'no_symbols' };
+    }
+
+    this.logger.log(`Sync today from ${source}: ${symbols.length} symbols`);
+
+    const todayET = this.getTodayDateET();
+    const deleted = await this.mysqlRepo.deleteCandlesForDate(todayET);
+    if (deleted > 0) {
+      this.logger.log(`Cleared ${deleted} existing rows for today before sync`);
+    }
+
+    await this.resetActiveSymbols();
+    let totalRows = 0;
+
+    for (const symbol of symbols) {
+      const sym = symbol.toUpperCase();
+      try {
+        const result = await this._syncSymbolDateCore(sym, todayET);
+        if (result.ok && result.candles && result.metadata) {
+          totalRows += result.rows;
+
+          const state: SymbolState = {
+            symbol: sym,
+            metadata: result.metadata,
+            history: result.candles,
+          };
+          this.symbols.set(sym, state);
+          this.activeSymbols.add(sym);
+          await this.mysqlRepo.saveActiveSymbol(sym, `sync_${source}`);
+        } else if (result.error) {
+          this.logger.warn(`Sync today: ${sym} - ${result.error}`);
+        }
+      } catch (err) {
+        this.logger.warn(`Sync today failed for ${sym}: ${(err as Error).message}`);
+      }
+      await new Promise((r) => setTimeout(r, 300));
+    }
+
+    if (this.symbols.size > 0 && this.webSocketInit) {
+      try {
+        await this.webSocketInit.refreshSubscriptions(this.getSymbolsList());
+        this.logger.log(`✅ Subscribed ${this.symbols.size} symbols to Alpaca WebSocket`);
+      } catch (err) {
+        this.logger.warn(`Failed to subscribe to Alpaca: ${(err as Error).message}`);
+      }
+    }
+
+    this.gateway.emitSymbolsUpdate(this.getActiveSymbolList());
+    this.logger.log(`Sync today complete: ${this.activeSymbols.size} active, ${totalRows} rows`);
+    return { ok: true, symbols: this.activeSymbols.size, totalRows };
+  }
+
+  /**
+   * Sync ALL symbols that exist in DB for the given date.
+   * For each symbol: fetch from Alpaca, delete existing, rebuild with unified features, bulk insert.
+   */
+  async syncDate(dateStr: string): Promise<{
+    ok: boolean;
+    symbols: number;
+    totalRows: number;
+    errors: string[];
+  }> {
+    const symbols = await this.mysqlRepo.getSymbolsForDate(dateStr);
+    if (!symbols.length) {
+      this.logger.warn(`syncDate: no symbols found in DB for ${dateStr}`);
+      return { ok: false, symbols: 0, totalRows: 0, errors: ['no symbols in DB for this date'] };
+    }
+
+    this.logger.log(`syncDate: syncing ${symbols.length} symbols for ${dateStr}`);
+    const errors: string[] = [];
+    let totalRows = 0;
+
+    for (const symbol of symbols) {
+      try {
+        const result = await this.syncSymbolDate(symbol, dateStr);
+        if (result.ok) {
+          totalRows += result.rows;
+        } else if (result.error) {
+          errors.push(`${symbol}: ${result.error}`);
+        }
+      } catch (err) {
+        const msg = (err as Error).message;
+        errors.push(`${symbol}: ${msg}`);
+      }
+      await new Promise((r) => setTimeout(r, 300));
+    }
+
+    const ok = errors.length === 0;
+    this.logger.log(`syncDate: ${dateStr} done — ${symbols.length} symbols, ${totalRows} rows${errors.length ? `, ${errors.length} errors` : ''}`);
+    return { ok, symbols: symbols.length, totalRows, errors };
+  }
+
+  private prevTradingDay(dateStr: string): string {
+    const d = new Date(dateStr + 'T12:00:00Z');
+    d.setUTCDate(d.getUTCDate() - 1);
+    const dow = d.getUTCDay();
+    if (dow === 0) d.setUTCDate(d.getUTCDate() - 2);
+    else if (dow === 6) d.setUTCDate(d.getUTCDate() - 1);
+    return d.toISOString().slice(0, 10);
   }
 }

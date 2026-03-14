@@ -1,0 +1,8 @@
+export interface TrainingCandle {
+    o: number;
+    h: number;
+    l: number;
+    c: number;
+    v: number;
+    t: number;
+}

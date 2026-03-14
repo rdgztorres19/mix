@@ -19,6 +19,12 @@ interface BacktestSummary {
   precision: number; recall: number; accuracy: number;
   signals: number; total: number;
   pnl: number; investment: number;
+  /** Present when from stream-day (aggregated day backtest) */
+  wins?: number;
+  losses?: number;
+  neutrals?: number;
+  symbolsWithData?: number;
+  symbolsTotal?: number;
 }
 
 interface StockItem {
@@ -64,6 +70,7 @@ export default function BacktestPage() {
   const [summary, setSummary] = useState<BacktestSummary | null>(null);
   const [error, setError] = useState('');
   const [progress, setProgress] = useState({ current: 0, total: 0 });
+  const [isDayMode, setIsDayMode] = useState(false);
   const [stocks, setStocks] = useState<StockItem[]>([]);
   const [stocksLoading, setStocksLoading] = useState(false);
   const [selectedRow, setSelectedRow] = useState<BacktestRow | null>(null);
@@ -160,6 +167,7 @@ export default function BacktestPage() {
   const runBacktest = () => {
     if (!ticker || !date) return;
     stopBacktest();
+    setIsDayMode(false);
     setLoading(true);
     setError('');
     setRows([]);
@@ -194,6 +202,63 @@ export default function BacktestPage() {
             const el = tableContainerRef.current;
             if (el) el.scrollTop = el.scrollHeight;
           });
+        } else if (msg.type === 'summary') {
+          setSummary(msg.summary);
+          es.close();
+          esRef.current = null;
+          setLoading(false);
+        } else if (msg.type === 'error') {
+          setError(msg.message);
+          es.close();
+          esRef.current = null;
+          setLoading(false);
+        }
+      } catch { /* ignore parse errors */ }
+    };
+
+    es.onerror = () => {
+      if (esRef.current) {
+        es.close();
+        esRef.current = null;
+        setLoading(false);
+      }
+    };
+  };
+
+  const runBacktestDay = () => {
+    if (!date) return;
+    stopBacktest();
+    setIsDayMode(true);
+    setLoading(true);
+    setError('');
+    setRows([]);
+    setSummary(null);
+    setProgress({ current: 0, total: 0 });
+
+    const params = new URLSearchParams({
+      date,
+      fromTime,
+      toTime,
+      threshold,
+      tpPct,
+      slPct,
+      lookAhead: lookAhead || '10',
+      investment,
+    });
+    if (stocks.length > 0) {
+      params.set('symbols', stocks.map((s) => s.symbol).join(','));
+    }
+
+    const es = new EventSource(`/api/predict/backtest/stream-day?${params}`);
+    esRef.current = es;
+
+    es.onmessage = (ev) => {
+      try {
+        const msg = JSON.parse(ev.data);
+        if (msg.type === 'info') {
+          setProgress({ current: 0, total: msg.totalSymbols ?? 0 });
+        } else if (msg.type === 'symbol_done') {
+          setProgress({ current: msg.progress ?? 0, total: msg.totalSymbols ?? 0 });
         } else if (msg.type === 'summary') {
           setSummary(msg.summary);
           es.close();
@@ -369,6 +434,23 @@ export default function BacktestPage() {
           >
             {loading ? '⏹ Stop' : '▶ Run Backtest'}
           </button>
+          <button
+            onClick={loading ? stopBacktest : runBacktestDay}
+            disabled={!loading && (!date || stocks.length === 0)}
+            style={{
+              padding: '8px 18px', marginLeft: 4,
+              background: loading ? '#dc2626' : 'linear-gradient(135deg, #059669, #10b981)',
+              color: (!loading && (!date || stocks.length === 0)) ? '#475569' : '#fff',
+              border: 'none', borderRadius: 8,
+              cursor: (!loading && (!date || stocks.length === 0)) ? 'not-allowed' : 'pointer',
+              fontWeight: 700, fontSize: 13, fontFamily: mono,
+              letterSpacing: '0.03em',
+              boxShadow: loading ? '0 2px 8px rgba(220,38,38,0.3)' : '0 2px 8px rgba(5,150,105,0.3)',
+              transition: 'all 0.15s',
+            }}
+          >
+            {loading ? '⏹ Stop' : '📅 Analizar día'}
+          </button>
           {loading && progress.total > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 8 }}>
               <div style={{
@@ -381,7 +463,7 @@ export default function BacktestPage() {
                 }} />
               </div>
               <span style={{ fontSize: 11, color: '#64748b', fontFamily: mono }}>
-                {progress.current}/{progress.total}
+                {isDayMode ? `Analizando ${progress.current}/${progress.total} símbolos` : `${progress.current}/${progress.total}`}
               </span>
             </div>
           )}
@@ -434,10 +516,10 @@ export default function BacktestPage() {
         )}
 
         {/* Reporte de Wins (TP/SL) */}
-        {rows.length > 0 && (() => {
-          const wins = rows.filter((r) => r.tradeable && r.tpSlResult === 'win').length;
-          const losses = rows.filter((r) => r.tradeable && r.tpSlResult === 'loss').length;
-          const neutrals = rows.filter((r) => r.tradeable && r.tpSlResult === 'neutral').length;
+        {((rows.length > 0) || (s && (s.wins != null || s.losses != null || s.neutrals != null))) && (() => {
+          const wins = s?.wins != null ? s.wins : rows.filter((r) => r.tradeable && r.tpSlResult === 'win').length;
+          const losses = s?.losses != null ? s.losses : rows.filter((r) => r.tradeable && r.tpSlResult === 'loss').length;
+          const neutrals = s?.neutrals != null ? s.neutrals : rows.filter((r) => r.tradeable && r.tpSlResult === 'neutral').length;
           const totalTraded = wins + losses + neutrals;
           const winRate = wins + losses > 0 ? ((wins / (wins + losses)) * 100).toFixed(1) : '—';
           return (
@@ -460,9 +542,18 @@ export default function BacktestPage() {
                 <span style={{ color: '#334155' }}>|</span>
                 <span style={{ color: '#3b82f6', fontWeight: 700 }}>Win rate {winRate}%</span>
                 <span style={{ fontSize: 10, color: '#475569', marginLeft: 4 }}>
-                  ({totalTraded} operaciones)
+                  ({totalTraded} operaciones
+                  {s?.symbolsWithData != null && s?.symbolsTotal != null && (
+                    <> de {s.symbolsWithData}/{s.symbolsTotal} símbolos</>
+                  )}
+                  )
                 </span>
               </div>
+              {s?.symbolsWithData != null && s?.symbolsTotal != null && s.symbolsWithData < s.symbolsTotal && (
+                <span style={{ fontSize: 10, color: '#f59e0b', marginLeft: 4 }}>
+                  ({s.symbolsTotal - s.symbolsWithData} sin datos en training_1m)
+                </span>
+              )}
             </div>
           );
         })()}
@@ -588,7 +679,13 @@ export default function BacktestPage() {
             }}>
               <span style={{ fontSize: 48 }}>🔮</span>
               <span style={{ fontSize: 14 }}>
-                {!date ? 'Selecciona una fecha para comenzar' : !ticker ? 'Selecciona un stock de la lista' : 'Presiona Run Backtest'}
+                {s && (s.wins != null || s.losses != null || s.neutrals != null)
+                  ? 'Resumen agregado de todos los símbolos del día'
+                  : !date
+                    ? 'Selecciona una fecha para comenzar'
+                    : !ticker
+                      ? 'Selecciona un stock de la lista'
+                      : 'Presiona Run Backtest'}
               </span>
             </div>
           )}
@@ -604,7 +701,9 @@ export default function BacktestPage() {
                 animation: 'spin 0.8s linear infinite',
               }} />
               <span style={{ fontSize: 13 }}>
-                Cargando datos de <strong style={{ color: '#e2e8f0' }}>{ticker}</strong>…
+                {isDayMode
+                  ? `Analizando ${progress.total > 0 ? progress.current + '/' + progress.total + ' ' : ''}símbolos…`
+                  : <>Cargando datos de <strong style={{ color: '#e2e8f0' }}>{ticker}</strong>…</>}
               </span>
               <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
             </div>

@@ -1,8 +1,9 @@
 /**
  * CollectorCron: scheduled jobs for the collector pipeline.
  *
- * - 8:00 AM ET (12:00 UTC): initial daily MoMo scan
- * - Every 30 minutes during market hours: refresh scan for new tickers
+ * - Every 1 minute during market hours (9:30–16:00 ET ≈ 14:30–21:00 UTC):
+ *   Fetch top gainers from TOP_GAINERS_SOURCE (HPG or Alpaca), replace activeSymbols,
+ *   add new symbols to collection, refresh Alpaca WebSocket subscriptions.
  */ "use strict";
 Object.defineProperty(exports, "__esModule", {
     value: true
@@ -27,26 +28,11 @@ function _ts_metadata(k, v) {
 }
 let CollectorCron = class CollectorCron {
     /**
-   * 8:00 AM ET = 12:00 UTC (winter) / 12:00 UTC (summer, DST).
-   * Pre-market scan to seed the initial watchlist.
-   */ async runDailyScan() {
-        this.logger.log('⏰ Daily pre-market MoMo scan (8:00 AM ET)…');
-        await this.collector.resetActiveSymbols();
-        await this.collector.scanMomo();
-    }
-    /**
-   * Every 5 minutes during 9:00–20:00 UTC (covers 4 AM – 4 PM ET).
-   * Catches new movers that appear during the trading day.
-   */ async runPeriodicScan() {
-        this.logger.log('🔄 Periodic MoMo scan…');
-        await this.collector.scanMomo();
-    }
-    /**
-   * Every 5 minutes during market hours: refresh candles from MoMo
-   * to fill gaps that Alpaca IEX free tier misses.
-   */ async runMomoRefresh() {
-        this.logger.log('🕐 MoMo candle refresh (filling IEX gaps)…');
-        await this.collector.refreshAllFromMomo();
+   * Every minute during market hours (9:30–16:00 ET ≈ 14:30–21:00 UTC).
+   * Fetch top gainers from env source, replace activeSymbols, add new to symbols.
+   */ async runTopGainersCron() {
+        this.logger.log('⏰ Top gainers cron (1 min)…');
+        await this.collector.runTopGainersCron();
     }
     constructor(collector){
         this.collector = collector;
@@ -54,23 +40,11 @@ let CollectorCron = class CollectorCron {
     }
 };
 _ts_decorate([
-    (0, _schedule.Cron)('0 12 * * 1-5'),
+    (0, _schedule.Cron)('0 * 14-21 * * 1-5'),
     _ts_metadata("design:type", Function),
     _ts_metadata("design:paramtypes", []),
     _ts_metadata("design:returntype", Promise)
-], CollectorCron.prototype, "runDailyScan", null);
-_ts_decorate([
-    (0, _schedule.Cron)('*/30 9-20 * * 1-5'),
-    _ts_metadata("design:type", Function),
-    _ts_metadata("design:paramtypes", []),
-    _ts_metadata("design:returntype", Promise)
-], CollectorCron.prototype, "runPeriodicScan", null);
-_ts_decorate([
-    (0, _schedule.Cron)('*/60 13-21 * * 1-5'),
-    _ts_metadata("design:type", Function),
-    _ts_metadata("design:paramtypes", []),
-    _ts_metadata("design:returntype", Promise)
-], CollectorCron.prototype, "runMomoRefresh", null);
+], CollectorCron.prototype, "runTopGainersCron", null);
 CollectorCron = _ts_decorate([
     (0, _common.Injectable)(),
     _ts_metadata("design:type", Function),

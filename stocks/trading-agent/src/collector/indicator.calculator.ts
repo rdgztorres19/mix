@@ -2,7 +2,17 @@
  * Per-candle indicator calculator for the collector pipeline.
  * Computes VWAP, EMA9, EMA20, ATR, HOD, LOD, session, change_pct, etc.
  * from the running candle history of each symbol.
+ * Uses training/* modules for session, change, minutes_since_hod, and target columns.
  */
+
+import { getSessionFromTimestamp } from '../training/session-utils';
+import { computeChange } from '../training/change.feature';
+import { computeMinutesSinceHod } from '../training/minutes-since-hod.feature';
+import { computeMomentumAcumulado } from '../training/momentum.feature';
+import { computeFutureReturn5m } from '../training/future-return.label';
+import { computeTarget } from '../training/target.label';
+import { computeTargetBreakHod5m } from '../training/break-hod.label';
+import { computeMaxFutureReturn10m } from '../training/max-future-return.label';
 
 export interface CollectorCandle {
   o: number;
@@ -16,8 +26,8 @@ export interface CollectorCandle {
 export interface SymbolMetadata {
   priorClose: number;
   preMarketHigh: number;
-  sharesOutstanding: number;
-  marketCap: number;
+  sharesOutstanding: number | null;
+  marketCap: number | null;
   gapPct: number;
   premarketVolume: number;
 }
@@ -41,14 +51,19 @@ export interface CandleRow {
   change_pct_at_candle: number;
   pre_market_high: number;
   session: string;
-  shares_outstanding: number;
-  market_cap: number;
+  shares_outstanding: number | null;
+  market_cap: number | null;
   gap_pct: number;
   premarket_volume: number;
   change_1m: number;
   change_5m: number;
   change_10m: number;
   minutes_since_hod: number;
+  momentum_acumulado: number | null;
+  future_return_5m?: number | null;
+  target?: number | null;
+  target_break_hod_5m?: number | null;
+  max_future_return_10m?: number | null;
   // Keep original timestamp for accurate UI formatting
   original_timestamp_ms?: number;
 }
@@ -75,15 +90,6 @@ export function timestampToET(ms: number): { date: string; time: string; minuteO
   return { date, time, minuteOfDay: h * 60 + m };
 }
 
-function getSession(minuteOfDay: number): string {
-  if (minuteOfDay < 570) return 'premarket';  // before 9:30
-  if (minuteOfDay < 600) return 'open';        // 9:30-10:00
-  if (minuteOfDay < 720) return 'morning';     // 10:00-12:00
-  if (minuteOfDay < 900) return 'midday';      // 12:00-15:00
-  if (minuteOfDay < 960) return 'power_hour';  // 15:00-16:00
-  return 'afterhours';
-}
-
 /**
  * Compute a full CandleRow from the running history of candles + metadata.
  * `history` must include the current candle as the last element.
@@ -95,7 +101,7 @@ export function computeCandleRow(
 ): CandleRow {
   const candle = history[history.length - 1];
   const n = history.length;
-  const { date, time, minuteOfDay } = timestampToET(candle.t);
+  const { date, time } = timestampToET(candle.t);
 
   // Candle index: count from 0 for today
   const candle_idx = n - 1;
@@ -129,19 +135,40 @@ export function computeCandleRow(
   const change_pct_at_candle =
     metadata.priorClose > 0 ? (candle.c - metadata.priorClose) / metadata.priorClose : 0;
 
-  // Change 1m, 5m, 10m
-  const change_1m = n >= 2 ? (candle.c - history[n - 2].c) / Math.max(Math.abs(history[n - 2].c), 1e-6) : 0;
-  const change_5m = n >= 6 ? (candle.c - history[n - 6].c) / Math.max(Math.abs(history[n - 6].c), 1e-6) : 0;
-  const change_10m = n >= 11 ? (candle.c - history[n - 11].c) / Math.max(Math.abs(history[n - 11].c), 1e-6) : 0;
+  // Change 1m, 5m, 10m and minutes_since_hod from training modules (unified with stock-training)
+  const change = computeChange(history as unknown as import('../training/types').TrainingCandle[], candle_idx);
+  const change_1m = change.change_1m ?? 0;
+  const change_5m = change.change_5m ?? 0;
+  const change_10m = change.change_10m ?? 0;
 
-  // Minutes since HOD
-  let hodIdx = 0;
-  for (let i = 0; i < n; i++) {
-    if (history[i].h >= high_of_day) hodIdx = i;
-  }
-  const minutes_since_hod = candle_idx - hodIdx;
+  const minutesSinceHod = computeMinutesSinceHod(
+    history as unknown as import('../training/types').TrainingCandle[],
+    candle_idx,
+    high_of_day,
+  );
+  const minutes_since_hod = minutesSinceHod ?? candle_idx;
 
-  const session = getSession(minuteOfDay);
+  // Session: PRE_MARKET, THE_OPEN, etc. (unified with stock-training)
+  const session = getSessionFromTimestamp(candle.t);
+
+  // Target columns when enough future candles exist
+  const future_return_5m = computeFutureReturn5m(
+    history as unknown as import('../training/types').TrainingCandle[],
+    candle_idx,
+  );
+  const target = computeTarget(future_return_5m ?? null);
+  const target_break_hod_5m = computeTargetBreakHod5m(
+    history as unknown as import('../training/types').TrainingCandle[],
+    candle_idx,
+    high_of_day,
+  );
+  const max_future_return_10m = computeMaxFutureReturn10m(
+    history as unknown as import('../training/types').TrainingCandle[],
+    candle_idx,
+  );
+
+  const openDay = history.length > 0 ? history[0].o : candle.c;
+  const momentum_acumulado = computeMomentumAcumulado(candle.c, openDay);
 
   return {
     symbol: symbol.toUpperCase(),
@@ -170,6 +197,11 @@ export function computeCandleRow(
     change_5m,
     change_10m,
     minutes_since_hod,
+    momentum_acumulado,
+    future_return_5m: future_return_5m ?? undefined,
+    target: target ?? undefined,
+    target_break_hod_5m: target_break_hod_5m ?? undefined,
+    max_future_return_10m: max_future_return_10m ?? undefined,
     original_timestamp_ms: candle.t,
   };
 }

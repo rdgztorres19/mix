@@ -186,7 +186,7 @@ export class AlpacaTraderService {
 
     const takeProfitPct = options.takeProfitPct ?? 0.02;
     const stopLossPct = options.stopLossPct ?? 0.06;
-    const entryAggressivenessPct = options.entryAggressivenessPct ?? 0.01;
+    const entryAggressivenessPct = options.entryAggressivenessPct ?? 0.02;
     const timeInForce = options.timeInForce ?? 'day';
     const cancelAfterMs =
       options.cancelAfterMs ?? AlpacaTraderService.DEFAULT_CANCEL_AFTER_MS;

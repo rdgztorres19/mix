@@ -89,6 +89,7 @@ export interface BacktestResult {
 export class PredictorService {
   private readonly logger = new Logger(PredictorService.name);
   private readonly scriptPath: string;
+  private readonly batchScriptPath: string;
   private readonly evaluateScriptPath: string;
 
   constructor(private readonly mysqlRepo: MysqlTrainingRepository) {
@@ -97,6 +98,7 @@ export class PredictorService {
       process.env.STOCK_TRAINING_PATH ?? path.join('..', 'stock-training'),
     );
     this.scriptPath = path.join(stockTraining, 'ml', 'experiments', 'predict.py');
+    this.batchScriptPath = path.join(stockTraining, 'ml', 'experiments', 'predict_batch.py');
     this.evaluateScriptPath = path.join(stockTraining, 'ml', 'random_forest', 'evaluate.py');
   }
 
@@ -448,6 +450,118 @@ export class PredictorService {
 
   // ─── Backtest SSE stream ────────────────────────────────────────────
 
+  /**
+   * Run backtest for one symbol, return aggregated stats (no SSE emission).
+   * Returns null if no data or targets in window.
+   */
+  private async _runSingleSymbolBacktest(
+    ticker: string,
+    dateStr: string,
+    fromTime: string,
+    toTime: string,
+    threshold: number,
+    investment: number,
+    tpPct: number,
+    slPct: number,
+    lookAhead: number,
+  ): Promise<{
+    tp: number; fp: number; tn: number; fn: number;
+    pnl: number; wins: number; losses: number; neutrals: number;
+  } | null> {
+    const rows = await this.mysqlRepo.getTickerRowsForDate(ticker.toUpperCase(), dateStr, '1m');
+    if (!rows.length) return null;
+
+    const toMin = (t: string) => {
+      const [h, m] = t.split(':').map(Number);
+      return h * 60 + m;
+    };
+    const fromMin = toMin(fromTime);
+    const toMinVal = toMin(toTime);
+
+    const allCandles = rows.map((r, i) => ({
+      t: i,
+      o: Number(r.open ?? 0),
+      h: Number(r.high ?? 0),
+      l: Number(r.low ?? 0),
+      c: Number(r.close ?? 0),
+      v: Number(r.volume ?? 0),
+    }));
+    const candleTimesEt = rows.map((r) => String(r.candle_time_et ?? '09:30'));
+    const candleIdxArr = rows.map((r) => Number(r.candle_idx ?? 0));
+
+    const targets: { idx: number; time: string }[] = [];
+    for (let i = 0; i < rows.length; i++) {
+      const t = String(rows[i].candle_time_et ?? '');
+      const m = toMin(t);
+      if (m >= fromMin && m <= toMinVal) targets.push({ idx: i, time: t });
+    }
+    if (!targets.length) return null;
+
+    const tpDec = tpPct / 100;
+    const slDec = slPct / 100;
+
+    const payloads = targets.map(({ idx }) => {
+      const targetRow = rows[idx];
+      return {
+        candles: allCandles.slice(0, idx + 1),
+        target_idx: idx,
+        candle_times_et: candleTimesEt.slice(0, idx + 1),
+        candle_idx_arr: candleIdxArr.slice(0, idx + 1),
+        atr: Number(targetRow.atr ?? 0),
+        high_of_day: Number(targetRow.high_of_day ?? 0),
+        low_of_day: Number(targetRow.low_of_day ?? 0),
+        pre_market_high: Number(targetRow.pre_market_high ?? 0),
+        change_pct_at_candle: Number(targetRow.change_pct_at_candle ?? 0),
+        shares_outstanding: Number(targetRow.shares_outstanding ?? 0),
+        market_cap: Number(targetRow.market_cap ?? 0),
+        gap_pct: Number(targetRow.gap_pct ?? 0),
+        premarket_volume: Number(targetRow.premarket_volume ?? 0),
+        _threshold: threshold,
+      };
+    });
+
+    let results: PredictResult[] = [];
+    try {
+      results = await this.callPredictBatch(payloads, threshold);
+    } catch {
+      return null;
+    }
+
+    let tp = 0, fp = 0, tn = 0, fn = 0, cumPnL = 0;
+    let wins = 0, losses = 0, neutrals = 0;
+
+    for (let n = 0; n < targets.length; n++) {
+      const { idx } = targets[n];
+      const targetRow = rows[idx];
+      const r: PredictResult = results[n] ?? { tradeable: false, prob: 0, threshold };
+      const tradeable = r.tradeable ?? false;
+
+      const { mfr } = this.computeMfr(rows, idx, lookAhead);
+      const { tpSlResult } = this.computeTpSlExit(rows, idx, tpDec, slDec, lookAhead);
+      const realGood = mfr >= tpDec;
+      if (tradeable && realGood) tp++;
+      else if (tradeable && !realGood) fp++;
+      else if (!tradeable && realGood) fn++;
+      else tn++;
+
+      if (tradeable && tpSlResult) {
+        if (tpSlResult === 'win') wins++;
+        else if (tpSlResult === 'loss') losses++;
+        else neutrals++;
+      }
+
+      let pnl = 0;
+      if (tradeable) {
+        if (tpSlResult === 'win') pnl = investment * tpDec;
+        else if (tpSlResult === 'loss') pnl = -investment * slDec;
+        else pnl = investment * mfr;
+      }
+      cumPnL += pnl;
+    }
+
+    return { tp, fp, tn, fn, pnl: cumPnL, wins, losses, neutrals };
+  }
+
   backtestStream(
     ticker: string,
     dateStr: string,
@@ -462,6 +576,133 @@ export class PredictorService {
     return new Observable((subscriber: Subscriber<MessageEvent>) => {
       this._runBacktestStream(subscriber, ticker, dateStr, fromTime, toTime, threshold, investment, tpPct, slPct, lookAhead);
     });
+  }
+
+  /**
+   * Backtest stream for symbols. If symbols provided, use those; else getTopMovers(date).
+   * Uses same params as single-symbol backtest; emits aggregated summary with wins/losses/neutrals.
+   */
+  backtestStreamDay(
+    dateStr: string,
+    fromTime: string,
+    toTime: string,
+    threshold: number,
+    investment: number,
+    tpPct = 1.5,
+    slPct = 1.5,
+    lookAhead = 10,
+    symbolsOverride?: string[],
+  ): Observable<MessageEvent> {
+    return new Observable((subscriber: Subscriber<MessageEvent>) => {
+      this._runBacktestStreamDay(subscriber, dateStr, fromTime, toTime, threshold, investment, tpPct, slPct, lookAhead, symbolsOverride);
+    });
+  }
+
+  private async _runBacktestStreamDay(
+    sub: Subscriber<MessageEvent>,
+    dateStr: string,
+    fromTime: string,
+    toTime: string,
+    threshold: number,
+    investment: number,
+    tpPct: number,
+    slPct: number,
+    lookAhead: number,
+    symbolsOverride?: string[],
+  ) {
+    try {
+      let symbols: string[];
+      if (symbolsOverride && symbolsOverride.length > 0) {
+        symbols = symbolsOverride;
+      } else {
+        const movers = await this.mysqlRepo.getTopMovers(dateStr);
+        symbols = movers.map((m) => m.symbol).filter(Boolean);
+      }
+      if (!symbols.length) {
+        sub.next({ data: { type: 'error', message: `No symbols for ${dateStr}` } } as MessageEvent);
+        sub.complete();
+        return;
+      }
+
+      sub.next({
+        data: { type: 'info', totalSymbols: symbols.length, symbols },
+      } as MessageEvent);
+
+      let totTp = 0, totFp = 0, totTn = 0, totFn = 0, totPnl = 0;
+      let totWins = 0, totLosses = 0, totNeutrals = 0;
+      let symbolsWithData = 0;
+
+      for (let i = 0; i < symbols.length; i++) {
+        if (sub.closed) return;
+        const symbol = symbols[i];
+        const result = await this._runSingleSymbolBacktest(
+          symbol,
+          dateStr,
+          fromTime,
+          toTime,
+          threshold,
+          investment,
+          tpPct,
+          slPct,
+          lookAhead,
+        );
+        if (result) {
+          totTp += result.tp;
+          totFp += result.fp;
+          totTn += result.tn;
+          totFn += result.fn;
+          totPnl += result.pnl;
+          totWins += result.wins;
+          totLosses += result.losses;
+          totNeutrals += result.neutrals;
+          const hasSignals = result.wins + result.losses + result.neutrals > 0;
+          if (hasSignals) symbolsWithData++;
+        }
+        sub.next({
+          data: {
+            type: 'symbol_done',
+            symbol,
+            progress: i + 1,
+            totalSymbols: symbols.length,
+            ...(result && { wins: result.wins, losses: result.losses, neutrals: result.neutrals }),
+          },
+        } as MessageEvent);
+      }
+
+      const total = totTp + totFp + totTn + totFn;
+      const precision = totTp + totFp > 0 ? totTp / (totTp + totFp) : 0;
+      const recall = totTp + totFn > 0 ? totTp / (totTp + totFn) : 0;
+      const accuracy = total > 0 ? (totTp + totTn) / total : 0;
+
+      sub.next({
+        data: {
+          type: 'summary',
+          summary: {
+            tp: totTp,
+            fp: totFp,
+            tn: totTn,
+            fn: totFn,
+            precision: Math.round(precision * 1000) / 10,
+            recall: Math.round(recall * 1000) / 10,
+            accuracy: Math.round(accuracy * 1000) / 10,
+            signals: totTp + totFp,
+            total,
+            pnl: Math.round(totPnl * 100) / 100,
+            investment,
+            wins: totWins,
+            losses: totLosses,
+            neutrals: totNeutrals,
+            symbolsWithData,
+            symbolsTotal: symbols.length,
+          },
+        },
+      } as MessageEvent);
+
+      sub.complete();
+    } catch (err) {
+      sub.next({ data: { type: 'error', message: (err as Error).message } } as MessageEvent);
+      sub.complete();
+    }
   }
 
   private async _runBacktestStream(
@@ -513,14 +754,11 @@ export class PredictorService {
 
       const tpDec = tpPct / 100;
       const slDec = slPct / 100;
-      let tp = 0, fp = 0, tn = 0, fn = 0, cumPnL = 0;
 
-      for (let n = 0; n < targets.length; n++) {
-        if (sub.closed) return;
-
-        const { idx, time } = targets[n];
+      // Build all payloads and run batch predict (1 process, 1 model load)
+      const payloads = targets.map(({ idx }) => {
         const targetRow = rows[idx];
-        const payload = {
+        return {
           candles: allCandles.slice(0, idx + 1),
           target_idx: idx,
           candle_times_et: candleTimesEt.slice(0, idx + 1),
@@ -536,13 +774,27 @@ export class PredictorService {
           premarket_volume: Number(targetRow.premarket_volume ?? 0),
           _threshold: threshold,
         };
+      });
 
-        let prob = 0, tradeable = false;
-        try {
-          const result = await this.callPredictRaw(payload);
-          prob = result.prob ?? 0;
-          tradeable = result.tradeable ?? false;
-        } catch { /* skip */ }
+      let results: PredictResult[] = [];
+      try {
+        results = await this.callPredictBatch(payloads, threshold);
+      } catch (err) {
+        sub.next({ data: { type: 'error', message: String(err?.message ?? err) } } as MessageEvent);
+        sub.complete();
+        return;
+      }
+
+      let tp = 0, fp = 0, tn = 0, fn = 0, cumPnL = 0;
+
+      for (let n = 0; n < targets.length; n++) {
+        if (sub.closed) return;
+
+        const { idx, time } = targets[n];
+        const targetRow = rows[idx];
+        const r: PredictResult = results[n] ?? { tradeable: false, prob: 0, threshold };
+        const prob = r.prob ?? 0;
+        const tradeable = r.tradeable ?? false;
 
         const { mfr, exitPrice: mfrExitPrice, exitTime: mfrExitTime } = this.computeMfr(rows, idx, lookAhead);
         const { tpSlResult, exitPrice: tpSlExitPrice, exitTime: tpSlExitTime } = this.computeTpSlExit(rows, idx, tpDec, slDec, lookAhead);
@@ -698,6 +950,43 @@ export class PredictorService {
           resolve(JSON.parse(stdout) as PredictResult);
         } catch {
           reject(new Error(stderr || `exit ${code}`));
+        }
+      });
+      proc.stdin.write(input, () => proc.stdin.end());
+    });
+  }
+
+  /**
+   * Batch predict: one Python process, one model load, N predictions.
+   * Used by backtest stream for speed.
+   */
+  private async callPredictBatch(
+    payloads: Record<string, unknown>[],
+    threshold: number,
+  ): Promise<PredictResult[]> {
+    if (!payloads.length) return [];
+    const batch = payloads.map((p) => {
+      const { _threshold: _, ...rest } = p as Record<string, unknown>;
+      return rest;
+    });
+    const input = JSON.stringify({ batch, _threshold: threshold });
+    return new Promise((resolve, reject) => {
+      const proc = spawn('python3', [this.batchScriptPath], {
+        cwd: path.dirname(this.batchScriptPath),
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+      let stdout = '';
+      let stderr = '';
+      proc.stdout.on('data', (chunk) => { stdout += chunk.toString(); });
+      proc.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
+      proc.on('error', (err) => reject(err));
+      proc.on('close', (code) => {
+        try {
+          const out = JSON.parse(stdout) as { error?: string; results?: PredictResult[] };
+          if (out.error) reject(new Error(out.error));
+          else resolve(out.results ?? []);
+        } catch {
+          reject(new Error(stderr || `exit ${code}, stdout=${stdout}`));
         }
       });
       proc.stdin.write(input, () => proc.stdin.end());

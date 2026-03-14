@@ -6,9 +6,9 @@ For each combo: train → evaluate → log results.
 
 Usage:
   cd stock-training/ml
-  python -m experiments.run_grid                    # full grid
-  python -m experiments.run_grid --models XGBoost   # single model
-  python -m experiments.run_grid --quick            # quick test (reduced grid)
+  python -m experiments.run_grid
+  python -m experiments.run_grid --models XGBoost
+  python -m experiments.run_grid --quick
 """
 
 import argparse
@@ -30,6 +30,7 @@ from experiments.feature_engineer import add_features, FEATURE_SETS
 from experiments.target_variants import compute_target_variants, TARGET_META
 from experiments.evaluator import evaluate_model, log_result, print_result, print_top_results
 
+
 # ---------------------------------------------------------------------------
 # Skip already-completed combos
 # ---------------------------------------------------------------------------
@@ -43,6 +44,7 @@ def _load_completed() -> set:
         return set(zip(df["model"], df["feature_set"], df["target"]))
     except Exception:
         return set()
+
 
 # ---------------------------------------------------------------------------
 # Model registry
@@ -64,23 +66,23 @@ def _load_model_module(name: str):
 # ---------------------------------------------------------------------------
 # Compute class weights as sample_weight array
 # ---------------------------------------------------------------------------
-
 def compute_sample_weights(y: np.ndarray) -> np.ndarray:
     classes = np.unique(y)
     n = len(y)
     n_classes = len(classes)
     counts = {c: (y == c).sum() for c in classes}
     weights = np.ones(n, dtype=np.float64)
+
     for c in classes:
         w = n / (n_classes * max(1, counts[c]))
         weights[y == c] = w
+
     return weights
 
 
 # ---------------------------------------------------------------------------
 # Main grid
 # ---------------------------------------------------------------------------
-
 def run_grid(
     models_filter: list[str] | None = None,
     fsets_filter: list[str] | None = None,
@@ -94,12 +96,12 @@ def run_grid(
     # 1. Load base CSV
     t0 = time.time()
     df_base = load_base_df()
-    print(f"  Loaded {len(df_base)} rows in {time.time()-t0:.1f}s")
+    print(f"  Loaded {len(df_base)} rows in {time.time() - t0:.1f}s")
 
     # 2. Feature engineering
     t0 = time.time()
     df = add_features(df_base)
-    print(f"  Feature engineering done ({df.shape[1]} cols) in {time.time()-t0:.1f}s")
+    print(f"  Feature engineering done ({df.shape[1]} cols) in {time.time() - t0:.1f}s")
 
     # 3. Compute all target variants
     targets = compute_target_variants(df)
@@ -110,22 +112,39 @@ def run_grid(
     target_names = targets_filter or list(TARGET_META.keys())
 
     if quick:
-        # Reduced grid for quick testing
         model_names = [m for m in model_names if m in ("XGBoost", "LightGBM", "RandomForest")]
-        fset_names = [f for f in fset_names if f in ("B_enriched", "D_all")]
-        target_names = [t for t in target_names if t in ("mc_2p5", "bin_mfr10m_1p5", "bin_fr5m_1p5")]
+        fset_names = [f for f in fset_names if f in ("B_enriched", "D_all", "D_clean", "D_clean_ext")]
+        target_names = [
+            t for t in target_names
+            if t in (
+                "mc_2p5",
+                "bin_mfr10m_1p5",
+                "bin_fr5m_1p5",
+                "bin_opportunity_clean_10m_1p5_0p5",
+                "bin_rr10m_ge_2",
+            )
+        ]
 
     completed = _load_completed()
     total = len(model_names) * len(fset_names) * len(target_names)
-    skipped_count = sum(1 for m in model_names for f in fset_names for t in target_names if (m, f, t) in completed)
+    skipped_count = sum(
+        1
+        for m in model_names
+        for f in fset_names
+        for t in target_names
+        if (m, f, t) in completed
+    )
+
     print(f"\n  Grid: {len(model_names)} models × {len(fset_names)} fsets × {len(target_names)} targets = {total} combos")
     print(f"  Already completed: {skipped_count}, remaining: {total - skipped_count}\n")
 
     done = 0
     for model_name in model_names:
         mod = _load_model_module(model_name)
+
         for fset_name in fset_names:
             feature_cols = FEATURE_SETS[fset_name]
+
             for target_name in target_names:
                 done += 1
                 is_mc, desc = TARGET_META[target_name]
@@ -138,30 +157,76 @@ def run_grid(
                 print(f"\n--- {tag} ---")
 
                 try:
-                    # Assign target column
-                    df["_target"] = targets[target_name]
+                    # ------------------------------------------------------------------
+                    # NEW TARGET STRUCTURE:
+                    # bundle = {"y": ..., "valid": ...}
+                    # ------------------------------------------------------------------
+                    if target_name not in targets:
+                        print("  SKIP: target not found in computed targets")
+                        continue
+
+                    bundle = targets[target_name]
+                    if not isinstance(bundle, dict) or "y" not in bundle or "valid" not in bundle:
+                        print("  SKIP: target bundle has invalid format")
+                        continue
+
+                    y_full = np.asarray(bundle["y"])
+                    valid_mask = np.asarray(bundle["valid"]).astype(bool)
+
+                    if len(y_full) != len(df) or len(valid_mask) != len(df):
+                        print("  SKIP: target length mismatch with dataframe")
+                        continue
+
+                    # Filter only valid rows for this target
+                    df_target = df.loc[valid_mask].copy()
+                    if len(df_target) == 0:
+                        print("  SKIP: no valid rows for target")
+                        continue
+
+                    df_target["_target"] = y_full[valid_mask]
 
                     # Skip if target is all one class
-                    unique_labels = np.unique(df["_target"].dropna())
+                    unique_labels = np.unique(df_target["_target"])
                     if len(unique_labels) < 2:
                         print(f"  SKIP: only {len(unique_labels)} class(es) in target")
                         continue
 
                     # Prepare X, y
-                    X, y = prepare_Xy(df, feature_cols, target_col="_target")
+                    X, y = prepare_Xy(df_target, feature_cols, target_col="_target")
 
-                    # For multiclass with -1/0/1 labels, remap to 0/1/2 for XGBoost/LightGBM
+                    if len(X) == 0 or len(y) == 0:
+                        print("  SKIP: empty X/y after prepare_Xy")
+                        continue
+
+                    unique_after_prepare = np.unique(y)
+                    if len(unique_after_prepare) < 2:
+                        print(f"  SKIP: only {len(unique_after_prepare)} class(es) after prepare_Xy")
+                        continue
+
+                    # Remap multiclass labels if needed, e.g. [-1,0,1] -> [0,1,2]
                     label_map = None
+                    inv_map = None
                     if is_mc and y.min() < 0:
-                        unique_sorted = np.array(sorted(np.unique(y)))  # [-1, 0, 1]
+                        unique_sorted = np.array(sorted(np.unique(y)))
                         label_map = {old: new for new, old in enumerate(unique_sorted)}
                         inv_map = {new: old for old, new in label_map.items()}
                         y = np.array([label_map[v] for v in y])
 
                     # Temporal split
-                    X_train, X_test, y_train, y_test = temporal_split(X, y, train_frac=0.8, embargo_rows=30)
+                    X_train, X_test, y_train, y_test = temporal_split(
+                        X, y, train_frac=0.8, embargo_rows=30
+                    )
+
                     if len(X_test) < 50:
                         print(f"  SKIP: test set too small ({len(X_test)})")
+                        continue
+
+                    if len(np.unique(y_train)) < 2:
+                        print("  SKIP: training split has only one class")
+                        continue
+
+                    if len(np.unique(y_test)) < 2:
+                        print("  SKIP: test split has only one class")
                         continue
 
                     # Scale
@@ -176,20 +241,31 @@ def run_grid(
                     class_labels = tuple(sorted(np.unique(y)))
                     n_classes = len(class_labels)
                     extra_params = {}
+
                     if is_mc and model_name == "XGBoost":
                         extra_params["num_class"] = n_classes
                     if is_mc and model_name == "LightGBM":
                         extra_params["num_class"] = n_classes
+
                     model = mod.make_model(is_multiclass=is_mc, **extra_params)
 
-                    # Use 10% of train as validation for early stopping (boosting models)
+                    # Validation split for early stopping
                     val_split = int(len(X_train_s) * 0.9)
+                    if val_split <= 0 or val_split >= len(X_train_s):
+                        print("  SKIP: invalid validation split")
+                        continue
+
                     X_tr = X_train_s[:val_split]
                     y_tr = y_train[:val_split]
                     X_vl = X_train_s[val_split:]
                     y_vl = y_train[val_split:]
                     sw_tr = sw[:val_split]
 
+                    if len(X_vl) == 0 or len(y_vl) == 0:
+                        print("  SKIP: empty validation set")
+                        continue
+
+                    # Train
                     t0 = time.time()
                     mod.train(model, X_tr, y_tr, X_val=X_vl, y_val=y_vl, sample_weight=sw_tr)
                     train_time = time.time() - t0
@@ -198,8 +274,8 @@ def run_grid(
                     y_pred = model.predict(X_test_s)
                     y_proba = model.predict_proba(X_test_s)
 
-                    # Remap labels back to original if we remapped
-                    if label_map is not None:
+                    # Remap labels back to original values for evaluation
+                    if label_map is not None and inv_map is not None:
                         y_pred = np.array([inv_map[v] for v in y_pred])
                         y_test = np.array([inv_map[v] for v in y_test])
                         class_labels = tuple(sorted(inv_map.values()))
@@ -218,6 +294,8 @@ def run_grid(
                     result["train_time_s"] = round(train_time, 2)
                     result["n_features"] = len(feature_cols)
                     result["n_train"] = len(X_train_s)
+                    result["n_valid_target_rows"] = int(valid_mask.sum())
+                    result["target_desc"] = desc
 
                     log_result(result)
                     print_result(result)
@@ -244,6 +322,7 @@ def main():
     parser.add_argument("--targets", nargs="+", help="Filter targets (e.g. mc_2p5 bin_mfr10m_1p5)")
     parser.add_argument("--quick", action="store_true", help="Quick test with reduced grid")
     args = parser.parse_args()
+
     run_grid(
         models_filter=args.models,
         fsets_filter=args.fsets,

@@ -1,0 +1,33 @@
+import { PredictorService } from '../predictor/predictor.service';
+import { AlpacaTraderService } from './alpaca-trader.service';
+import { PositionTrackerService } from './position-tracker.service';
+import type { CollectorGateway } from '../collector/collector.gateway';
+import type { CandleRow } from '../collector/indicator.calculator';
+export declare class AutoTraderService {
+    private readonly predictor;
+    private readonly alpaca;
+    private readonly positions;
+    private readonly logger;
+    private readonly predictEnabled;
+    private readonly tradeEnabled;
+    private readonly threshold;
+    private readonly tradePct;
+    private readonly exitCandles;
+    private gateway;
+    constructor(predictor: PredictorService, alpaca: AlpacaTraderService, positions: PositionTrackerService);
+    setGateway(gw: CollectorGateway): void;
+    onCandleClosed(row: CandleRow): Promise<void>;
+    private trackOpenPosition;
+    private closeAndSell;
+    private sellViaAlpaca;
+    private notifyExit;
+    private evaluateAndTrade;
+    private runPrediction;
+    private broadcastSignal;
+    private shouldEnterTrade;
+    private buyAndTrack;
+    private calculatePositionSize;
+    private parseFillPrice;
+    private parseFillQty;
+    private notifyEntry;
+}

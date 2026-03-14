@@ -7,11 +7,13 @@ import { CollectorCron } from './collector.cron';
 import { MomoStreamService } from './momo-stream.service';
 import { CollectorGateway } from './collector.gateway';
 import { CollectorController } from './collector.controller';
+import { TopGainersSourceService } from './top-gainers-source.service';
 
 @Module({
   imports: [ScannerModule, TraderModule, forwardRef(() => WebSocketModule)],
   controllers: [CollectorController],
   providers: [
+    TopGainersSourceService,
     CollectorService,
     CollectorCron,
     MomoStreamService,

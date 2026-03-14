@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Optional } from '@nestjs/common';
+import { Controller, Post, Get, Optional, Body } from '@nestjs/common';
 import { CollectorService } from './collector.service';
 import { WebSocketInitService } from '../websocket/websocket-init.service';
 import { PositionTrackerService } from '../trader/position-tracker.service';
@@ -12,13 +12,56 @@ export class CollectorController {
   ) {}
 
   /**
+   * POST /collector/sync-symbol-date
+   * Fetches 1m bars from Alpaca for symbol+date, deletes existing rows,
+   * builds training rows with unified features, bulk inserts.
+   * Body: { symbol: string, date: string } (date YYYY-MM-DD)
+   */
+  @Post('sync-symbol-date')
+  async syncSymbolDate(
+    @Body() body: { symbol: string; date: string },
+  ): Promise<{ ok: boolean; rows: number; error?: string }> {
+    const { symbol, date } = body;
+    if (!symbol || !date) {
+      return { ok: false, rows: 0, error: 'symbol and date required' };
+    }
+    return this.collector.syncSymbolDate(symbol, date);
+  }
+
+  /**
+   * POST /collector/sync-date
+   * Syncs ALL symbols that exist in DB for the given date.
+   * Fetches each from Alpaca, deletes existing rows, rebuilds with unified features.
+   * Body: { date: string } (YYYY-MM-DD)
+   */
+  @Post('sync-date')
+  async syncDate(
+    @Body() body: { date: string },
+  ): Promise<{ ok: boolean; symbols: number; totalRows: number; errors: string[] }> {
+    const { date } = body;
+    if (!date) {
+      return { ok: false, symbols: 0, totalRows: 0, errors: ['date required'] };
+    }
+    return this.collector.syncDate(date);
+  }
+
+  /**
    * POST /collector/sync-today
-   * Triggers a MoMo refresh for today's candles (skips after hours).
+   * Fetches top gainers from HPG or Alpaca screener, syncs each from Alpaca to MySQL.
+   * Body: { source: 'hpg' | 'alpaca_screener' }
    */
   @Post('sync-today')
-  async syncToday(): Promise<{ ok: boolean; skipped?: boolean; reason?: string }> {
-    const result = await this.collector.refreshAllFromMomo({ force: true });
-    return { ok: true, ...result };
+  async syncToday(
+    @Body() body: { source?: 'hpg' | 'alpaca_screener' },
+  ): Promise<{
+    ok: boolean;
+    symbols?: number;
+    totalRows?: number;
+    skipped?: boolean;
+    reason?: string;
+  }> {
+    const source = body?.source ?? 'hpg';
+    return this.collector.syncTodayFromSource(source);
   }
 
   /**

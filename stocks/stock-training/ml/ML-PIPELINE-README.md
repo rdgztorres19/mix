@@ -23,6 +23,13 @@ CONFIGS = [
     ("LightGBM", "D_all", "bin_tb10m_tp2p0_sl0p7"),
 ]
 
+
+CONFIGS = [
+    ("LightGBM", "D_all", "bin_mfr10m_1p5"),
+    ("LightGBM", "D_all", "bin_tb10m_tp1p5_sl0p5"),
+    ("LightGBM", "D_all", "bin_tb10m_tp2p0_sl0p7"),
+]
+
 Execute: python3 experiments/tune_focused.py 2>&1 | tee /tmp/tune_output.txt
 
 python3 -m experiments.train_best --all 

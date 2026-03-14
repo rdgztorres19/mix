@@ -40,22 +40,22 @@ export class WebSocketFallbackCron {
   async checkWebSocketHealth(): Promise<void> {
     if (!this.enabled || !this.collector) return;
 
-    const activeSymbols = this.collector.getActiveSymbolList();
-    if (activeSymbols.length === 0) return;
+    const symbols = this.collector.getSymbolsList();
+    if (symbols.length === 0) return;
 
     const now = Math.floor(Date.now() / 1000);
     const expectedBarTime = this.getExpectedBarTime(now);
 
     if (!this.alpacaWebSocket.isConnected()) {
       this.alpacaWebSocket.triggerReconnectIfDisconnected();
-      this.logger.log(`🔌 WebSocket disconnected - fetching fallback for ${activeSymbols.length} symbols via REST`);
-      for (const symbol of activeSymbols) {
+      this.logger.log(`🔌 WebSocket disconnected - fetching fallback for ${symbols.length} symbols via REST`);
+      for (const symbol of symbols) {
         await this.fetchFallbackData(symbol, expectedBarTime);
       }
       return;
     }
 
-    for (const symbol of activeSymbols) {
+    for (const symbol of symbols) {
       await this.checkSymbolData(symbol, expectedBarTime);
     }
   }

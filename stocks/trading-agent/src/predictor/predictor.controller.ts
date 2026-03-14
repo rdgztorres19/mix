@@ -157,6 +157,38 @@ export class PredictorController {
   }
 
   /**
+   * GET /predict/backtest/stream-day?date=...&symbols=MOBX,DLXY,...&fromTime=09:30&toTime=16:00&threshold=0.6&investment=200&tpPct=1.5&slPct=1.5&lookAhead=10
+   * SSE stream: backtest for symbols. If symbols= provided (comma-separated), use those; else getTopMovers(date).
+   * Emits: info (totalSymbols), symbol_done (progress), summary (aggregated TP/FP/TN/FN, P/L, wins/losses/neutrals).
+   */
+  @Sse('backtest/stream-day')
+  backtestStreamDay(
+    @Query('date') date: string,
+    @Query('symbols') symbolsParam?: string,
+    @Query('fromTime') fromTime?: string,
+    @Query('toTime') toTime?: string,
+    @Query('threshold') thresholdStr?: string,
+    @Query('investment') investmentStr?: string,
+    @Query('tpPct') tpPctStr?: string,
+    @Query('slPct') slPctStr?: string,
+    @Query('lookAhead') lookAheadStr?: string,
+  ): Observable<MessageEvent> {
+    if (!date) {
+      throw new HttpException('date is required', HttpStatus.BAD_REQUEST);
+    }
+    const symbols = symbolsParam
+      ? symbolsParam.split(',').map((s) => s.trim().toUpperCase()).filter(Boolean)
+      : undefined;
+    const threshold = thresholdStr ? parseFloat(thresholdStr) : 0.6;
+    const investment = investmentStr ? parseFloat(investmentStr) : 200;
+    const tpPct = tpPctStr ? parseFloat(tpPctStr) : 1.5;
+    const slPct = slPctStr ? parseFloat(slPctStr) : 1.5;
+    const lookAhead = lookAheadStr ? Math.max(1, Math.min(60, parseInt(lookAheadStr, 10) || 10)) : 10;
+    this.logger.log(`SSE /predict/backtest/stream-day ${date} symbols=${symbols?.length ?? 'mysql'} ${fromTime ?? '09:30'}-${toTime ?? '16:00'} thr=${threshold} TP=${tpPct}% SL=${slPct}% lookAhead=${lookAhead}`);
+    return this.predictor.backtestStreamDay(date, fromTime ?? '09:30', toTime ?? '16:00', threshold, investment, tpPct, slPct, lookAhead, symbols);
+  }
+
+  /**
    * POST /predict/backtest
    * Body: { ticker, date, fromTime, toTime, threshold?, investment? }
    * Runs candle-by-candle prediction over a historical window (same as debug-predict.js).

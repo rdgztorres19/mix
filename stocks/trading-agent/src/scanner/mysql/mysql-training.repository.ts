@@ -35,6 +35,25 @@ export class MysqlTrainingRepository {
     }
   }
 
+  /**
+   * Get all distinct symbols in training_1m for a given date.
+   * Used by sync-date-all to know which symbols to re-fetch from Alpaca.
+   */
+  async getSymbolsForDate(dateStr: string): Promise<string[]> {
+    const p = this.getPool();
+    if (!p) return [];
+    try {
+      const [rows] = await p.query<mysql.RowDataPacket[]>(
+        `SELECT DISTINCT symbol FROM training_1m WHERE date = ? ORDER BY symbol`,
+        [dateStr],
+      );
+      return rows.map((r) => String(r.symbol ?? ''));
+    } catch (e) {
+      this.logger.warn(`getSymbolsForDate(${dateStr}) failed: ${(e as Error).message}`);
+      return [];
+    }
+  }
+
   async getAvailableDates(): Promise<string[]> {
     const p = this.getPool();
     if (!p) return [];
@@ -240,7 +259,9 @@ export class MysqlTrainingRepository {
       'high_of_day', 'low_of_day',
       'change_pct_at_candle', 'pre_market_high', 'session',
       'shares_outstanding', 'market_cap', 'gap_pct', 'premarket_volume',
+      'momentum_acumulado',
       'change_1m', 'change_5m', 'change_10m', 'minutes_since_hod',
+      'future_return_5m', 'target', 'target_break_hod_5m', 'max_future_return_10m',
     ];
     const placeholders = cols.map(() => '?').join(',');
     const values = cols.map((c) => row[c] ?? null);
@@ -270,7 +291,9 @@ export class MysqlTrainingRepository {
       'high_of_day', 'low_of_day',
       'change_pct_at_candle', 'pre_market_high', 'session',
       'shares_outstanding', 'market_cap', 'gap_pct', 'premarket_volume',
+      'momentum_acumulado',
       'change_1m', 'change_5m', 'change_10m', 'minutes_since_hod',
+      'future_return_5m', 'target', 'target_break_hod_5m', 'max_future_return_10m',
     ];
 
     const CHUNK = 500;
@@ -287,6 +310,26 @@ export class MysqlTrainingRepository {
       } catch (e) {
         this.logger.warn(`bulkUpsertCandles chunk failed: ${(e as Error).message}`);
       }
+    }
+  }
+
+  /**
+   * Delete ALL candles for a given date (all symbols).
+   * Used before sync-today to clear stale data from previous sources.
+   */
+  async deleteCandlesForDate(dateStr: string): Promise<number> {
+    const p = this.getPool();
+    if (!p) return 0;
+    try {
+      const [result] = await p.query('DELETE FROM training_1m WHERE date = ?', [dateStr]);
+      const deleted = (result as { affectedRows?: number }).affectedRows ?? 0;
+      if (deleted > 0) {
+        this.logger.log(`Deleted ${deleted} rows for date ${dateStr}`);
+      }
+      return deleted;
+    } catch (e) {
+      this.logger.warn(`deleteCandlesForDate(${dateStr}) failed: ${(e as Error).message}`);
+      return 0;
     }
   }
 

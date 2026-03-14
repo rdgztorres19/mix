@@ -50,6 +50,16 @@ function DebugPanelInner({ onClose }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [resyncLoading, setResyncLoading] = useState(false);
+  const [syncDateDate, setSyncDateDate] = useState(() =>
+    new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' })
+  );
+  const [syncDateLoading, setSyncDateLoading] = useState(false);
+  const [syncDateResult, setSyncDateResult] = useState<{
+    ok: boolean;
+    symbols?: number;
+    totalRows?: number;
+    errors?: string[];
+  } | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -82,6 +92,29 @@ function DebugPanelInner({ onClose }: Props) {
       setError(String(msg));
     } finally {
       setResyncLoading(false);
+    }
+  };
+
+  const handleSyncDate = async () => {
+    if (!syncDateDate) return;
+    setSyncDateLoading(true);
+    setSyncDateResult(null);
+    try {
+      const { data: res } = await axios.post<{ ok: boolean; symbols: number; totalRows: number; errors: string[] }>(
+        '/api/collector/sync-date',
+        { date: syncDateDate }
+      );
+      setSyncDateResult(res);
+      if (res.ok) {
+        await fetchData();
+      }
+    } catch (e: unknown) {
+      const msg = e && typeof e === 'object' && 'response' in e
+        ? (e as { response?: { data?: { message?: string } } }).response?.data?.message
+        : e instanceof Error ? e.message : 'Sync failed';
+      setSyncDateResult({ ok: false, errors: [String(msg)] });
+    } finally {
+      setSyncDateLoading(false);
     }
   };
 
@@ -256,23 +289,102 @@ function DebugPanelInner({ onClose }: Props) {
 
             {/* Actions */}
             <Section title="Actions">
-              <button
-                onClick={handleForceResync}
-                disabled={resyncLoading || !data.alpaca.connected}
-                style={{
-                  padding: '8px 16px',
-                  background: resyncLoading || !data.alpaca.connected ? '#1e293b' : 'rgba(59,130,246,0.2)',
-                  border: `1px solid ${resyncLoading || !data.alpaca.connected ? '#334155' : 'rgba(59,130,246,0.5)'}`,
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <button
+                  onClick={handleForceResync}
+                  disabled={resyncLoading || !data.alpaca.connected}
+                  style={{
+                    padding: '8px 16px',
+                    background: resyncLoading || !data.alpaca.connected ? '#1e293b' : 'rgba(59,130,246,0.2)',
+                    border: `1px solid ${resyncLoading || !data.alpaca.connected ? '#334155' : 'rgba(59,130,246,0.5)'}`,
+                    borderRadius: 8,
+                    color: resyncLoading || !data.alpaca.connected ? '#64748b' : '#60a5fa',
+                    cursor: resyncLoading || !data.alpaca.connected ? 'not-allowed' : 'pointer',
+                    fontWeight: 600,
+                    fontSize: 12,
+                    fontFamily: "'JetBrains Mono', monospace",
+                  }}
+                >
+                  {resyncLoading ? 'Resyncing…' : 'Force Resync'}
+                </button>
+
+                {/* Sync all symbols for date */}
+                <div style={{
+                  padding: 12,
+                  background: '#131820',
+                  border: '1px solid #232d3f',
                   borderRadius: 8,
-                  color: resyncLoading || !data.alpaca.connected ? '#64748b' : '#60a5fa',
-                  cursor: resyncLoading || !data.alpaca.connected ? 'not-allowed' : 'pointer',
-                  fontWeight: 600,
-                  fontSize: 12,
-                  fontFamily: "'JetBrains Mono', monospace",
-                }}
-              >
-                {resyncLoading ? 'Resyncing…' : 'Force Resync'}
-              </button>
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8,
+                }}>
+                  <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 4 }}>
+                    Sync All for Date
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <input
+                      type="date"
+                      value={syncDateDate}
+                      onChange={(e) => setSyncDateDate(e.target.value)}
+                      style={{
+                        background: '#0f1520',
+                        border: '1px solid #2d3f55',
+                        borderRadius: 6,
+                        color: '#e2e8f0',
+                        padding: '6px 10px',
+                        fontSize: 12,
+                        fontFamily: "'JetBrains Mono', monospace",
+                        outline: 'none',
+                        colorScheme: 'dark',
+                      }}
+                    />
+                    <button
+                      onClick={handleSyncDate}
+                      disabled={syncDateLoading}
+                      style={{
+                        padding: '6px 14px',
+                        background: syncDateLoading ? '#1e293b' : 'rgba(14,165,233,0.2)',
+                        border: `1px solid ${syncDateLoading ? '#334155' : 'rgba(14,165,233,0.5)'}`,
+                        borderRadius: 6,
+                        color: syncDateLoading ? '#64748b' : '#38bdf8',
+                        cursor: syncDateLoading ? 'not-allowed' : 'pointer',
+                        fontWeight: 600,
+                        fontSize: 12,
+                        fontFamily: "'JetBrains Mono', monospace",
+                      }}
+                    >
+                      {syncDateLoading ? 'Sync…' : 'Sync All from Alpaca'}
+                    </button>
+                  </div>
+                  <div style={{ fontSize: 10, color: '#64748b' }}>
+                    Para la fecha seleccionada, toma todos los símbolos que existen en la DB, busca 1m bars en Alpaca, borra existentes y vuelve a insertar con features unificados.
+                  </div>
+                  {syncDateResult && (
+                    <div style={{
+                      padding: 8,
+                      borderRadius: 6,
+                      background: syncDateResult.ok ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                      border: `1px solid ${syncDateResult.ok ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                      color: syncDateResult.ok ? '#4ade80' : '#f87171',
+                      fontSize: 11,
+                    }}>
+                      {syncDateResult.ok ? (
+                        <>✅ {syncDateResult.symbols ?? 0} símbolos, {syncDateResult.totalRows ?? 0} filas insertadas</>
+                      ) : (
+                        <div>
+                          <div>❌ {syncDateResult.errors?.length ?? 0} errores</div>
+                          {syncDateResult.errors?.slice(0, 5).map((err, i) => (
+                            <div key={i} style={{ fontSize: 10, marginTop: 4, opacity: 0.9 }}>{err}</div>
+                          ))}
+                          {(syncDateResult.errors?.length ?? 0) > 5 && (
+                            <div style={{ fontSize: 10, marginTop: 4 }}>… y {(syncDateResult.errors?.length ?? 0) - 5} más</div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
             </Section>
           </>
         ) : null}

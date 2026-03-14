@@ -151,32 +151,22 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     df["dist_pm_high"] = _safe_div(c - pmh, np.maximum(np.abs(pmh), 1e-6))
     df["atr_rel"] = _safe_div(atr, np.maximum(np.abs(c), 1e-6))
 
-    # Break signals
-    df["break_hod"] = (c > hod).astype(np.float64)
-    df["break_pm_high"] = (c > pmh).astype(np.float64)
+    # Break signals (overwritten per-group with prev_hod logic)
 
     # Range expansion
     day_range = np.maximum(hod - lod, 1e-6)
     df["range_expansion"] = _safe_div(h - lo, day_range)
     df["pct_of_day_range"] = _safe_div(c - lod, day_range)
 
-    # Spread estimate (proxy)
+    # Spread estimate (proxy) — alias bar_range_pct (rango relativo de la vela)
     df["spread_estimate"] = _safe_div(h - lo, np.maximum(np.abs(c), 1e-6))
+    df["bar_range_pct"] = df["spread_estimate"]
 
     # Dollar volume
     df["dollar_volume"] = c * v
 
     # Distance to round number
     df["dist_to_round_number"] = np.minimum(c % 1.0, 1.0 - (c % 1.0))
-
-    # Gap-filled flag (price crossed back through the gap)
-    if "gap_pct" in df.columns:
-        gap = df["gap_pct"].values.astype(np.float64)
-        # If gap was positive and price is now below open, gap is filled (and vice versa)
-        open_day = o  # approximate: first candle open
-        df["gap_filled"] = ((gap > 0) & (c < open_day) | (gap < 0) & (c > open_day)).astype(np.float64)
-    else:
-        df["gap_filled"] = 0.0
 
     # --- Per-group features (need rolling within symbol+date) ---
     grouped_frames = []
@@ -190,9 +180,51 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
 
     for _key, grp in groups:
         grp = grp.copy()
+        go = grp["open"].values.astype(np.float64)
+        gh = grp["high"].values.astype(np.float64)
         gc = grp["close"].values.astype(np.float64)
         gv = grp["volume"].values.astype(np.float64)
         gatr = grp["atr"].values.astype(np.float64) if "atr" in grp.columns else np.ones(len(grp))
+        ghod = grp["high_of_day"].values.astype(np.float64) if "high_of_day" in grp.columns else gh.copy()
+
+        # prev_hod: rolling max of high EXCLUDING current bar (for breakout logic)
+        running_max_h = np.maximum.accumulate(gh)
+        prev_hod = np.zeros(len(gh))
+        prev_hod[1:] = running_max_h[:-1]
+
+        # break_hod, break_prev_hod: use prev_hod (distance to prior high)
+        grp["break_hod"] = (gc > prev_hod).astype(np.float64)
+        grp["break_prev_hod_high"] = (gh > prev_hod).astype(np.float64)
+        grp["break_prev_hod_close"] = (gc > prev_hod).astype(np.float64)
+        grp["dist_prev_hod_pct"] = _safe_div(gc - prev_hod, np.maximum(np.abs(prev_hod), 1e-6))
+
+        # break_pm_high: high and close versions (pre_market_high is scalar per day)
+        gpmh = grp["pre_market_high"].values.astype(np.float64) if "pre_market_high" in grp.columns else gh.copy()
+        grp["break_pm_high"] = (gc > gpmh).astype(np.float64)
+        grp["high_break_pm_high"] = (gh > gpmh).astype(np.float64)
+
+        # day_open: first candle open of the day (correct reference for gap_filled)
+        day_open = go[0]
+
+        # gap_filled: price crossed back through day open (corrected)
+        if "gap_pct" in grp.columns:
+            gap = grp["gap_pct"].values.astype(np.float64)
+            grp["gap_filled"] = ((gap > 0) & (gc < day_open) | (gap < 0) & (gc > day_open)).astype(np.float64)
+        else:
+            grp["gap_filled"] = 0.0
+
+        # dist_gap → dist_day_open: distance to day open (more interpretable)
+        grp["dist_gap"] = _safe_div(gc - day_open, np.maximum(np.abs(day_open), 1e-6))
+        grp["dist_day_open"] = grp["dist_gap"]
+        grp["close_vs_day_open"] = grp["dist_gap"]
+
+        # max_high_last_5_excl_current, break_high_5: rupture of recent 5-bar high
+        max_high_5 = np.zeros(len(gh))
+        for i in range(1, len(gh)):
+            start = max(0, i - 5)
+            max_high_5[i] = np.max(gh[start:i])
+        grp["max_high_last_5_excl_current"] = max_high_5
+        grp["break_high_5"] = (gh > max_high_5).astype(np.float64)
 
         # Volume features
         vol_mean20 = _rolling_mean(gv, 20)
@@ -280,26 +312,20 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
         else:
             grp["float_rotation"] = 0.0
 
-        # Gap-related distance
-        if "gap_pct" in grp.columns:
-            gap = grp["gap_pct"].values.astype(np.float64)
-            grp["dist_gap"] = _safe_div(gc - gc[0] * (1 + gap), np.maximum(np.abs(gc), 1e-6))
-        else:
-            grp["dist_gap"] = 0.0
-
         # Relative range (current bar range / avg range 20)
         bar_range = grp["high"].values - grp["low"].values
         avg_range_20 = _rolling_mean(bar_range, 20)
         grp["relative_range"] = _safe_div(bar_range, np.maximum(avg_range_20, 1e-6))
 
-        # Momentum divergence: price momentum vs volume momentum
+        # Momentum divergence: price momentum vs volume momentum (causal: rolling std)
         price_mom_5 = grp["mom_5"].values
         vol_mom_5 = gv - np.roll(gv, 5)
         vol_mom_5[:5] = 0
-        # Normalize both to z-scores for comparison
-        pm_std = np.std(price_mom_5) if np.std(price_mom_5) > 0 else 1
-        vm_std = np.std(vol_mom_5) if np.std(vol_mom_5) > 0 else 1
-        grp["momentum_divergence"] = (price_mom_5 / pm_std) - (vol_mom_5 / vm_std)
+        pm_roll_std = _rolling_std(price_mom_5, 20)
+        vm_roll_std = _rolling_std(vol_mom_5, 20)
+        pm_z = _safe_div(price_mom_5, np.maximum(pm_roll_std, 1e-8))
+        vm_z = _safe_div(vol_mom_5, np.maximum(vm_roll_std, 1e-8))
+        grp["momentum_divergence"] = pm_z - vm_z
 
         grouped_frames.append(grp)
 
@@ -389,11 +415,82 @@ for _name in ["FEATURE_SET_B", "FEATURE_SET_C", "FEATURE_SET_D", "FEATURE_SET_F"
             _deduped.append(_f)
     globals()[_name] = _deduped
 
+# D_clean: features causales, menos ruido, alineadas con momentum intradía
+FEATURE_SET_D_CLEAN = [
+    "candle_idx", "open", "high", "low", "close", "volume",
+    "atr", "vwap", "ema9", "ema20", "high_of_day", "low_of_day",
+    "pre_market_high", "shares_outstanding", "market_cap",
+    "gap_pct", "premarket_volume",
+    "change_pct_at_candle", "change_1m", "change_5m", "change_10m",
+    "minutes_since_hod",
+    "minute_of_day", "time_since_open_min",
+    "is_premarket", "is_first_30min", "is_open", "is_midday", "is_power_hour",
+    "body_pct", "upper_wick_pct", "lower_wick_pct", "is_green",
+    "bar_range_vs_atr",
+    "dist_vwap_pct", "dist_hod_pct", "dist_lod_pct",
+    "dist_ema9", "dist_ema20", "dist_pm_high",
+    "atr_rel", "range_expansion", "pct_of_day_range",
+    "dollar_volume", "volume_rel", "volume_spike", "volume_acceleration",
+    "relative_dollar_volume", "float_rotation",
+    "rsi", "roc_5", "roc_10", "return_lag_1", "return_lag_2",
+    "mom_5", "mom_10", "momentum_acceleration",
+    "volatility_15m", "volatility_ratio",
+    "consecutive_green", "consecutive_red", "consolidation_score",
+    "vwap_cross_up", "relative_range",
+    "dist_prev_hod_pct", "break_prev_hod_high", "break_prev_hod_close",
+    "dist_day_open", "close_vs_day_open", "break_high_5",
+]
+
+# D1: core momentum — retornos, volumen, distancias VWAP/EMA, volatilidad, time
+FEATURE_SET_D1 = FEATURE_SET_A + [
+    "minute_of_day", "time_since_open_min",
+    "is_premarket", "is_first_30min", "is_open", "is_midday", "is_power_hour",
+    "volume_rel", "volume_spike", "volume_acceleration",
+    "dist_vwap_pct", "dist_ema9", "dist_ema20", "atr_rel",
+    "rsi", "roc_5", "roc_10", "return_lag_1", "return_lag_2",
+    "mom_5", "mom_10", "momentum_acceleration",
+    "volatility_15m", "volatility_ratio",
+]
+
+# D2: breakout structure — distancia HOD previo, ruptura, range, compression, body/wicks
+FEATURE_SET_D2 = FEATURE_SET_A + [
+    "body_pct", "upper_wick_pct", "lower_wick_pct", "is_green",
+    "bar_range_vs_atr", "range_expansion", "pct_of_day_range", "relative_range",
+    "dist_hod_pct", "dist_prev_hod_pct",
+    "break_prev_hod_high", "break_prev_hod_close", "break_high_5",
+    "consolidation_score",
+]
+
+# D3: liquidity/context — dollar volume, float rotation, session flags
+FEATURE_SET_D3 = FEATURE_SET_A + [
+    "dollar_volume", "relative_dollar_volume", "float_rotation",
+    "minute_of_day", "time_since_open_min",
+    "is_premarket", "is_first_30min", "is_open", "is_midday", "is_power_hour",
+]
+
+# D_clean_extended: D_clean + bar_range_pct (alias spread_estimate)
+FEATURE_SET_D_CLEAN_EXT = list(FEATURE_SET_D_CLEAN) + ["bar_range_pct"]
+
+# Dedupe new sets
+for _name in ["FEATURE_SET_D_CLEAN", "FEATURE_SET_D1", "FEATURE_SET_D2", "FEATURE_SET_D3", "FEATURE_SET_D_CLEAN_EXT"]:
+    _lst = globals()[_name]
+    _seen = set()
+    _deduped = []
+    for _f in _lst:
+        if _f not in _seen:
+            _seen.add(_f)
+            _deduped.append(_f)
+    globals()[_name] = _deduped
 
 FEATURE_SETS = {
-    "A_base": FEATURE_SET_A,           # 23 feats
-    "B_enriched": FEATURE_SET_B,       # ~52 feats
-    "C_price_action": FEATURE_SET_C,   # ~36 feats
-    "D_all": FEATURE_SET_D,            # ~70 feats
-    "F_price_vol_time": FEATURE_SET_F, # ~43 feats
+    "A_base": FEATURE_SET_A,
+    "B_enriched": FEATURE_SET_B,
+    "C_price_action": FEATURE_SET_C,
+    "D_all": FEATURE_SET_D,
+    "F_price_vol_time": FEATURE_SET_F,
+    "D_clean": FEATURE_SET_D_CLEAN,
+    "D1_core_momentum": FEATURE_SET_D1,
+    "D2_breakout_structure": FEATURE_SET_D2,
+    "D3_liquidity_context": FEATURE_SET_D3,
+    "D_clean_ext": FEATURE_SET_D_CLEAN_EXT,
 }

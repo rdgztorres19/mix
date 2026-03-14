@@ -72,14 +72,14 @@ function timeToMin(t) {
 const fromMin = timeToMin(fromTime);
 const toMin = timeToMin(toTime);
 
-// ─── Python predict ──────────────────────────────────────────────────────────
+// ─── Python predict (batch mode for speed) ────────────────────────────────────
 const stockTraining = path.resolve(__dirname, '..', '..', 'stock-training');
-const predictScript = path.join(stockTraining, 'ml', 'experiments', 'predict.py');
+const predictBatchScript = path.join(stockTraining, 'ml', 'experiments', 'predict_batch.py');
 
-function callPredict(payload) {
+function callPredictBatch(batch, threshold) {
   return new Promise((resolve, reject) => {
-    const proc = spawn('python3', [predictScript], {
-      cwd: path.dirname(predictScript),
+    const proc = spawn('python3', [predictBatchScript], {
+      cwd: path.dirname(predictBatchScript),
       stdio: ['pipe', 'pipe', 'pipe'],
     });
     let stdout = '';
@@ -91,10 +91,13 @@ function callPredict(payload) {
         reject(new Error(stderr || `exit ${code}, stdout="${stdout}"`));
         return;
       }
-      try { resolve(JSON.parse(stdout)); }
-      catch { reject(new Error(`Bad JSON: ${stdout}`)); }
+      try {
+        const out = JSON.parse(stdout);
+        if (out.error) reject(new Error(out.error));
+        else resolve(out.results || []);
+      } catch { reject(new Error(`Bad JSON: ${stdout}`)); }
     });
-    proc.stdin.write(JSON.stringify(payload), () => proc.stdin.end());
+    proc.stdin.write(JSON.stringify({ batch, _threshold: threshold }), () => proc.stdin.end());
   });
 }
 
@@ -155,6 +158,36 @@ async function main() {
 
   console.log(`Found ${rows.length} total candles, iterating ${targetRows.length} in window\n`);
 
+  // Build all payloads for batch predict (one Python process, one model load)
+  const payloads = targetRows.map(({ idx, row }) => {
+    const candlesSlice = allCandles.slice(0, idx + 1);
+    const targetRow = row;
+    return {
+      candles: candlesSlice,
+      target_idx: candlesSlice.length - 1,
+      candle_times_et: allCandleTimesEt.slice(0, idx + 1),
+      candle_idx_arr: allCandleIdxArr.slice(0, idx + 1),
+      atr: Number(targetRow.atr || 0),
+      high_of_day: Number(targetRow.high_of_day || 0),
+      low_of_day: Number(targetRow.low_of_day || 0),
+      pre_market_high: Number(targetRow.pre_market_high || 0),
+      change_pct_at_candle: Number(targetRow.change_pct_at_candle || 0),
+      shares_outstanding: Number(targetRow.shares_outstanding || 0),
+      market_cap: Number(targetRow.market_cap || 0),
+      gap_pct: Number(targetRow.gap_pct || 0),
+      premarket_volume: Number(targetRow.premarket_volume || 0),
+    };
+  });
+
+  let results = [];
+  try {
+    results = await callPredictBatch(payloads, THRESHOLD);
+  } catch (e) {
+    console.error('Batch predict failed:', e.message);
+    await conn.end();
+    process.exit(1);
+  }
+
   // Table header
   const INVESTMENT = 200; // dollars per trade
   const tpDec = TP_PCT / 100;
@@ -181,53 +214,27 @@ async function main() {
   let tp = 0, fp = 0, tn = 0, fn = 0;
   let cumPnL = 0;
 
-  for (const { idx, row, time } of targetRows) {
-    // Send all candles up to and including this one
-    const candlesSlice = allCandles.slice(0, idx + 1);
+  for (let i = 0; i < targetRows.length; i++) {
+    const { idx, row, time } = targetRows[i];
     const targetRow = row;
-
-    const payload = {
-      candles: candlesSlice,
-      target_idx: candlesSlice.length - 1,
-      candle_times_et: allCandleTimesEt.slice(0, idx + 1),
-      candle_idx_arr: allCandleIdxArr.slice(0, idx + 1),
-      atr: Number(targetRow.atr || 0),
-      high_of_day: Number(targetRow.high_of_day || 0),
-      low_of_day: Number(targetRow.low_of_day || 0),
-      pre_market_high: Number(targetRow.pre_market_high || 0),
-      change_pct_at_candle: Number(targetRow.change_pct_at_candle || 0),
-      shares_outstanding: Number(targetRow.shares_outstanding || 0),
-      market_cap: Number(targetRow.market_cap || 0),
-      gap_pct: Number(targetRow.gap_pct || 0),
-      premarket_volume: Number(targetRow.premarket_volume || 0),
-      _threshold: THRESHOLD,
-    };
-
-    let prob = 0, tradeable = false;
-    try {
-      const result = await callPredict(payload);
-      prob = result.prob;
-      tradeable = result.tradeable;
-    } catch (e) {
-      process.stderr.write(`  ⚠ ${time}: ${e.message}\n`);
-    }
+    const r = results[i] || {};
+    const prob = r.prob ?? 0;
+    const tradeable = r.tradeable ?? false;
 
     // Actual: max_future_return_10m & TP/SL simulation
     const mfr = Number(targetRow.max_future_return_10m || 0);
     const realGood = mfr >= tpDec;
-    const futureCandles = rows.slice(idx + 1, idx + 11).map((r) => ({
-      o: Number(r.open || 0),
-      h: Number(r.high || 0),
-      l: Number(r.low || 0),
-      c: Number(r.close || 0),
+    const futureCandles = rows.slice(idx + 1, idx + 11).map((row) => ({
+      o: Number(row.open || 0),
+      h: Number(row.high || 0),
+      l: Number(row.low || 0),
+      c: Number(row.close || 0),
     }));
     const tpSlResult = hitTpBeforeSl(futureCandles, Number(targetRow.close || 0), tpDec, slDec);
-    // Solo mostrar win/loss/— cuando Trade=true (entramos); si no entramos, dejar vacío
     const tpSlStr = tradeable
       ? (tpSlResult === 'win' ? '  win' : tpSlResult === 'loss' ? ' loss' : '  —')
       : '    ';
 
-    // Confusion matrix (Real≥TP% vs tradeable)
     if (tradeable && realGood) tp++;
     else if (tradeable && !realGood) fp++;
     else if (!tradeable && realGood) fn++;
@@ -235,7 +242,6 @@ async function main() {
 
     const match = tradeable === realGood;
 
-    // P/L: if traded, use TP/SL outcome when available; else mfr
     let pnl = 0;
     if (tradeable) {
       if (tpSlResult === 'win') pnl = INVESTMENT * tpDec;

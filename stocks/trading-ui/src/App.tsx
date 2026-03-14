@@ -52,6 +52,8 @@ export default function App() {
   const [showLogs, setShowLogs] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [syncLoading, setSyncLoading] = useState(false);
+  const [showSyncSourceDropdown, setShowSyncSourceDropdown] = useState(false);
+  const syncSourceDropdownRef = useRef<HTMLDivElement>(null);
 
   // Date picker: today by default, historical dates → MySQL (stock-training)
   const getTodayET = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
@@ -208,21 +210,31 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [simMode, simDatetime, selectedDate]);
 
-  const handleSyncToday = useCallback(async () => {
+  type SyncSource = 'hpg' | 'alpaca_screener';
+
+  const handleSyncToday = useCallback(async (source: SyncSource) => {
     if (syncLoading) return;
+    setShowSyncSourceDropdown(false);
     setSyncLoading(true);
     try {
-      const { data } = await axios.post<{ ok: boolean; skipped?: boolean; reason?: string }>(
-        '/api/collector/sync-today',
-      );
+      const { data } = await axios.post<{
+        ok: boolean;
+        symbols?: number;
+        totalRows?: number;
+        skipped?: boolean;
+        reason?: string;
+      }>('/api/collector/sync-today', { source });
       if (data.skipped) {
-        const reason = data.reason === 'after_hours' ? 'after hours' : 'no symbols activos';
+        const reason = data.reason === 'after_hours' ? 'after hours' : data.reason === 'no_symbols' ? 'no symbols' : data.reason ?? 'unknown';
         addToast(`Sync hoy omitido: ${reason}`, '#f59e0b');
+      } else if (data.ok && data.symbols != null) {
+        const rows = data.totalRows != null ? `, ${data.totalRows} rows` : '';
+        addToast(`Sync hoy: ${data.symbols} símbolos${rows}`, '#22c55e');
       } else {
-        addToast('Sync hoy iniciado', '#22c55e');
+        addToast('Sync hoy completado', '#22c55e');
       }
     } catch (e: any) {
-      addToast(e?.response?.data?.message || e.message || 'Sync hoy fallo', '#ef4444');
+      addToast(e?.response?.data?.message || e.message || 'Sync hoy falló', '#ef4444');
     } finally {
       setSyncLoading(false);
     }
@@ -311,6 +323,18 @@ export default function App() {
       .then(({ data }) => setAvailableDates(data.dates ?? []))
       .catch(() => setAvailableDates([]));
   }, []);
+
+  // Close sync source dropdown on click outside
+  useEffect(() => {
+    if (!showSyncSourceDropdown) return;
+    const onOutside = (e: MouseEvent) => {
+      if (syncSourceDropdownRef.current && !syncSourceDropdownRef.current.contains(e.target as Node)) {
+        setShowSyncSourceDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', onOutside);
+    return () => document.removeEventListener('mousedown', onOutside);
+  }, [showSyncSourceDropdown]);
 
   const onDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const d = e.target.value;
@@ -674,25 +698,92 @@ export default function App() {
             <span style={{ fontSize: 10, color: '#64748b', whiteSpace: 'nowrap' }}>ET</span>
           </div>
 
-          <button
-            onClick={handleSyncToday}
-            disabled={!isToday || syncLoading}
-            title={isToday ? 'Sync candles del dia de hoy (momo)' : 'Solo disponible para hoy'}
-            style={{
-              padding: '7px 10px',
-              background: syncLoading ? '#1f2937' : 'rgba(14,165,233,0.15)',
-              border: `1px solid ${syncLoading ? '#334155' : 'rgba(14,165,233,0.5)'}`,
-              borderRadius: 8,
-              color: syncLoading ? '#64748b' : '#38bdf8',
-              cursor: (!isToday || syncLoading) ? 'not-allowed' : 'pointer',
-              fontSize: 12,
-              fontWeight: 700,
-              fontFamily: "'JetBrains Mono', monospace",
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {syncLoading ? 'Sync...' : 'Sync hoy'}
-          </button>
+          <div ref={syncSourceDropdownRef} style={{ position: 'relative' }}>
+            <button
+              onClick={() => isToday && !syncLoading && setShowSyncSourceDropdown((v) => !v)}
+              disabled={!isToday || syncLoading}
+              title={isToday ? 'Sync candles del día (elegir fuente: HPG o Alpaca Screener)' : 'Solo disponible para hoy'}
+              style={{
+                padding: '7px 10px',
+                background: syncLoading ? '#1f2937' : 'rgba(14,165,233,0.15)',
+                border: `1px solid ${syncLoading ? '#334155' : showSyncSourceDropdown ? 'rgba(14,165,233,0.8)' : 'rgba(14,165,233,0.5)'}`,
+                borderRadius: 8,
+                color: syncLoading ? '#64748b' : '#38bdf8',
+                cursor: (!isToday || syncLoading) ? 'not-allowed' : 'pointer',
+                fontSize: 12,
+                fontWeight: 700,
+                fontFamily: "'JetBrains Mono', monospace",
+                whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              {syncLoading ? 'Sync...' : 'Sync hoy'}
+              {!syncLoading && isToday && (
+                <span style={{ fontSize: 10, opacity: 0.8 }}>▼</span>
+              )}
+            </button>
+            {showSyncSourceDropdown && isToday && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  marginTop: 4,
+                  background: '#1a2030',
+                  border: '1px solid #2d3f55',
+                  borderRadius: 8,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                  zIndex: 100,
+                  minWidth: 220,
+                  overflow: 'hidden',
+                }}
+              >
+                <button
+                  onClick={() => handleSyncToday('hpg')}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '10px 14px',
+                    textAlign: 'left',
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#e2e8f0',
+                    fontSize: 12,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    cursor: 'pointer',
+                    transition: 'background 0.15s',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#232d3f'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  HPG (hpg-charts.workers.dev)
+                </button>
+                <button
+                  onClick={() => handleSyncToday('alpaca_screener')}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '10px 14px',
+                    textAlign: 'left',
+                    background: 'transparent',
+                    border: 'none',
+                    borderTop: '1px solid #2d3f55',
+                    color: '#e2e8f0',
+                    fontSize: 12,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    cursor: 'pointer',
+                    transition: 'background 0.15s',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#232d3f'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  Alpaca Screener
+                </button>
+              </div>
+            )}
+          </div>
 
         </div>
 
