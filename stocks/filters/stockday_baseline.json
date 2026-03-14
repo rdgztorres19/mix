@@ -1,0 +1,11 @@
+{
+  "count": 2064,
+  "goods": 890,
+  "bads": 1106,
+  "neutrals": 68,
+  "goodRate": 0.4312015503875969,
+  "badRate": 0.5358527131782945,
+  "neutralRate": 0.03294573643410853,
+  "avgFutureMaxReturn": 0.060410601602351476,
+  "avgFutureMinReturn": -0.037813049863653685
+}

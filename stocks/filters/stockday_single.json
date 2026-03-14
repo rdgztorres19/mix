@@ -1,0 +1,577 @@
+[
+  {
+    "rule": "premarket_dollar_volume <= 398901.747075",
+    "conditions": [
+      {
+        "feature": "premarket_dollar_volume",
+        "type": "lte",
+        "value": 398901.747075
+      }
+    ],
+    "stats": {
+      "count": 516,
+      "goods": 336,
+      "bads": 156,
+      "neutrals": 24,
+      "goodRate": 0.6511627906976745,
+      "badRate": 0.3023255813953488,
+      "neutralRate": 0.046511627906976744,
+      "avgFutureMaxReturn": 0.08307382841493227,
+      "avgFutureMinReturn": -0.02123668073137259
+    },
+    "score": 1.5628003587279837,
+    "lift": 0.21996124031007758
+  },
+  {
+    "rule": "premarket_volume <= 90669.25",
+    "conditions": [
+      {
+        "feature": "premarket_volume",
+        "type": "lte",
+        "value": 90669.25
+      }
+    ],
+    "stats": {
+      "count": 516,
+      "goods": 329,
+      "bads": 160,
+      "neutrals": 27,
+      "goodRate": 0.6375968992248062,
+      "badRate": 0.31007751937984496,
+      "neutralRate": 0.05232558139534884,
+      "avgFutureMaxReturn": 0.08353717329692419,
+      "avgFutureMinReturn": -0.020451636718863755
+    },
+    "score": 1.1665974508814523,
+    "lift": 0.20639534883720934
+  },
+  {
+    "rule": "close_gt_ema9 == NA",
+    "conditions": [
+      {
+        "feature": "close_gt_ema9",
+        "type": "eq",
+        "value": "NA"
+      }
+    ],
+    "stats": {
+      "count": 239,
+      "goods": 149,
+      "bads": 76,
+      "neutrals": 14,
+      "goodRate": 0.6234309623430963,
+      "badRate": 0.3179916317991632,
+      "neutralRate": 0.058577405857740586,
+      "avgFutureMaxReturn": 0.08603381736116646,
+      "avgFutureMinReturn": -0.021709560798652078
+    },
+    "score": 0.5137789269005604,
+    "lift": 0.19222941195549936
+  },
+  {
+    "rule": "ema9_gt_ema20 == NA",
+    "conditions": [
+      {
+        "feature": "ema9_gt_ema20",
+        "type": "eq",
+        "value": "NA"
+      }
+    ],
+    "stats": {
+      "count": 346,
+      "goods": 213,
+      "bads": 114,
+      "neutrals": 19,
+      "goodRate": 0.615606936416185,
+      "badRate": 0.32947976878612717,
+      "neutralRate": 0.05491329479768786,
+      "avgFutureMaxReturn": 0.08668790571371797,
+      "avgFutureMinReturn": -0.02080888493234789
+    },
+    "score": 0.36579947551025727,
+    "lift": 0.18440538602858814
+  },
+  {
+    "rule": "close_gt_ema20 == NA",
+    "conditions": [
+      {
+        "feature": "close_gt_ema20",
+        "type": "eq",
+        "value": "NA"
+      }
+    ],
+    "stats": {
+      "count": 346,
+      "goods": 213,
+      "bads": 114,
+      "neutrals": 19,
+      "goodRate": 0.615606936416185,
+      "badRate": 0.32947976878612717,
+      "neutralRate": 0.05491329479768786,
+      "avgFutureMaxReturn": 0.08668790571371797,
+      "avgFutureMinReturn": -0.02080888493234789
+    },
+    "score": 0.36579947551025727,
+    "lift": 0.18440538602858814
+  },
+  {
+    "rule": "distance_to_pm_high_pct <= 0.043062",
+    "conditions": [
+      {
+        "feature": "distance_to_pm_high_pct",
+        "type": "lte",
+        "value": 0.0430619424
+      }
+    ],
+    "stats": {
+      "count": 498,
+      "goods": 298,
+      "bads": 167,
+      "neutrals": 33,
+      "goodRate": 0.5983935742971888,
+      "badRate": 0.3353413654618474,
+      "neutralRate": 0.06626506024096386,
+      "avgFutureMaxReturn": 0.07693213532841178,
+      "avgFutureMinReturn": -0.025228428936159338
+    },
+    "score": -0.010681708902835268,
+    "lift": 0.16719202390959187
+  },
+  {
+    "rule": "dollar_volume <= 63157.806425",
+    "conditions": [
+      {
+        "feature": "dollar_volume",
+        "type": "lte",
+        "value": 63157.806425
+      }
+    ],
+    "stats": {
+      "count": 516,
+      "goods": 315,
+      "bads": 187,
+      "neutrals": 14,
+      "goodRate": 0.6104651162790697,
+      "badRate": 0.3624031007751938,
+      "neutralRate": 0.027131782945736434,
+      "avgFutureMaxReturn": 0.07738185591175809,
+      "avgFutureMinReturn": -0.023466279774836927
+    },
+    "score": -0.04402254531628127,
+    "lift": 0.17926356589147285
+  },
+  {
+    "rule": "distance_to_hod_pct <= 0.039359",
+    "conditions": [
+      {
+        "feature": "distance_to_hod_pct",
+        "type": "lte",
+        "value": 0.0393590197
+      }
+    ],
+    "stats": {
+      "count": 516,
+      "goods": 304,
+      "bads": 172,
+      "neutrals": 40,
+      "goodRate": 0.5891472868217055,
+      "badRate": 0.3333333333333333,
+      "neutralRate": 0.07751937984496124,
+      "avgFutureMaxReturn": 0.07954569431259065,
+      "avgFutureMinReturn": -0.022768255376907152
+    },
+    "score": -0.1981014539232638,
+    "lift": 0.15794573643410859
+  },
+  {
+    "rule": "minutes_since_hod <= 7",
+    "conditions": [
+      {
+        "feature": "minutes_since_hod",
+        "type": "lte",
+        "value": 7
+      }
+    ],
+    "stats": {
+      "count": 524,
+      "goods": 310,
+      "bads": 192,
+      "neutrals": 22,
+      "goodRate": 0.5916030534351145,
+      "badRate": 0.366412213740458,
+      "neutralRate": 0.04198473282442748,
+      "avgFutureMaxReturn": 0.07907536301097269,
+      "avgFutureMinReturn": -0.0261360017895298
+    },
+    "score": -0.5220212416058089,
+    "lift": 0.16040150304751766
+  },
+  {
+    "rule": "premarket_dollar_volume <= 11289899.30735",
+    "conditions": [
+      {
+        "feature": "premarket_dollar_volume",
+        "type": "lte",
+        "value": 11289899.30735
+      }
+    ],
+    "stats": {
+      "count": 1032,
+      "goods": 588,
+      "bads": 403,
+      "neutrals": 41,
+      "goodRate": 0.5697674418604651,
+      "badRate": 0.3905038759689923,
+      "neutralRate": 0.03972868217054264,
+      "avgFutureMaxReturn": 0.07299275799827204,
+      "avgFutureMinReturn": -0.027230544217441054
+    },
+    "score": -1.821025458616719,
+    "lift": 0.13856589147286824
+  },
+  {
+    "rule": "distance_to_hod_pct <= 0.141418",
+    "conditions": [
+      {
+        "feature": "distance_to_hod_pct",
+        "type": "lte",
+        "value": 0.1414184575
+      }
+    ],
+    "stats": {
+      "count": 1032,
+      "goods": 572,
+      "bads": 407,
+      "neutrals": 53,
+      "goodRate": 0.5542635658914729,
+      "badRate": 0.3943798449612403,
+      "neutralRate": 0.05135658914728682,
+      "avgFutureMaxReturn": 0.07219212186262552,
+      "avgFutureMinReturn": -0.02790504773319274
+    },
+    "score": -2.38134098434494,
+    "lift": 0.12306201550387597
+  },
+  {
+    "rule": "premarket_volume <= 1916814.5",
+    "conditions": [
+      {
+        "feature": "premarket_volume",
+        "type": "lte",
+        "value": 1916814.5
+      }
+    ],
+    "stats": {
+      "count": 1032,
+      "goods": 572,
+      "bads": 414,
+      "neutrals": 46,
+      "goodRate": 0.5542635658914729,
+      "badRate": 0.4011627906976744,
+      "neutralRate": 0.044573643410852716,
+      "avgFutureMaxReturn": 0.07194649181885171,
+      "avgFutureMinReturn": -0.02762893007399598
+    },
+    "score": -2.490291225458761,
+    "lift": 0.12306201550387597
+  },
+  {
+    "rule": "distance_to_pm_high_pct <= 0.15153",
+    "conditions": [
+      {
+        "feature": "distance_to_pm_high_pct",
+        "type": "lte",
+        "value": 0.1515296488
+      }
+    ],
+    "stats": {
+      "count": 996,
+      "goods": 547,
+      "bads": 403,
+      "neutrals": 46,
+      "goodRate": 0.5491967871485943,
+      "badRate": 0.4046184738955823,
+      "neutralRate": 0.04618473895582329,
+      "avgFutureMaxReturn": 0.07118091808598183,
+      "avgFutureMinReturn": -0.029024879626669272
+    },
+    "score": -2.6609049635394078,
+    "lift": 0.11799523676099744
+  },
+  {
+    "rule": "dollar_volume <= 340283.5809",
+    "conditions": [
+      {
+        "feature": "dollar_volume",
+        "type": "lte",
+        "value": 340283.5809
+      }
+    ],
+    "stats": {
+      "count": 1032,
+      "goods": 542,
+      "bads": 463,
+      "neutrals": 27,
+      "goodRate": 0.5251937984496124,
+      "badRate": 0.4486434108527132,
+      "neutralRate": 0.02616279069767442,
+      "avgFutureMaxReturn": 0.0683297697902899,
+      "avgFutureMinReturn": -0.030524150563923668
+    },
+    "score": -4.186802122802541,
+    "lift": 0.09399224806201556
+  },
+  {
+    "rule": "minutes_since_hod <= 60",
+    "conditions": [
+      {
+        "feature": "minutes_since_hod",
+        "type": "lte",
+        "value": 60
+      }
+    ],
+    "stats": {
+      "count": 1047,
+      "goods": 540,
+      "bads": 459,
+      "neutrals": 48,
+      "goodRate": 0.5157593123209169,
+      "badRate": 0.4383954154727794,
+      "neutralRate": 0.045845272206303724,
+      "avgFutureMaxReturn": 0.07060339761346222,
+      "avgFutureMinReturn": -0.03215110435209926
+    },
+    "score": -4.356595805342592,
+    "lift": 0.08455776193331999
+  },
+  {
+    "rule": "close_gt_vwap == 1",
+    "conditions": [
+      {
+        "feature": "close_gt_vwap",
+        "type": "eq",
+        "value": "1"
+      }
+    ],
+    "stats": {
+      "count": 754,
+      "goods": 371,
+      "bads": 350,
+      "neutrals": 33,
+      "goodRate": 0.4920424403183024,
+      "badRate": 0.46419098143236076,
+      "neutralRate": 0.04376657824933687,
+      "avgFutureMaxReturn": 0.07007774135874614,
+      "avgFutureMinReturn": -0.035501457729547235
+    },
+    "score": -4.702490432824404,
+    "lift": 0.06084088993070552
+  },
+  {
+    "rule": "distance_to_vwap_pct >= -0.013135",
+    "conditions": [
+      {
+        "feature": "distance_to_vwap_pct",
+        "type": "gte",
+        "value": -0.0131353454
+      }
+    ],
+    "stats": {
+      "count": 1032,
+      "goods": 519,
+      "bads": 456,
+      "neutrals": 57,
+      "goodRate": 0.502906976744186,
+      "badRate": 0.4418604651162791,
+      "neutralRate": 0.055232558139534885,
+      "avgFutureMaxReturn": 0.06973991256135002,
+      "avgFutureMinReturn": -0.03171962404737584
+    },
+    "score": -4.793810609008115,
+    "lift": 0.07170542635658916
+  },
+  {
+    "rule": "extension_vs_atr >= 0.941067",
+    "conditions": [
+      {
+        "feature": "extension_vs_atr",
+        "type": "gte",
+        "value": 0.9410666195
+      }
+    ],
+    "stats": {
+      "count": 457,
+      "goods": 210,
+      "bads": 233,
+      "neutrals": 14,
+      "goodRate": 0.45951859956236324,
+      "badRate": 0.5098468271334792,
+      "neutralRate": 0.030634573304157548,
+      "avgFutureMaxReturn": 0.06591043938097761,
+      "avgFutureMinReturn": -0.03564125633795525
+    },
+    "score": -4.844290771930099,
+    "lift": 0.02831704917476635
+  },
+  {
+    "rule": "distance_to_vwap_pct >= 0.012887",
+    "conditions": [
+      {
+        "feature": "distance_to_vwap_pct",
+        "type": "gte",
+        "value": 0.012886769
+      }
+    ],
+    "stats": {
+      "count": 516,
+      "goods": 230,
+      "bads": 267,
+      "neutrals": 19,
+      "goodRate": 0.44573643410852715,
+      "badRate": 0.5174418604651163,
+      "neutralRate": 0.03682170542635659,
+      "avgFutureMaxReturn": 0.067463156372836,
+      "avgFutureMinReturn": -0.03989840600487364
+    },
+    "score": -5.54684070985143,
+    "lift": 0.014534883720930258
+  },
+  {
+    "rule": "gap_pct <= 0.050128",
+    "conditions": [
+      {
+        "feature": "gap_pct",
+        "type": "lte",
+        "value": 0.0501275488
+      }
+    ],
+    "stats": {
+      "count": 1032,
+      "goods": 509,
+      "bads": 488,
+      "neutrals": 35,
+      "goodRate": 0.4932170542635659,
+      "badRate": 0.4728682170542636,
+      "neutralRate": 0.03391472868217054,
+      "avgFutureMaxReturn": 0.06582293474016998,
+      "avgFutureMinReturn": -0.031344082186847755
+    },
+    "score": -5.6031552572822125,
+    "lift": 0.06201550387596899
+  },
+  {
+    "rule": "change_5m >= 0.023705",
+    "conditions": [
+      {
+        "feature": "change_5m",
+        "type": "gte",
+        "value": 0.0237050732
+      }
+    ],
+    "stats": {
+      "count": 468,
+      "goods": 204,
+      "bads": 255,
+      "neutrals": 9,
+      "goodRate": 0.4358974358974359,
+      "badRate": 0.5448717948717948,
+      "neutralRate": 0.019230769230769232,
+      "avgFutureMaxReturn": 0.0645847895994075,
+      "avgFutureMinReturn": -0.04016459036040355
+    },
+    "score": -5.792102048956462,
+    "lift": 0.004695885509839015
+  },
+  {
+    "rule": "change_10m >= 0.027029",
+    "conditions": [
+      {
+        "feature": "change_10m",
+        "type": "gte",
+        "value": 0.0270294897
+      }
+    ],
+    "stats": {
+      "count": 450,
+      "goods": 193,
+      "bads": 248,
+      "neutrals": 9,
+      "goodRate": 0.4288888888888889,
+      "badRate": 0.5511111111111111,
+      "neutralRate": 0.02,
+      "avgFutureMaxReturn": 0.06619812171915813,
+      "avgFutureMinReturn": -0.04025640799933951
+    },
+    "score": -5.894475016658557,
+    "lift": -0.002312661498708013
+  },
+  {
+    "rule": "ema_spread_pct >= 0.006028",
+    "conditions": [
+      {
+        "feature": "ema_spread_pct",
+        "type": "gte",
+        "value": 0.0060277881
+      }
+    ],
+    "stats": {
+      "count": 430,
+      "goods": 183,
+      "bads": 241,
+      "neutrals": 6,
+      "goodRate": 0.4255813953488372,
+      "badRate": 0.5604651162790698,
+      "neutralRate": 0.013953488372093023,
+      "avgFutureMaxReturn": 0.06093094145476953,
+      "avgFutureMinReturn": -0.042481981963724505
+    },
+    "score": -5.927568022511315,
+    "lift": -0.005620155038759678
+  },
+  {
+    "rule": "change_pct_at_candle <= 0.055392",
+    "conditions": [
+      {
+        "feature": "change_pct_at_candle",
+        "type": "lte",
+        "value": 0.0553918537
+      }
+    ],
+    "stats": {
+      "count": 1032,
+      "goods": 497,
+      "bads": 499,
+      "neutrals": 36,
+      "goodRate": 0.48158914728682173,
+      "badRate": 0.48352713178294576,
+      "neutralRate": 0.03488372093023256,
+      "avgFutureMaxReturn": 0.06369645286717869,
+      "avgFutureMinReturn": -0.03246264151490057
+    },
+    "score": -6.147906462851316,
+    "lift": 0.05038759689922484
+  },
+  {
+    "rule": "extension_vs_atr <= -1.009878",
+    "conditions": [
+      {
+        "feature": "extension_vs_atr",
+        "type": "lte",
+        "value": -1.0098784067
+      }
+    ],
+    "stats": {
+      "count": 457,
+      "goods": 189,
+      "bads": 255,
+      "neutrals": 13,
+      "goodRate": 0.4135667396061269,
+      "badRate": 0.5579868708971554,
+      "neutralRate": 0.028446389496717725,
+      "avgFutureMaxReturn": 0.05821488598069385,
+      "avgFutureMinReturn": -0.03798656117860674
+    },
+    "score": -6.341187635050062,
+    "lift": -0.01763481078147
+  }
+]

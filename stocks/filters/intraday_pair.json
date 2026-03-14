@@ -1,0 +1,702 @@
+[
+  {
+    "rule": "close_gt_ema9 == NA AND change_1m <= -0.008955",
+    "conditions": [
+      {
+        "feature": "close_gt_ema9",
+        "type": "eq",
+        "value": "NA"
+      },
+      {
+        "feature": "change_1m",
+        "type": "lte",
+        "value": -0.0089552239
+      }
+    ],
+    "stats": {
+      "count": 252,
+      "goods": 115,
+      "bads": 76,
+      "neutrals": 61,
+      "goodRate": 0.45634920634920634,
+      "badRate": 0.30158730158730157,
+      "neutralRate": 0.24206349206349206,
+      "avgFutureMaxReturn": 0.038348507676460544,
+      "avgFutureMinReturn": -0.008622822400637088
+    },
+    "score": 0.4210775850332468,
+    "lift": 0.17731904538083232
+  },
+  {
+    "rule": "ema9_gt_ema20 == NA AND change_1m <= -0.008955",
+    "conditions": [
+      {
+        "feature": "ema9_gt_ema20",
+        "type": "eq",
+        "value": "NA"
+      },
+      {
+        "feature": "change_1m",
+        "type": "lte",
+        "value": -0.0089552239
+      }
+    ],
+    "stats": {
+      "count": 730,
+      "goods": 322,
+      "bads": 218,
+      "neutrals": 190,
+      "goodRate": 0.4410958904109589,
+      "badRate": 0.29863013698630136,
+      "neutralRate": 0.2602739726027397,
+      "avgFutureMaxReturn": 0.03852314639262561,
+      "avgFutureMinReturn": -0.011422262075183728
+    },
+    "score": 0.3445038880660443,
+    "lift": 0.1620657294425849
+  },
+  {
+    "rule": "close_gt_ema20 == NA AND change_1m <= -0.008955",
+    "conditions": [
+      {
+        "feature": "close_gt_ema20",
+        "type": "eq",
+        "value": "NA"
+      },
+      {
+        "feature": "change_1m",
+        "type": "lte",
+        "value": -0.0089552239
+      }
+    ],
+    "stats": {
+      "count": 730,
+      "goods": 322,
+      "bads": 218,
+      "neutrals": 190,
+      "goodRate": 0.4410958904109589,
+      "badRate": 0.29863013698630136,
+      "neutralRate": 0.2602739726027397,
+      "avgFutureMaxReturn": 0.03852314639262561,
+      "avgFutureMinReturn": -0.011422262075183728
+    },
+    "score": 0.3445038880660443,
+    "lift": 0.1620657294425849
+  },
+  {
+    "rule": "close_gt_ema9 == NA AND change_5m <= -0.0202",
+    "conditions": [
+      {
+        "feature": "close_gt_ema9",
+        "type": "eq",
+        "value": "NA"
+      },
+      {
+        "feature": "change_5m",
+        "type": "lte",
+        "value": -0.0201995668
+      }
+    ],
+    "stats": {
+      "count": 101,
+      "goods": 45,
+      "bads": 35,
+      "neutrals": 21,
+      "goodRate": 0.44554455445544555,
+      "badRate": 0.3465346534653465,
+      "neutralRate": 0.2079207920792079,
+      "avgFutureMaxReturn": 0.031664974791720465,
+      "avgFutureMinReturn": -0.009707799081771057
+    },
+    "score": -0.06786613919602952,
+    "lift": 0.16651439348707153
+  },
+  {
+    "rule": "close_gt_ema9 == NA AND distance_to_vwap_pct >= 0.02602",
+    "conditions": [
+      {
+        "feature": "close_gt_ema9",
+        "type": "eq",
+        "value": "NA"
+      },
+      {
+        "feature": "distance_to_vwap_pct",
+        "type": "gte",
+        "value": 0.0260197958
+      }
+    ],
+    "stats": {
+      "count": 176,
+      "goods": 82,
+      "bads": 71,
+      "neutrals": 23,
+      "goodRate": 0.4659090909090909,
+      "badRate": 0.4034090909090909,
+      "neutralRate": 0.13068181818181818,
+      "avgFutureMaxReturn": 0.05965943517703499,
+      "avgFutureMinReturn": -0.018116704885832897
+    },
+    "score": -0.19668401578176586,
+    "lift": 0.18687892994071686
+  },
+  {
+    "rule": "ema9_gt_ema20 == NA AND change_5m <= -0.0202",
+    "conditions": [
+      {
+        "feature": "ema9_gt_ema20",
+        "type": "eq",
+        "value": "NA"
+      },
+      {
+        "feature": "change_5m",
+        "type": "lte",
+        "value": -0.0201995668
+      }
+    ],
+    "stats": {
+      "count": 453,
+      "goods": 184,
+      "bads": 129,
+      "neutrals": 140,
+      "goodRate": 0.40618101545253865,
+      "badRate": 0.2847682119205298,
+      "neutralRate": 0.3090507726269316,
+      "avgFutureMaxReturn": 0.03606629887407131,
+      "avgFutureMinReturn": -0.012160943138806158
+    },
+    "score": -0.32422142679340665,
+    "lift": 0.12715085448416463
+  },
+  {
+    "rule": "close_gt_ema20 == NA AND change_5m <= -0.0202",
+    "conditions": [
+      {
+        "feature": "close_gt_ema20",
+        "type": "eq",
+        "value": "NA"
+      },
+      {
+        "feature": "change_5m",
+        "type": "lte",
+        "value": -0.0201995668
+      }
+    ],
+    "stats": {
+      "count": 453,
+      "goods": 184,
+      "bads": 129,
+      "neutrals": 140,
+      "goodRate": 0.40618101545253865,
+      "badRate": 0.2847682119205298,
+      "neutralRate": 0.3090507726269316,
+      "avgFutureMaxReturn": 0.03606629887407131,
+      "avgFutureMinReturn": -0.012160943138806158
+    },
+    "score": -0.32422142679340665,
+    "lift": 0.12715085448416463
+  },
+  {
+    "rule": "close_gt_ema9 == NA AND change_5m >= 0.022727",
+    "conditions": [
+      {
+        "feature": "close_gt_ema9",
+        "type": "eq",
+        "value": "NA"
+      },
+      {
+        "feature": "change_5m",
+        "type": "gte",
+        "value": 0.0227272727
+      }
+    ],
+    "stats": {
+      "count": 180,
+      "goods": 80,
+      "bads": 71,
+      "neutrals": 29,
+      "goodRate": 0.4444444444444444,
+      "badRate": 0.39444444444444443,
+      "neutralRate": 0.16111111111111112,
+      "avgFutureMaxReturn": 0.03874094946228692,
+      "avgFutureMinReturn": -0.01921427360887796
+    },
+    "score": -0.42674827956326933,
+    "lift": 0.1654142834760704
+  },
+  {
+    "rule": "close_gt_ema9 == NA AND change_pct_at_candle <= -0.019412",
+    "conditions": [
+      {
+        "feature": "close_gt_ema9",
+        "type": "eq",
+        "value": "NA"
+      },
+      {
+        "feature": "change_pct_at_candle",
+        "type": "lte",
+        "value": -0.0194117647
+      }
+    ],
+    "stats": {
+      "count": 215,
+      "goods": 88,
+      "bads": 72,
+      "neutrals": 55,
+      "goodRate": 0.40930232558139534,
+      "badRate": 0.33488372093023255,
+      "neutralRate": 0.2558139534883721,
+      "avgFutureMaxReturn": 0.03182752263020778,
+      "avgFutureMinReturn": -0.008682529052151026
+    },
+    "score": -0.5450147266758097,
+    "lift": 0.13027216461302132
+  },
+  {
+    "rule": "minutes_since_hod <= 16 AND distance_to_pm_high_pct >= 0.437509",
+    "conditions": [
+      {
+        "feature": "minutes_since_hod",
+        "type": "lte",
+        "value": 16
+      },
+      {
+        "feature": "distance_to_pm_high_pct",
+        "type": "gte",
+        "value": 0.4375090266
+      }
+    ],
+    "stats": {
+      "count": 73,
+      "goods": 30,
+      "bads": 34,
+      "neutrals": 9,
+      "goodRate": 0.410958904109589,
+      "badRate": 0.4657534246575342,
+      "neutralRate": 0.1232876712328767,
+      "avgFutureMaxReturn": 0.04850752916471877,
+      "avgFutureMinReturn": -0.04084378294170591
+    },
+    "score": -0.8624998268206439,
+    "lift": 0.131928743141215
+  },
+  {
+    "rule": "ema9_gt_ema20 == NA AND change_10m >= 0.033956",
+    "conditions": [
+      {
+        "feature": "ema9_gt_ema20",
+        "type": "eq",
+        "value": "NA"
+      },
+      {
+        "feature": "change_10m",
+        "type": "gte",
+        "value": 0.0339558574
+      }
+    ],
+    "stats": {
+      "count": 765,
+      "goods": 319,
+      "bads": 293,
+      "neutrals": 153,
+      "goodRate": 0.4169934640522876,
+      "badRate": 0.38300653594771245,
+      "neutralRate": 0.2,
+      "avgFutureMaxReturn": 0.047103845350486076,
+      "avgFutureMinReturn": -0.018585292989367622
+    },
+    "score": -1.4808422596341795,
+    "lift": 0.13796330308391358
+  },
+  {
+    "rule": "close_gt_ema20 == NA AND change_10m >= 0.033956",
+    "conditions": [
+      {
+        "feature": "close_gt_ema20",
+        "type": "eq",
+        "value": "NA"
+      },
+      {
+        "feature": "change_10m",
+        "type": "gte",
+        "value": 0.0339558574
+      }
+    ],
+    "stats": {
+      "count": 765,
+      "goods": 319,
+      "bads": 293,
+      "neutrals": 153,
+      "goodRate": 0.4169934640522876,
+      "badRate": 0.38300653594771245,
+      "neutralRate": 0.2,
+      "avgFutureMaxReturn": 0.047103845350486076,
+      "avgFutureMinReturn": -0.018585292989367622
+    },
+    "score": -1.4808422596341795,
+    "lift": 0.13796330308391358
+  },
+  {
+    "rule": "close_gt_ema9 == NA AND change_1m >= 0.009662",
+    "conditions": [
+      {
+        "feature": "close_gt_ema9",
+        "type": "eq",
+        "value": "NA"
+      },
+      {
+        "feature": "change_1m",
+        "type": "gte",
+        "value": 0.0096621508
+      }
+    ],
+    "stats": {
+      "count": 346,
+      "goods": 139,
+      "bads": 148,
+      "neutrals": 59,
+      "goodRate": 0.40173410404624277,
+      "badRate": 0.4277456647398844,
+      "neutralRate": 0.17052023121387283,
+      "avgFutureMaxReturn": 0.03806091611743531,
+      "avgFutureMinReturn": -0.016797878557306835
+    },
+    "score": -1.6958393690628897,
+    "lift": 0.12270394307786875
+  },
+  {
+    "rule": "ema9_gt_ema20 == NA AND change_5m >= 0.022727",
+    "conditions": [
+      {
+        "feature": "ema9_gt_ema20",
+        "type": "eq",
+        "value": "NA"
+      },
+      {
+        "feature": "change_5m",
+        "type": "gte",
+        "value": 0.0227272727
+      }
+    ],
+    "stats": {
+      "count": 975,
+      "goods": 409,
+      "bads": 392,
+      "neutrals": 174,
+      "goodRate": 0.4194871794871795,
+      "badRate": 0.40205128205128204,
+      "neutralRate": 0.17846153846153845,
+      "avgFutureMaxReturn": 0.04424430261129497,
+      "avgFutureMinReturn": -0.01799353378310734
+    },
+    "score": -1.8912546316046803,
+    "lift": 0.1404570185188055
+  },
+  {
+    "rule": "close_gt_ema20 == NA AND change_5m >= 0.022727",
+    "conditions": [
+      {
+        "feature": "close_gt_ema20",
+        "type": "eq",
+        "value": "NA"
+      },
+      {
+        "feature": "change_5m",
+        "type": "gte",
+        "value": 0.0227272727
+      }
+    ],
+    "stats": {
+      "count": 975,
+      "goods": 409,
+      "bads": 392,
+      "neutrals": 174,
+      "goodRate": 0.4194871794871795,
+      "badRate": 0.40205128205128204,
+      "neutralRate": 0.17846153846153845,
+      "avgFutureMaxReturn": 0.04424430261129497,
+      "avgFutureMinReturn": -0.01799353378310734
+    },
+    "score": -1.8912546316046803,
+    "lift": 0.1404570185188055
+  },
+  {
+    "rule": "ema9_gt_ema20 == NA AND distance_to_vwap_pct >= 0.02602",
+    "conditions": [
+      {
+        "feature": "ema9_gt_ema20",
+        "type": "eq",
+        "value": "NA"
+      },
+      {
+        "feature": "distance_to_vwap_pct",
+        "type": "gte",
+        "value": 0.0260197958
+      }
+    ],
+    "stats": {
+      "count": 813,
+      "goods": 342,
+      "bads": 340,
+      "neutrals": 131,
+      "goodRate": 0.42066420664206644,
+      "badRate": 0.4182041820418204,
+      "neutralRate": 0.16113161131611317,
+      "avgFutureMaxReturn": 0.04959389614101898,
+      "avgFutureMinReturn": -0.018832022160139857
+    },
+    "score": -1.9237268250035018,
+    "lift": 0.14163404567369242
+  },
+  {
+    "rule": "close_gt_ema20 == NA AND distance_to_vwap_pct >= 0.02602",
+    "conditions": [
+      {
+        "feature": "close_gt_ema20",
+        "type": "eq",
+        "value": "NA"
+      },
+      {
+        "feature": "distance_to_vwap_pct",
+        "type": "gte",
+        "value": 0.0260197958
+      }
+    ],
+    "stats": {
+      "count": 813,
+      "goods": 342,
+      "bads": 340,
+      "neutrals": 131,
+      "goodRate": 0.42066420664206644,
+      "badRate": 0.4182041820418204,
+      "neutralRate": 0.16113161131611317,
+      "avgFutureMaxReturn": 0.04959389614101898,
+      "avgFutureMinReturn": -0.018832022160139857
+    },
+    "score": -1.9237268250035018,
+    "lift": 0.14163404567369242
+  },
+  {
+    "rule": "distance_to_hod_pct <= 0.063632 AND ema_spread_pct <= -0.009956",
+    "conditions": [
+      {
+        "feature": "distance_to_hod_pct",
+        "type": "lte",
+        "value": 0.0636318495
+      },
+      {
+        "feature": "ema_spread_pct",
+        "type": "lte",
+        "value": -0.0099560162
+      }
+    ],
+    "stats": {
+      "count": 52,
+      "goods": 10,
+      "bads": 20,
+      "neutrals": 22,
+      "goodRate": 0.19230769230769232,
+      "badRate": 0.38461538461538464,
+      "neutralRate": 0.4230769230769231,
+      "avgFutureMaxReturn": 0.015505135663525273,
+      "avgFutureMinReturn": -0.0161144703777053
+    },
+    "score": -2.0121151055448863,
+    "lift": -0.0867224686606817
+  },
+  {
+    "rule": "close_gt_ema9 == NA AND dollar_volume <= 32746.785",
+    "conditions": [
+      {
+        "feature": "close_gt_ema9",
+        "type": "eq",
+        "value": "NA"
+      },
+      {
+        "feature": "dollar_volume",
+        "type": "lte",
+        "value": 32746.785
+      }
+    ],
+    "stats": {
+      "count": 958,
+      "goods": 383,
+      "bads": 359,
+      "neutrals": 216,
+      "goodRate": 0.39979123173277664,
+      "badRate": 0.3747390396659708,
+      "neutralRate": 0.2254697286012526,
+      "avgFutureMaxReturn": 0.03177277967685565,
+      "avgFutureMinReturn": -0.012039198657543755
+    },
+    "score": -2.0616364123808206,
+    "lift": 0.12076107076440262
+  },
+  {
+    "rule": "ema9_gt_ema20 == NA AND extension_vs_atr >= 0.586606",
+    "conditions": [
+      {
+        "feature": "ema9_gt_ema20",
+        "type": "eq",
+        "value": "NA"
+      },
+      {
+        "feature": "extension_vs_atr",
+        "type": "gte",
+        "value": 0.5866060746
+      }
+    ],
+    "stats": {
+      "count": 976,
+      "goods": 376,
+      "bads": 340,
+      "neutrals": 260,
+      "goodRate": 0.38524590163934425,
+      "badRate": 0.3483606557377049,
+      "neutralRate": 0.26639344262295084,
+      "avgFutureMaxReturn": 0.041190365028570916,
+      "avgFutureMinReturn": -0.015498794011369008
+    },
+    "score": -2.123281580541557,
+    "lift": 0.10621574067097023
+  },
+  {
+    "rule": "close_gt_ema20 == NA AND extension_vs_atr >= 0.586606",
+    "conditions": [
+      {
+        "feature": "close_gt_ema20",
+        "type": "eq",
+        "value": "NA"
+      },
+      {
+        "feature": "extension_vs_atr",
+        "type": "gte",
+        "value": 0.5866060746
+      }
+    ],
+    "stats": {
+      "count": 976,
+      "goods": 376,
+      "bads": 340,
+      "neutrals": 260,
+      "goodRate": 0.38524590163934425,
+      "badRate": 0.3483606557377049,
+      "neutralRate": 0.26639344262295084,
+      "avgFutureMaxReturn": 0.041190365028570916,
+      "avgFutureMinReturn": -0.015498794011369008
+    },
+    "score": -2.123281580541557,
+    "lift": 0.10621574067097023
+  },
+  {
+    "rule": "ema9_gt_ema20 == NA AND change_pct_at_candle <= -0.019412",
+    "conditions": [
+      {
+        "feature": "ema9_gt_ema20",
+        "type": "eq",
+        "value": "NA"
+      },
+      {
+        "feature": "change_pct_at_candle",
+        "type": "lte",
+        "value": -0.0194117647
+      }
+    ],
+    "stats": {
+      "count": 606,
+      "goods": 195,
+      "bads": 164,
+      "neutrals": 247,
+      "goodRate": 0.3217821782178218,
+      "badRate": 0.2706270627062706,
+      "neutralRate": 0.4075907590759076,
+      "avgFutureMaxReturn": 0.02639830103043618,
+      "avgFutureMinReturn": -0.009920366675779491
+    },
+    "score": -2.2785930174691775,
+    "lift": 0.04275201724944777
+  },
+  {
+    "rule": "close_gt_ema20 == NA AND change_pct_at_candle <= -0.019412",
+    "conditions": [
+      {
+        "feature": "close_gt_ema20",
+        "type": "eq",
+        "value": "NA"
+      },
+      {
+        "feature": "change_pct_at_candle",
+        "type": "lte",
+        "value": -0.0194117647
+      }
+    ],
+    "stats": {
+      "count": 606,
+      "goods": 195,
+      "bads": 164,
+      "neutrals": 247,
+      "goodRate": 0.3217821782178218,
+      "badRate": 0.2706270627062706,
+      "neutralRate": 0.4075907590759076,
+      "avgFutureMaxReturn": 0.02639830103043618,
+      "avgFutureMinReturn": -0.009920366675779491
+    },
+    "score": -2.2785930174691775,
+    "lift": 0.04275201724944777
+  },
+  {
+    "rule": "ema9_gt_ema20 == NA AND change_10m <= -0.029289",
+    "conditions": [
+      {
+        "feature": "ema9_gt_ema20",
+        "type": "eq",
+        "value": "NA"
+      },
+      {
+        "feature": "change_10m",
+        "type": "lte",
+        "value": -0.0292887029
+      }
+    ],
+    "stats": {
+      "count": 257,
+      "goods": 82,
+      "bads": 94,
+      "neutrals": 81,
+      "goodRate": 0.31906614785992216,
+      "badRate": 0.3657587548638132,
+      "neutralRate": 0.3151750972762646,
+      "avgFutureMaxReturn": 0.03030049142233909,
+      "avgFutureMinReturn": -0.013757598272549337
+    },
+    "score": -2.289953753859191,
+    "lift": 0.040035986891548137
+  },
+  {
+    "rule": "close_gt_ema20 == NA AND change_10m <= -0.029289",
+    "conditions": [
+      {
+        "feature": "close_gt_ema20",
+        "type": "eq",
+        "value": "NA"
+      },
+      {
+        "feature": "change_10m",
+        "type": "lte",
+        "value": -0.0292887029
+      }
+    ],
+    "stats": {
+      "count": 257,
+      "goods": 82,
+      "bads": 94,
+      "neutrals": 81,
+      "goodRate": 0.31906614785992216,
+      "badRate": 0.3657587548638132,
+      "neutralRate": 0.3151750972762646,
+      "avgFutureMaxReturn": 0.03030049142233909,
+      "avgFutureMinReturn": -0.013757598272549337
+    },
+    "score": -2.289953753859191,
+    "lift": 0.040035986891548137
+  }
+]
