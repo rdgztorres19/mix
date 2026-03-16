@@ -184,8 +184,8 @@ export class AlpacaTraderService {
     this.ensureEnabled();
     this.validateBracketInputs(symbol, dollarAmount, lastPrice);
 
-    const takeProfitPct = options.takeProfitPct ?? 0.02;
-    const stopLossPct = options.stopLossPct ?? 0.06;
+    const takeProfitPct = options.takeProfitPct ?? 0.04;
+    const stopLossPct = options.stopLossPct ?? 0.02;
     const entryAggressivenessPct = options.entryAggressivenessPct ?? 0.02;
     const timeInForce = options.timeInForce ?? 'day';
     const cancelAfterMs =
@@ -219,8 +219,8 @@ export class AlpacaTraderService {
 
     this.logger.log(
       `BUY BRACKET ${symbolUpper} notional=$${dollarAmount.toFixed(2)} ` +
-        `entry=${payload.limit_price} tp=${payload.take_profit.limit_price} ` +
-        `sl=${payload.stop_loss.stop_price} qty=${qty} tif=${timeInForce}`,
+      `entry=${payload.limit_price} tp=${payload.take_profit.limit_price} ` +
+      `sl=${payload.stop_loss.stop_price} qty=${qty} tif=${timeInForce}`,
     );
 
     this.logger.debug?.(
@@ -297,7 +297,7 @@ export class AlpacaTraderService {
           if (position && position.qty > 0) {
             this.logger.warn(
               `Open position remains after partial fill: ${symbol} qty=${position.qty}. ` +
-                `Decide whether to close it or re-protect it.`,
+              `Decide whether to close it or re-protect it.`,
             );
           }
 

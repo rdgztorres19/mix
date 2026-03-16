@@ -95,8 +95,8 @@ let AlpacaTraderService = class AlpacaTraderService {
     async buyBracketLimit(symbol, dollarAmount, lastPrice, options = {}) {
         this.ensureEnabled();
         this.validateBracketInputs(symbol, dollarAmount, lastPrice);
-        const takeProfitPct = options.takeProfitPct ?? 0.02;
-        const stopLossPct = options.stopLossPct ?? 0.06;
+        const takeProfitPct = options.takeProfitPct ?? 0.04;
+        const stopLossPct = options.stopLossPct ?? 0.02;
         const entryAggressivenessPct = options.entryAggressivenessPct ?? 0.02;
         const timeInForce = options.timeInForce ?? 'day';
         const cancelAfterMs = options.cancelAfterMs ?? AlpacaTraderService.DEFAULT_CANCEL_AFTER_MS;
