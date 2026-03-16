@@ -8,21 +8,26 @@ import { MomoStreamService } from './momo-stream.service';
 import { CollectorGateway } from './collector.gateway';
 import { CollectorController } from './collector.controller';
 import { TopGainersSourceService } from './top-gainers-source.service';
+import { ScannedTrackerService } from './tracker/scanned-tracker.service';
+import { ScannedTrackerCron } from './tracker/scanned-tracker.cron';
+import { ScannedTrackerController } from './tracker/scanned-tracker.controller';
 
 @Module({
   imports: [ScannerModule, TraderModule, forwardRef(() => WebSocketModule)],
-  controllers: [CollectorController],
+  controllers: [CollectorController, ScannedTrackerController],
   providers: [
     TopGainersSourceService,
     CollectorService,
     CollectorCron,
     MomoStreamService,
     CollectorGateway,
+    ScannedTrackerService,
+    ScannedTrackerCron,
     {
       provide: 'COLLECTOR_SERVICE',
       useExisting: CollectorService,
     },
   ],
-  exports: [CollectorService, MomoStreamService, CollectorGateway, 'COLLECTOR_SERVICE'],
+  exports: [CollectorService, MomoStreamService, CollectorGateway, ScannedTrackerService, 'COLLECTOR_SERVICE'],
 })
 export class CollectorModule {}

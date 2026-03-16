@@ -150,6 +150,107 @@ export class MysqlTrainingRepository {
     }
   }
 
+  async ensureTrackerTable(): Promise<void> {
+    const p = this.getPool();
+    if (!p) return;
+    try {
+      await p.query(`
+        CREATE TABLE IF NOT EXISTS scanned_symbols (
+           symbol VARCHAR(16) NOT NULL PRIMARY KEY,
+           arrived_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+           passes_pre_filter TINYINT(1) DEFAULT 0,
+           float_shares BIGINT,
+           outstanding_shares BIGINT,
+           free_float DOUBLE,
+           catalyst_strength VARCHAR(32),
+           catalyst_type VARCHAR(128),
+           premarket_volume DOUBLE,
+           premarket_dollar_volume DOUBLE,
+           volume DOUBLE,
+           dollar_volume DOUBLE,
+           close DOUBLE,
+           ema9 DOUBLE,
+           gap_pct DOUBLE,
+           updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )
+      `);
+      this.logger.log('scanned_symbols table ready');
+    } catch (e) {
+      this.logger.warn(`ensureTrackerTable failed: ${(e as Error).message}`);
+    }
+  }
+
+  async upsertScannedSymbol(data: {
+    symbol: string;
+    passes_pre_filter: boolean;
+    float_shares: number | null;
+    outstanding_shares: number | null;
+    free_float: number | null;
+    catalyst_strength: string | null;
+    catalyst_type: string | null;
+    premarket_volume: number | null;
+    premarket_dollar_volume: number | null;
+    volume: number | null;
+    dollar_volume: number | null;
+    close: number | null;
+    ema9: number | null;
+    gap_pct: number | null;
+  }): Promise<void> {
+    const p = this.getPool();
+    if (!p) return;
+
+    try {
+      await p.query(
+        `INSERT INTO scanned_symbols (
+          symbol, passes_pre_filter,
+          float_shares, outstanding_shares, free_float,
+          catalyst_strength, catalyst_type,
+          premarket_volume, premarket_dollar_volume,
+          volume, dollar_volume, close, ema9, gap_pct
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE 
+          passes_pre_filter = VALUES(passes_pre_filter),
+          float_shares = IFNULL(VALUES(float_shares), float_shares),
+          outstanding_shares = IFNULL(VALUES(outstanding_shares), outstanding_shares),
+          free_float = IFNULL(VALUES(free_float), free_float),
+          catalyst_strength = IFNULL(VALUES(catalyst_strength), catalyst_strength),
+          catalyst_type = IFNULL(VALUES(catalyst_type), catalyst_type),
+          premarket_volume = VALUES(premarket_volume),
+          premarket_dollar_volume = VALUES(premarket_dollar_volume),
+          volume = VALUES(volume),
+          dollar_volume = VALUES(dollar_volume),
+          close = VALUES(close),
+          ema9 = VALUES(ema9),
+          gap_pct = VALUES(gap_pct)`,
+        [
+          data.symbol,
+          data.passes_pre_filter ? 1 : 0,
+          data.float_shares, data.outstanding_shares, data.free_float,
+          data.catalyst_strength, data.catalyst_type,
+          data.premarket_volume, data.premarket_dollar_volume,
+          data.volume, data.dollar_volume,
+          data.close, data.ema9, data.gap_pct
+        ],
+      );
+    } catch (e) {
+      this.logger.warn(`upsertScannedSymbol(${data.symbol}) failed: ${(e as Error).message}`);
+    }
+  }
+
+  async getScannedSymbolsForToday(): Promise<Record<string, unknown>[]> {
+    const p = this.getPool();
+    if (!p) return [];
+    try {
+      const [rows] = await p.query<mysql.RowDataPacket[]>(
+        `SELECT * FROM scanned_symbols WHERE DATE(arrived_at) = CURDATE() ORDER BY arrived_at DESC`
+      );
+      return rows as unknown as Record<string, unknown>[];
+    } catch (e) {
+      this.logger.warn(`getScannedSymbolsForToday failed: ${(e as Error).message}`);
+      return [];
+    }
+  }
+
   async saveActiveSymbol(symbol: string, source: string): Promise<void> {
     const p = this.getPool();
     if (!p) return;

@@ -73,7 +73,7 @@ export class WebSocketFallbackCron {
   private async checkSymbolData(symbol: string, expectedBarTime: number): Promise<void> {
     const raw = this.alpacaWebSocket.getLastBarTime(symbol);
     const lastBarTimeSec = this.toUnixSeconds(raw);
-    
+
     // Check if we received data for the expected minute (30 second tolerance)
     const isDataMissing = lastBarTimeSec == null || Math.abs(lastBarTimeSec - expectedBarTime) > 30;
 
@@ -81,7 +81,7 @@ export class WebSocketFallbackCron {
       this.logger.warn(`⚠️ Missing WebSocket data for ${symbol} at ${new Date(expectedBarTime * 1000).toISOString()}`);
       await this.fetchFallbackData(symbol, expectedBarTime);
     } else {
-      this.logger.debug(`✅ WebSocket data OK for ${symbol}`);
+      //this.logger.debug(`✅ WebSocket data OK for ${symbol}`);
     }
   }
 
@@ -92,7 +92,7 @@ export class WebSocketFallbackCron {
       const endDate = new Date((barTime + 60) * 1000);
       const startTime = startDate.toISOString().slice(0, 19) + 'Z';
       const endTime = endDate.toISOString().slice(0, 19) + 'Z';
-      
+
       this.logger.log(`🔄 Fetching fallback data for ${symbol}: ${startTime}`);
 
       // Use AlpacaDataSource to fetch the missing bar
@@ -154,13 +154,13 @@ export class WebSocketFallbackCron {
    */
   private getExpectedBarTime(currentUnixTime: number): number {
     const currentDate = new Date(currentUnixTime * 1000);
-    
+
     // Get the previous completed minute
     const expectedDate = new Date(currentDate);
     expectedDate.setMinutes(expectedDate.getMinutes() - 1);
     expectedDate.setSeconds(0);
     expectedDate.setMilliseconds(0);
-    
+
     return Math.floor(expectedDate.getTime() / 1000);
   }
 

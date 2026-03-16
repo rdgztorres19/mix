@@ -184,14 +184,25 @@ async function main() {
   const allDates = [...dateRange(fromDateStr, toDateStr)];
 
   for (const dateStr of allDates) {
+    // const [symbolRows] = await conn.query(
+    //   `
+    //   SELECT DISTINCT symbol
+    //   FROM training_1m
+    //   WHERE date = ?
+    //   ORDER BY symbol ASC
+    //   `,
+    //   [dateStr],
+    // );
+
     const [symbolRows] = await conn.query(
       `
       SELECT DISTINCT symbol
-      FROM training_1m
-      WHERE date = ?
+      FROM scanned_symbols
+      WHERE close > 2
+        AND float_shares BETWEEN 1000000 AND 100000000
+        AND premarket_dollar_volume <= 10007568.983475
       ORDER BY symbol ASC
-      `,
-      [dateStr],
+      `
     );
 
     const symbols = symbolRows.map(r => String(r.symbol || '').trim()).filter(Boolean);

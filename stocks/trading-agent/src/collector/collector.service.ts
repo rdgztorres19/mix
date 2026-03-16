@@ -34,6 +34,7 @@ import {
   type TopGainerSource,
   getTopGainerSourceFromEnv,
 } from './top-gainers-source.service';
+import { ScannedTrackerService } from './tracker/scanned-tracker.service';
 
 interface SymbolState {
   symbol: string;
@@ -59,6 +60,7 @@ export class CollectorService implements OnModuleInit {
     private readonly momoStream: MomoStreamService,
     private readonly gateway: CollectorGateway,
     private readonly topGainersSource: TopGainersSourceService,
+    private readonly scannedTracker: ScannedTrackerService,
     @Optional() @Inject(AutoTraderService) private readonly autoTrader?: AutoTraderService,
   ) {
     this.momoBase = process.env.MOMO_BASE_URL ?? 'https://momoscreener.com/api/p';
@@ -88,10 +90,10 @@ export class CollectorService implements OnModuleInit {
       (symbol, candle) => this.onCandleClosed(symbol, candle),
       (symbol, candle) => this.onLiveTick(symbol, candle),
     );
-    this.logger.log('🚫 MoMo stream service is DISABLED - Alpaca WebSocket + 61s fallback only');
 
     // 3. Load persisted symbols from previous session (parallel in batches of 5)
     const persisted = await this.mysqlRepo.getActiveSymbols();
+
     if (persisted.length) {
       this.logger.log(`Restoring ${persisted.length} persisted symbols: ${persisted.map((s) => s.symbol).join(', ')}`);
       const BATCH = 5;
@@ -133,11 +135,17 @@ export class CollectorService implements OnModuleInit {
       metadata: result.metadata,
       history: result.candles,
     };
+
     this.symbols.set(symbol, state);
 
+    // Notify tracker about the new symbol (only when it truly is new, skipPersist=false means first time)
     if (!skipPersist) {
       await this.mysqlRepo.saveActiveSymbol(symbol, source);
     }
+
+    this.scannedTracker.trackNewSymbol(symbol).catch(e =>
+      this.logger.warn(`ScannedTracker error for ${symbol}: ${(e as Error).message}`)
+    );
 
     if (this.webSocketInit?.isAlpacaConnected() && this.webSocketInit) {
       try {
@@ -252,6 +260,7 @@ export class CollectorService implements OnModuleInit {
 
     // Add new symbols to collection (Alpaca backfill) - only those not yet in symbols
     const toAdd = fetched.filter((s) => !this.symbols.has(s.toUpperCase()));
+
     for (const symbol of toAdd) {
       try {
         await this.addSymbolToCollection(symbol, `cron_${source}`, false);
@@ -270,6 +279,7 @@ export class CollectorService implements OnModuleInit {
     }
 
     await this.mysqlRepo.deactivateAllSymbols();
+
     for (const s of this.activeSymbols) {
       await this.mysqlRepo.saveActiveSymbol(s, `cron_${source}`);
     }

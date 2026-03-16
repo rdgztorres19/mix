@@ -11,11 +11,12 @@ import StrategyInfoPanel from './components/StrategyInfoPanel';
 import LogsPanel from './components/LogsPanel';
 import DebugPanel from './components/DebugPanel';
 import BacktestPage from './components/BacktestPage';
+import TrackerPage from './components/TrackerPage';
 import { useCollectorSocket } from './hooks/useCollectorSocket';
 import type { PredictSignalPayload, TradeEntryPayload, TradeExitPayload } from './hooks/useCollectorSocket';
 import type { StockSnapshot, AnalyzeResponse, CatalystAnalysis, MomoStock } from './types';
 
-type Page = 'trading' | 'backtest';
+type Page = 'trading' | 'backtest' | 'tracker';
 type Tab = '1m' | '5m' | 'news';
 type Status = 'idle' | 'loading-chart' | 'loading-analysis' | 'done' | 'error';
 
@@ -549,7 +550,7 @@ export default function App() {
 
         {/* Page tabs */}
         <div style={{ display: 'flex', gap: 4, marginRight: 8 }}>
-          {([['trading', '📈 Trading'], ['backtest', '🔮 Backtest']] as const).map(([p, label]) => (
+          {([['trading', '📈 Trading'], ['backtest', '🔮 Backtest'], ['tracker', '👀 Tracker']] as const).map(([p, label]) => (
             <button
               key={p}
               onClick={() => setPage(p)}
@@ -805,6 +806,8 @@ export default function App() {
       {/* ── Page body ── */}
       {page === 'backtest' ? (
         <BacktestPage />
+      ) : page === 'tracker' ? (
+        <TrackerPage />
       ) : (
       <main style={{ flex: 1, padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 

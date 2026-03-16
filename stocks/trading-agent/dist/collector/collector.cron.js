@@ -27,8 +27,12 @@ function _ts_metadata(k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 }
 let CollectorCron = class CollectorCron {
+    async onModuleInit() {
+        this.logger.log('🚀 Executing initial Top gainers fetch on startup...');
+        await this.collector.runTopGainersCron();
+    }
     /**
-   * Every minute during market hours (9:30–16:00 ET ≈ 14:30–21:00 UTC).
+   * Every minute during market hours (9:30–16:00 ET).
    * Fetch top gainers from env source, replace activeSymbols, add new to symbols.
    */ async runTopGainersCron() {
         this.logger.log('⏰ Top gainers cron (1 min)…');
@@ -40,7 +44,9 @@ let CollectorCron = class CollectorCron {
     }
 };
 _ts_decorate([
-    (0, _schedule.Cron)('0 * 14-21 * * 1-5'),
+    (0, _schedule.Cron)('0 * 9-16 * * 1-5', {
+        timeZone: 'America/New_York'
+    }),
     _ts_metadata("design:type", Function),
     _ts_metadata("design:paramtypes", []),
     _ts_metadata("design:returntype", Promise)

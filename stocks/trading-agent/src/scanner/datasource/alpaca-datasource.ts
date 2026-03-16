@@ -52,7 +52,7 @@ export class AlpacaDataSource implements IStockDataSource {
     ) || 'PKBLVB6V5QWCSU2TLPHJ';
 
     this.alpacaSecretKey = configService.get<string>(
-      'ALPACA_SECRET_KEY', 
+      'ALPACA_SECRET_KEY',
       'Vhuk22MepdEauPUtAmxGjfLRoARzwLBiiNvgjpbG'
     ) || 'Vhuk22MepdEauPUtAmxGjfLRoARzwLBiiNvgjpbG';
 
@@ -181,7 +181,7 @@ export class AlpacaDataSource implements IStockDataSource {
     } catch (err) {
       this.logger.error(`❌ Alpaca datasource failed: ${err instanceof Error ? err.message : String(err)}`);
       this.logger.debug(`Error: ${err}`);
-      
+
       // No fallback to Momo (disabled) - return empty snapshot
       this.logger.warn(`⚠️ ${ticker} data unavailable from Alpaca - returning empty snapshot (MoMo disabled)`);
       return this.emptySnapshot(ticker);
@@ -255,7 +255,7 @@ export class AlpacaDataSource implements IStockDataSource {
     // Add detailed logging to debug the response
     this.logger.debug(`📈 Alpaca response status: ${response.status} for ${ticker}`);
     this.logger.debug(`📈 Response data keys: ${JSON.stringify(Object.keys(response.data || {}))}`);
-    
+
     if (response.data?.bars) {
       this.logger.debug(`📈 Response bars type: ${Array.isArray(response.data.bars) ? 'Array' : 'Object'}, length: ${response.data.bars.length || Object.keys(response.data.bars).length}`);
       if (Array.isArray(response.data.bars)) {
@@ -406,7 +406,7 @@ export class AlpacaDataSource implements IStockDataSource {
     limit: number;
   }): Promise<AlpacaBarsResponse | null> {
     const url = `${this.alpacaBaseUrl}/${params.symbol}/bars`;
-    
+
     const headers = {
       'APCA-API-KEY-ID': this.alpacaKeyId,
       'APCA-API-SECRET-KEY': this.alpacaSecretKey,
@@ -425,7 +425,7 @@ export class AlpacaDataSource implements IStockDataSource {
         timeout: this.requestTimeoutMs,
       });
 
-      this.logger.debug(`✅ Direct API call successful for ${params.symbol}: ${response.status}`);
+      // this.logger.debug(`✅ Direct API call successful for ${params.symbol}: ${response.status}`);
       return response.data;
 
     } catch (error) {

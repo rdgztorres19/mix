@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ScannerService } from './scanner.service';
 import { ScannerController } from './scanner.controller';
 import { ScannerCron } from './scanner.cron';
@@ -9,22 +10,24 @@ import { MysqlDataSource } from './datasource/mysql-datasource';
 import { StockDataSourceFactory } from './datasource/datasource.factory';
 
 @Module({
+  imports: [ScheduleModule.forRoot()],
+  controllers: [
+    ScannerController,
+  ],
   providers: [
     ScannerService,
     ScannerCron,
-    MysqlTrainingRepository,
-    AlpacaDataSource,   // 🎯 Premium Alpaca SIP feed (primary source)
-    MomoDataSource,     // 🚫 DISABLED - kept for DI compatibility 
-    MysqlDataSource,    // 💾 Historical data from stock-training
+    AlpacaDataSource,
+    MomoDataSource,
+    MysqlDataSource,
     StockDataSourceFactory,
+    MysqlTrainingRepository,
   ],
-  controllers: [ScannerController],
   exports: [
     ScannerService, 
     MysqlTrainingRepository,
     AlpacaDataSource,   // Export for WebSocket module
     MomoDataSource,     // Export for WebSocket module (disabled but kept for DI)
-    StockDataSourceFactory,
   ],
 })
 export class ScannerModule {}
