@@ -1,74 +1,5 @@
 [
   {
-    "rule": "close_gt_ema9 == NA",
-    "conditions": [
-      {
-        "feature": "close_gt_ema9",
-        "type": "eq",
-        "value": "NA"
-      }
-    ],
-    "stats": {
-      "count": 1123,
-      "goods": 434,
-      "bads": 406,
-      "neutrals": 283,
-      "goodRate": 0.38646482635796975,
-      "badRate": 0.36153161175422976,
-      "neutralRate": 0.25200356188780054,
-      "avgFutureMaxReturn": 0.03430325457209688,
-      "avgFutureMinReturn": -0.012250148389155108
-    },
-    "score": -2.4574139402062287,
-    "lift": 0.10743466538959573
-  },
-  {
-    "rule": "ema9_gt_ema20 == NA",
-    "conditions": [
-      {
-        "feature": "ema9_gt_ema20",
-        "type": "eq",
-        "value": "NA"
-      }
-    ],
-    "stats": {
-      "count": 3425,
-      "goods": 1175,
-      "bads": 1082,
-      "neutrals": 1168,
-      "goodRate": 0.34306569343065696,
-      "badRate": 0.3159124087591241,
-      "neutralRate": 0.34102189781021897,
-      "avgFutureMaxReturn": 0.03339565029904777,
-      "avgFutureMinReturn": -0.012999223473555673
-    },
-    "score": -5.49656640102452,
-    "lift": 0.06403553246228294
-  },
-  {
-    "rule": "close_gt_ema20 == NA",
-    "conditions": [
-      {
-        "feature": "close_gt_ema20",
-        "type": "eq",
-        "value": "NA"
-      }
-    ],
-    "stats": {
-      "count": 3425,
-      "goods": 1175,
-      "bads": 1082,
-      "neutrals": 1168,
-      "goodRate": 0.34306569343065696,
-      "badRate": 0.3159124087591241,
-      "neutralRate": 0.34102189781021897,
-      "avgFutureMaxReturn": 0.03339565029904777,
-      "avgFutureMinReturn": -0.012999223473555673
-    },
-    "score": -5.49656640102452,
-    "lift": 0.06403553246228294
-  },
-  {
     "rule": "session == LATE_MORNING",
     "conditions": [
       {
@@ -573,5 +504,74 @@
     },
     "score": -45.25525190214076,
     "lift": 0.008137110658970215
+  },
+  {
+    "rule": "change_pct_at_candle >= 0.305473",
+    "conditions": [
+      {
+        "feature": "change_pct_at_candle",
+        "type": "gte",
+        "value": 0.3054731586
+      }
+    ],
+    "stats": {
+      "count": 27304,
+      "goods": 7717,
+      "bads": 16064,
+      "neutrals": 3523,
+      "goodRate": 0.2826325813067682,
+      "badRate": 0.5883387049516554,
+      "neutralRate": 0.12902871374157632,
+      "avgFutureMaxReturn": 0.03112403983874013,
+      "avgFutureMinReturn": -0.029733282015840155
+    },
+    "score": -48.01305337698543,
+    "lift": 0.0036024203383941966
+  },
+  {
+    "rule": "dollar_volume <= 164990.365",
+    "conditions": [
+      {
+        "feature": "dollar_volume",
+        "type": "lte",
+        "value": 164990.365
+      }
+    ],
+    "stats": {
+      "count": 54607,
+      "goods": 15186,
+      "bads": 23020,
+      "neutrals": 16401,
+      "goodRate": 0.27809621477100005,
+      "badRate": 0.42155767575585545,
+      "neutralRate": 0.3003461094731445,
+      "avgFutureMaxReturn": 0.024961763686125408,
+      "avgFutureMinReturn": -0.017418356246788672
+    },
+    "score": -49.47334127279623,
+    "lift": -0.0009339461973739693
+  },
+  {
+    "rule": "dollar_volume >= 715433.9625",
+    "conditions": [
+      {
+        "feature": "dollar_volume",
+        "type": "gte",
+        "value": 715433.9624999999
+      }
+    ],
+    "stats": {
+      "count": 27304,
+      "goods": 7446,
+      "bads": 16179,
+      "neutrals": 3679,
+      "goodRate": 0.27270729563433926,
+      "badRate": 0.5925505420451216,
+      "neutralRate": 0.13474216232053912,
+      "avgFutureMaxReturn": 0.029931966617145075,
+      "avgFutureMinReturn": -0.02947347783260683
+    },
+    "score": -50.001080184147426,
+    "lift": -0.006322865334034755
   }
 ]

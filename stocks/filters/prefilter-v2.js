@@ -449,7 +449,11 @@ function buildCandidateConditions(rows) {
   }
 
   for (const feature of CONFIG.categoricalFeatures) {
-    const values = [...new Set(rows.map(r => r[feature]).filter(v => v !== undefined && v !== null && v !== ""))];
+    const values = [...new Set(
+      rows
+        .map(r => r[feature])
+        .filter(v => v !== undefined && v !== null && v !== "" && v !== "NA")
+    )];
     log(`Feature categórica ${feature}: ${values.length} values`);
     for (const value of values) out.push({ feature, type: "eq", value });
   }

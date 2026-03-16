@@ -10,6 +10,7 @@ const CONFIG = {
   // TARGET calculado por el script
   tpPct: 0.08, // +8%
   slPct: 0.04, // -4%
+  targetCutoffMinutes: 720, // 12:00 PM ET
 
   quantiles: [0.25, 0.5, 0.75],
 
@@ -146,6 +147,13 @@ function parseTimeToMinutes(s) {
   return hh * 60 + mm;
 }
 
+function formatMinutes(mins) {
+  if (!Number.isFinite(mins)) return "n/a";
+  const hh = Math.floor(mins / 60);
+  const mm = mins % 60;
+  return `${hh}:${String(mm).padStart(2, "0")}`;
+}
+
 function parseCsv(filePath) {
   log(`Leyendo CSV: ${filePath}`);
   const raw = fs.readFileSync(filePath, "utf8");
@@ -219,9 +227,10 @@ function parseCsv(filePath) {
       if (!Number.isFinite(row.high) || !Number.isFinite(row.low)) continue;
     }
 
-    row.dollar_volume = Number.isFinite(row.close) && Number.isFinite(row.volume)
-      ? row.close * row.volume
-      : NaN;
+    row.dollar_volume =
+      Number.isFinite(row.close) && Number.isFinite(row.volume)
+        ? row.close * row.volume
+        : NaN;
 
     row.premarket_dollar_volume =
       Number.isFinite(row.close) && Number.isFinite(row.premarket_volume)
@@ -249,21 +258,32 @@ function parseCsv(filePath) {
         : NaN;
 
     row.extension_vs_atr =
-      Number.isFinite(row.close) && Number.isFinite(row.ema9) && Number.isFinite(row.atr) && row.atr !== 0
+      Number.isFinite(row.close) &&
+      Number.isFinite(row.ema9) &&
+      Number.isFinite(row.atr) &&
+      row.atr !== 0
         ? (row.close - row.ema9) / row.atr
         : NaN;
 
     row.close_gt_vwap =
-      Number.isFinite(row.close) && Number.isFinite(row.vwap) ? (row.close > row.vwap ? "1" : "0") : "NA";
+      Number.isFinite(row.close) && Number.isFinite(row.vwap)
+        ? (row.close > row.vwap ? "1" : "0")
+        : "NA";
 
     row.ema9_gt_ema20 =
-      Number.isFinite(row.ema9) && Number.isFinite(row.ema20) ? (row.ema9 > row.ema20 ? "1" : "0") : "NA";
+      Number.isFinite(row.ema9) && Number.isFinite(row.ema20)
+        ? (row.ema9 > row.ema20 ? "1" : "0")
+        : "NA";
 
     row.close_gt_ema9 =
-      Number.isFinite(row.close) && Number.isFinite(row.ema9) ? (row.close > row.ema9 ? "1" : "0") : "NA";
+      Number.isFinite(row.close) && Number.isFinite(row.ema9)
+        ? (row.close > row.ema9 ? "1" : "0")
+        : "NA";
 
     row.close_gt_ema20 =
-      Number.isFinite(row.close) && Number.isFinite(row.ema20) ? (row.close > row.ema20 ? "1" : "0") : "NA";
+      Number.isFinite(row.close) && Number.isFinite(row.ema20)
+        ? (row.close > row.ema20 ? "1" : "0")
+        : "NA";
 
     rows.push(row);
   }
@@ -274,6 +294,7 @@ function parseCsv(filePath) {
 
 function groupByStockDay(rows) {
   const grouped = new Map();
+
   for (const row of rows) {
     const key = `${row.symbol}__${row.date}`;
     if (!grouped.has(key)) grouped.set(key, []);
@@ -292,18 +313,29 @@ function groupByStockDay(rows) {
 }
 
 function pickBaseRow(arr) {
+  const eligible = arr.filter(
+    r => Number.isFinite(r.time_minutes) && r.time_minutes < CONFIG.targetCutoffMinutes
+  );
+
+  if (!eligible.length) return null;
+
   if (CONFIG.stockDayMode === "first_open_or_regular") {
-    return arr.find(r => CONFIG.openSessions.has(r.session)) ||
-      (CONFIG.includePremarketAsFallback ? arr[0] : null);
+    return (
+      eligible.find(r => CONFIG.openSessions.has(r.session)) ||
+      (CONFIG.includePremarketAsFallback ? eligible[0] : null)
+    );
   }
+
   if (CONFIG.stockDayMode === "first_regular") {
-    return arr.find(r => CONFIG.openSessions.has(r.session)) || null;
+    return eligible.find(r => CONFIG.openSessions.has(r.session)) || null;
   }
-  return arr[0];
+
+  return eligible[0];
 }
 
 function computeStockDayTarget(baseRow, futureRows) {
   const entry = baseRow.close;
+
   if (!Number.isFinite(entry) || entry <= 0) {
     return {
       is_good: 0,
@@ -316,12 +348,16 @@ function computeStockDayTarget(baseRow, futureRows) {
     };
   }
 
+  const limitedFutureRows = futureRows.filter(
+    row => Number.isFinite(row.time_minutes) && row.time_minutes <= CONFIG.targetCutoffMinutes
+  );
+
   let hitTpFirst = false;
   let hitSlFirst = false;
   let futureMax = -Infinity;
   let futureMin = Infinity;
 
-  for (const row of futureRows) {
+  for (const row of limitedFutureRows) {
     const highRet = Number.isFinite(row.high) ? (row.high - entry) / entry : NaN;
     const lowRet = Number.isFinite(row.low) ? (row.low - entry) / entry : NaN;
 
@@ -332,7 +368,7 @@ function computeStockDayTarget(baseRow, futureRows) {
     const slHit = Number.isFinite(lowRet) && lowRet <= -CONFIG.slPct;
 
     if (tpHit && slHit) {
-      // conservador: si en la misma vela pudo tocar ambos, lo tratamos neutral
+      // Conservador: si en la misma vela pudo tocar ambos, neutral
       break;
     }
     if (tpHit) {
@@ -358,6 +394,12 @@ function computeStockDayTarget(baseRow, futureRows) {
 
 function buildStockDayDataset(rows) {
   log("Agrupando por symbol+date y calculando target stock-day...");
+  log(
+    `Usando solo velas futuras hasta ${CONFIG.targetCutoffMinutes} minutos (${formatMinutes(
+      CONFIG.targetCutoffMinutes
+    )})`
+  );
+
   const grouped = groupByStockDay(rows);
   const out = [];
 
@@ -413,7 +455,11 @@ function scoreRule(stats, baseline) {
 }
 
 function generateThresholds(rows, feature) {
-  const vals = rows.map(r => r[feature]).filter(Number.isFinite).sort((a, b) => a - b);
+  const vals = rows
+    .map(r => r[feature])
+    .filter(Number.isFinite)
+    .sort((a, b) => a - b);
+
   if (vals.length < 25) return [];
   return uniqueSorted(CONFIG.quantiles.map(q => percentile(vals, q)));
 }
@@ -437,6 +483,7 @@ function evaluateRule(rows, conds, baseline) {
   const subset = rows.filter(r => conds.every(c => applyCondition(r, c)));
   const stats = computeStats(subset);
   const score = scoreRule(stats, baseline);
+
   return {
     rule: conds.map(describeCondition).join(" AND "),
     conditions: conds,
@@ -460,7 +507,14 @@ function buildCandidateConditions(rows) {
   }
 
   for (const feature of CONFIG.categoricalFeatures) {
-    const values = [...new Set(rows.map(r => r[feature]).filter(v => v !== undefined && v !== null && v !== ""))];
+    const values = [
+      ...new Set(
+        rows
+          .map(r => r[feature])
+          .filter(v => v !== undefined && v !== null && v !== "")
+      ),
+    ];
+
     log(`Feature categórica ${feature}: ${values.length} values`);
     for (const value of values) out.push({ feature, type: "eq", value });
   }
@@ -476,11 +530,13 @@ function buildCandidateConditions(rows) {
 function searchSingleRules(rows, baseline, candidates) {
   log("Buscando reglas simples...");
   const results = [];
+
   for (let i = 0; i < candidates.length; i++) {
     if (i % 20 === 0) log(`Reglas simples: ${i}/${candidates.length}`);
     const rule = evaluateRule(rows, [candidates[i]], baseline);
     if (rule.stats.count >= CONFIG.minSamplesSingle) results.push(rule);
   }
+
   results.sort((a, b) => b.score - a.score);
   log(`Reglas simples válidas: ${results.length}`);
   return results.slice(0, CONFIG.topSingle);
@@ -518,6 +574,7 @@ function generatePrefilterFile(bestRule) {
   const body = [];
   body.push("function passesGeneratedPreFilter(row) {");
   body.push("  return (");
+
   bestRule.conditions.forEach((c, idx) => {
     let expr = "";
     if (c.type === "gte") expr = `Number.isFinite(row.${c.feature}) && row.${c.feature} >= ${c.value}`;
@@ -525,6 +582,7 @@ function generatePrefilterFile(bestRule) {
     if (c.type === "eq") expr = `String(row.${c.feature}) === ${JSON.stringify(c.value)}`;
     body.push(`    (${expr})${idx === bestRule.conditions.length - 1 ? "" : " &&"}`);
   });
+
   body.push("  );");
   body.push("}");
   body.push("");
@@ -562,13 +620,19 @@ function main() {
   const baseline = computeStats(rows);
 
   log(
-    `Baseline stock-day: count=${baseline.count}, good=${formatPct(baseline.goodRate)}, bad=${formatPct(baseline.badRate)}, neutral=${formatPct(baseline.neutralRate)}`
+    `Baseline stock-day (hasta ${formatMinutes(CONFIG.targetCutoffMinutes)}): count=${baseline.count}, good=${formatPct(
+      baseline.goodRate
+    )}, bad=${formatPct(baseline.badRate)}, neutral=${formatPct(baseline.neutralRate)}`
   );
 
   const candidates = buildCandidateConditions(rows);
   const singleRules = searchSingleRules(rows, baseline, candidates);
 
-  const seedConditions = [...new Map(singleRules.flatMap(r => r.conditions).map(c => [describeCondition(c), c])).values()];
+  const seedConditions = [
+    ...new Map(
+      singleRules.flatMap(r => r.conditions).map(c => [describeCondition(c), c])
+    ).values(),
+  ];
   log(`Seed conditions para dobles: ${seedConditions.length}`);
 
   const pairRules = searchPairRules(rows, baseline, seedConditions);
@@ -579,7 +643,10 @@ function main() {
 
   const bestOverall = [...pairRules, ...singleRules].sort((a, b) => b.score - a.score)[0];
   if (bestOverall) {
-    fs.writeFileSync(path.join(CONFIG.outputDir, "generated-prefilter-stockday.js"), generatePrefilterFile(bestOverall));
+    fs.writeFileSync(
+      path.join(CONFIG.outputDir, "generated-prefilter-stockday.js"),
+      generatePrefilterFile(bestOverall)
+    );
   }
 
   printRules("TOP SINGLE RULES STOCK-DAY", singleRules, 12);
