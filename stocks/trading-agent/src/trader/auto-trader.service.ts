@@ -12,6 +12,7 @@ import notifier from 'node-notifier';
 import { PredictorService, PredictResult } from '../predictor/predictor.service';
 import { AlpacaTraderService, AlpacaOrder } from './alpaca-trader.service';
 import { PositionTrackerService, AutoPosition } from './position-tracker.service';
+import { MysqlTrainingRepository } from '../scanner/mysql/mysql-training.repository';
 import type { CollectorGateway } from '../collector/collector.gateway';
 import type { CandleRow } from '../collector/indicator.calculator';
 
@@ -32,6 +33,7 @@ export class AutoTraderService {
     private readonly predictor: PredictorService,
     private readonly alpaca: AlpacaTraderService,
     private readonly positions: PositionTrackerService,
+    private readonly mysqlRepo: MysqlTrainingRepository,
   ) {
     this.predictEnabled = process.env.AUTO_PREDICT_ENABLED === 'true';
     this.tradeEnabled = process.env.AUTO_TRADE_ENABLED === 'true';
@@ -132,7 +134,7 @@ export class AutoTraderService {
 
     this.broadcastSignal(row, result);
 
-    if (this.shouldEnterTrade(result)) {
+    if (await this.shouldEnterTrade(result, row)) {
       await this.buyAndTrack(row);
     }
   }
@@ -161,8 +163,20 @@ export class AutoTraderService {
     );
   }
 
-  private shouldEnterTrade(result: PredictResult): boolean {
-    return result.tradeable && this.tradeEnabled && this.alpaca.isEnabled();
+  private async shouldEnterTrade(result: PredictResult, row: CandleRow): Promise<boolean> {
+    if (!result.tradeable || !this.tradeEnabled || !this.alpaca.isEnabled()) return false;
+    if (!this.isBeforeNoonET(row.candle_time_et)) return false;
+    return this.mysqlRepo.passesPrefilterForToday(row.symbol);
+  }
+
+  /** Only allow new entries before 12:00 PM New York time. */
+  private isBeforeNoonET(candleTimeEt: string): boolean {
+    const match = candleTimeEt.match(/^(\d{1,2}):(\d{2})$/);
+    if (!match) return true;
+    const hour = parseInt(match[1], 10);
+    const minute = parseInt(match[2], 10);
+    const minuteOfDay = hour * 60 + minute;
+    return minuteOfDay < 12 * 60;
   }
 
   // ═══════════════════════════════════════════════════════════════════════

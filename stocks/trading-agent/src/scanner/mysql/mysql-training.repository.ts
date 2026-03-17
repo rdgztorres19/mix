@@ -251,6 +251,38 @@ export class MysqlTrainingRepository {
     }
   }
 
+  /**
+   * Check if symbol exists in scanned_symbols for today and passes prefilter:
+   * close > 2, float_shares 1M–100M, premarket_dollar_volume <= threshold.
+   * Used by AutoTraderService before noon to gate trade entry.
+   */
+  async passesPrefilterForToday(symbol: string): Promise<boolean> {
+    const p = this.getPool();
+    if (!p) return false;
+    try {
+      const [rows] = await p.query<mysql.RowDataPacket[]>(
+        `SELECT close, float_shares, premarket_dollar_volume
+         FROM scanned_symbols
+         WHERE symbol = ? AND DATE(arrived_at) = CURDATE()`,
+        [symbol.toUpperCase()],
+      );
+      if (!rows || !Array.isArray(rows) || rows.length === 0) return false;
+      const r = rows[0];
+      const close = Number(r?.close ?? 0);
+      const floatShares = Number(r?.float_shares ?? 0);
+      const premarketDollarVol = Number(r?.premarket_dollar_volume ?? Infinity);
+      return (
+        close > 2 &&
+        floatShares >= 1_000_000 &&
+        floatShares <= 100_000_000 &&
+        premarketDollarVol <= 10_007_568.983475
+      );
+    } catch (e) {
+      this.logger.warn(`passesPrefilterForToday(${symbol}) failed: ${(e as Error).message}`);
+      return false;
+    }
+  }
+
   async saveActiveSymbol(symbol: string, source: string): Promise<void> {
     const p = this.getPool();
     if (!p) return;
