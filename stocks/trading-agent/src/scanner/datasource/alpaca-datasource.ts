@@ -48,13 +48,13 @@ export class AlpacaDataSource implements IStockDataSource {
   ) {
     this.alpacaKeyId = configService.get<string>(
       'ALPACA_KEY_ID',
-      'PKBLVB6V5QWCSU2TLPHJ'
-    ) || 'PKBLVB6V5QWCSU2TLPHJ';
+      'AKAS3FTVF54TKVHQSOO44I5XJH'
+    );
 
     this.alpacaSecretKey = configService.get<string>(
       'ALPACA_SECRET_KEY',
-      'Vhuk22MepdEauPUtAmxGjfLRoARzwLBiiNvgjpbG'
-    ) || 'Vhuk22MepdEauPUtAmxGjfLRoARzwLBiiNvgjpbG';
+      'Br5quiybxDxEhw2WsX1EhHMq83f4TZX4RAhoxzkdQG2d'
+    );
 
     this.logger.log('✅ AlpacaDataSource initialized with premium SIP feed (MoMo fallback disabled)');
   }
@@ -275,7 +275,9 @@ export class AlpacaDataSource implements IStockDataSource {
     // Handle both array and object format for bars
     let bars;
     if (!response.data || !response.data.bars) {
-      throw new Error(`No bar data in Alpaca response for ${ticker}`);
+      // Treat as "no data" (do not crash collector on missing bars).
+      this.logger.warn(`⚠️ No bar data in Alpaca response for ${ticker} (${dateStr})`);
+      return [];
     }
 
     if (Array.isArray(response.data.bars)) {
@@ -287,7 +289,9 @@ export class AlpacaDataSource implements IStockDataSource {
     }
 
     if (!bars || (Array.isArray(bars) && bars.length === 0)) {
-      throw new Error(`No bar data in Alpaca response for ${ticker}`);
+      // Some symbols/dates legitimately have no bars (halts, delisted, etc).
+      this.logger.warn(`⚠️ No bars returned by Alpaca for ${ticker} (${dateStr})`);
+      return [];
     }
     if (!Array.isArray(bars)) {
       throw new Error(`Expected array of bars from Alpaca, got ${typeof bars}`);

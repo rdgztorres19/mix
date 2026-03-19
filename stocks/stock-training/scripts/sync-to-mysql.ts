@@ -10,6 +10,7 @@
 import 'dotenv/config';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as readline from 'readline';
 import { fileURLToPath } from 'url';
 import mysql from 'mysql2/promise';
 import { CSV_COLUMNS } from '../src/csv/csv-types';
@@ -129,24 +130,61 @@ async function loadAndInsert(
     console.warn(`  CSV no encontrado: ${csvPath}`);
     return 0;
   }
-  const content = fs.readFileSync(csvPath, 'utf-8');
-  const lines = content.split('\n').filter((l) => l.trim());
-  if (lines.length < 1) return 0;
+  const stream = fs.createReadStream(csvPath, { encoding: 'utf-8' });
+  const rl = readline.createInterface({ input: stream, crlfDelay: Infinity });
 
-  const firstLine = parseCsvLine(lines[0]);
-  const hasHeader = firstLine.some((v) => String(v).toLowerCase() === 'symbol');
-  const headers = hasHeader ? firstLine : [...CSV_COLUMNS];
-  const dataStart = hasHeader ? 1 : 0;
-  const cols = headers.join(', ');
-  const placeholders = headers.map(() => '?').join(', ');
-  const sql = `REPLACE INTO ${table} (${cols}) VALUES (${placeholders})`;
+  let headers: string[] = [];
+  let hasHeader = false;
+  let sql = '';
+  let initialized = false;
 
   let inserted = 0;
-  const BATCH = 3500;
-  let batch: unknown[] = [];
+  const BATCH = 5500;
+  let batch: unknown[][] = [];
 
-  for (let i = dataStart; i < lines.length; i++) {
-    const vals = parseCsvLine(lines[i]);
+  const initFromFirstLine = (firstLine: string): void => {
+    const firstVals = parseCsvLine(firstLine);
+    hasHeader = firstVals.some((v) => String(v).toLowerCase() === 'symbol');
+    headers = hasHeader ? firstVals : [...CSV_COLUMNS];
+    const cols = headers.join(', ');
+    const placeholders = headers.map(() => '?').join(', ');
+    sql = `REPLACE INTO ${table} (${cols}) VALUES (${placeholders})`;
+    initialized = true;
+
+    if (!hasHeader) {
+      // First line is already data, process it immediately.
+      if (firstVals.length === headers.length) {
+        const row = headers.map((h, j) => {
+          const v = firstVals[j] ?? '';
+          if (h === 'date') return v || null;
+          return toVal(v);
+        });
+        batch.push(row);
+      }
+    }
+  };
+
+  for await (const rawLine of rl) {
+    const line = rawLine.trim();
+    if (!line) continue;
+
+    if (!initialized) {
+      initFromFirstLine(line);
+      if (!hasHeader) {
+        // first line already added as data inside init
+        if (batch.length >= BATCH) {
+          for (const r of batch) {
+            await conn.execute(sql, r);
+            inserted++;
+          }
+          batch = [];
+          process.stdout.write(`\r  ${table}: ${inserted} rows...`);
+        }
+      }
+      continue;
+    }
+
+    const vals = parseCsvLine(line);
     if (vals.length !== headers.length) continue;
     const row = headers.map((h, j) => {
       const v = vals[j] ?? '';
@@ -155,7 +193,7 @@ async function loadAndInsert(
     });
     batch.push(row);
     if (batch.length >= BATCH) {
-      for (const r of batch as unknown[][]) {
+      for (const r of batch) {
         await conn.execute(sql, r);
         inserted++;
       }
@@ -163,10 +201,12 @@ async function loadAndInsert(
       process.stdout.write(`\r  ${table}: ${inserted} rows...`);
     }
   }
-  for (const r of batch as unknown[][]) {
+
+  for (const r of batch) {
     await conn.execute(sql, r);
     inserted++;
   }
+
   return inserted;
 }
 

@@ -196,6 +196,7 @@ async function main() {
             s.symbol IS NULL
             OR (
               s.close > 2
+              AND s.close < 20
               AND s.float_shares BETWEEN 1000000 AND 100000000
               AND s.premarket_dollar_volume <= 10007568.983475
             )

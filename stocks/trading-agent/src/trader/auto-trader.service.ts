@@ -165,7 +165,7 @@ export class AutoTraderService {
 
   private async shouldEnterTrade(result: PredictResult, row: CandleRow): Promise<boolean> {
     if (!result.tradeable || !this.tradeEnabled || !this.alpaca.isEnabled()) return false;
-    if (!this.isBeforeNoonET(row.candle_time_et)) return false;
+    // if (!this.isBeforeNoonET(row.candle_time_et)) return false;
     return this.mysqlRepo.passesPrefilterForToday(row.symbol);
   }
 

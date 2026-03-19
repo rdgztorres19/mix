@@ -93,7 +93,7 @@ export class WebSocketFallbackCron {
       const startTime = startDate.toISOString().slice(0, 19) + 'Z';
       const endTime = endDate.toISOString().slice(0, 19) + 'Z';
 
-      this.logger.log(`🔄 Fetching fallback data for ${symbol}: ${startTime}`);
+      //this.logger.log(`🔄 Fetching fallback data for ${symbol}: ${startTime}`);
 
       // Use AlpacaDataSource to fetch the missing bar
       const response = await this.alpacaDataSource.fetchBarsFromAlpacaDirect({

@@ -271,8 +271,18 @@ export class MysqlTrainingRepository {
       const close = Number(r?.close ?? 0);
       const floatShares = Number(r?.float_shares ?? 0);
       const premarketDollarVol = Number(r?.premarket_dollar_volume ?? Infinity);
+
+
+      console.log('close', (
+        close > 2 &&
+        close < 20 &&
+        floatShares >= 1_000_000 &&
+        floatShares <= 100_000_000 &&
+        premarketDollarVol <= 10_007_568.983475
+      ), floatShares, premarketDollarVol);
       return (
         close > 2 &&
+        close < 10 &&
         floatShares >= 1_000_000 &&
         floatShares <= 100_000_000 &&
         premarketDollarVol <= 10_007_568.983475
@@ -306,7 +316,7 @@ export class MysqlTrainingRepository {
     try {
       const [rows] = await p.query<mysql.RowDataPacket[]>(
         `SELECT symbol, source, added_at FROM collector_symbols
-         WHERE DATE(added_at) = CURDATE() OR added_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+         WHERE DATE(added_at) = CURDATE()
          ORDER BY added_at DESC`,
       );
       const seen = new Set<string>();
