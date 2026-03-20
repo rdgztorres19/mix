@@ -145,6 +145,7 @@ function callPredictBatch(batch, threshold) {
       }
 
       try {
+        // console.log(stdout);
         const out = JSON.parse(stdout);
         if (out.error) reject(new Error(out.error));
         else resolve(out.results || []);
@@ -195,16 +196,36 @@ async function main() {
           AND (
             s.symbol IS NULL
             OR (
-              s.close > 2
+              s.close > 1
               AND s.close < 20
-              AND s.float_shares BETWEEN 1000000 AND 100000000
-              AND s.premarket_dollar_volume <= 10007568.983475
             )
           )
         ORDER BY t.symbol ASC
       `,
       [dateStr],
     );
+
+    // const [symbolRows] = await conn.query(
+    //   `
+    //     SELECT DISTINCT t.symbol
+    //     FROM training_1m t
+    //     LEFT JOIN scanned_symbols s
+    //       ON s.symbol = t.symbol
+    //     AND DATE(s.arrived_at) = t.date
+    //     WHERE t.date = ?
+    //       AND (
+    //         s.symbol IS NULL
+    //         OR (
+    //           s.close > 2
+    //           AND s.close < 20
+    //           AND s.float_shares BETWEEN 1000000 AND 100000000
+    //           AND s.premarket_dollar_volume <= 10007568.983475
+    //         )
+    //       )
+    //     ORDER BY t.symbol ASC
+    //   `,
+    //   [dateStr],
+    // );
 
     const symbols = symbolRows.map(r => String(r.symbol || '').trim()).filter(Boolean);
 

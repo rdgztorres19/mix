@@ -1,5 +1,222 @@
 [
   {
+    "symbol": "VCX",
+    "Date": "2026-03-19",
+    "percent_gain": 300,
+    "Volume": 0,
+    "High": 125
+  },
+  {
+    "symbol": "WETO",
+    "Date": "2026-03-19",
+    "percent_gain": 137.45,
+    "Volume": 108,
+    "High": 0.998
+  },
+  {
+    "symbol": "SER",
+    "Date": "2026-03-19",
+    "percent_gain": 119.52,
+    "Volume": 157,
+    "High": 2.8099
+  },
+  {
+    "symbol": "LNKS",
+    "Date": "2026-03-19",
+    "percent_gain": 99.52,
+    "Volume": 99,
+    "High": 1.16
+  },
+  {
+    "symbol": "CHNR",
+    "Date": "2026-03-19",
+    "percent_gain": 94.85,
+    "Volume": 42,
+    "High": 6.43
+  },
+  {
+    "symbol": "LNZA",
+    "Date": "2026-03-19",
+    "percent_gain": 87.75,
+    "Volume": 0,
+    "High": 33.87
+  },
+  {
+    "symbol": "SWMR",
+    "Date": "2026-03-19",
+    "percent_gain": 63.39,
+    "Volume": 22,
+    "High": 63.5
+  },
+  {
+    "symbol": "SUNE",
+    "Date": "2026-03-19",
+    "percent_gain": 56.11,
+    "Volume": 50,
+    "High": 2.248
+  },
+  {
+    "symbol": "GOAI",
+    "Date": "2026-03-19",
+    "percent_gain": 54.05,
+    "Volume": 9,
+    "High": 6.5932
+  },
+  {
+    "symbol": "DLTH",
+    "Date": "2026-03-19",
+    "percent_gain": 51.15,
+    "Volume": 13,
+    "High": 3.28
+  },
+  {
+    "symbol": "MOBX",
+    "Date": "2026-03-19",
+    "percent_gain": 49.59,
+    "Volume": 285,
+    "High": 0.6869
+  },
+  {
+    "symbol": "ELA",
+    "Date": "2026-03-19",
+    "percent_gain": 48.84,
+    "Volume": 1,
+    "High": 17.28
+  },
+  {
+    "symbol": "LIDR",
+    "Date": "2026-03-19",
+    "percent_gain": 48.66,
+    "Volume": 21,
+    "High": 2.78
+  },
+  {
+    "symbol": "ACXP",
+    "Date": "2026-03-19",
+    "percent_gain": 43.76,
+    "Volume": 7,
+    "High": 7.49
+  },
+  {
+    "symbol": "SWMR",
+    "Date": "2026-03-18",
+    "percent_gain": 241.84,
+    "Volume": 22,
+    "High": 64.7499
+  },
+  {
+    "symbol": "LNKS",
+    "Date": "2026-03-18",
+    "percent_gain": 175.58,
+    "Volume": 32,
+    "High": 1.46
+  },
+  {
+    "symbol": "AIM",
+    "Date": "2026-03-18",
+    "percent_gain": 147.93,
+    "Volume": 185,
+    "High": 1.7603
+  },
+  {
+    "symbol": "ARTL",
+    "Date": "2026-03-18",
+    "percent_gain": 69.38,
+    "Volume": 58,
+    "High": 8.215
+  },
+  {
+    "symbol": "AIB",
+    "Date": "2026-03-18",
+    "percent_gain": 50.34,
+    "Volume": 7,
+    "High": 4.36
+  },
+  {
+    "symbol": "OVID",
+    "Date": "2026-03-18",
+    "percent_gain": 44.28,
+    "Volume": 40,
+    "High": 2.9
+  },
+  {
+    "symbol": "SWMR",
+    "Date": "2026-03-17",
+    "percent_gain": 279.76,
+    "Volume": 12,
+    "High": 47.4701
+  },
+  {
+    "symbol": "LNAI",
+    "Date": "2026-03-17",
+    "percent_gain": 241.53,
+    "Volume": 554,
+    "High": 0.7237
+  },
+  {
+    "symbol": "CREG",
+    "Date": "2026-03-17",
+    "percent_gain": 113.61,
+    "Volume": 78,
+    "High": 2.649
+  },
+  {
+    "symbol": "INLF",
+    "Date": "2026-03-17",
+    "percent_gain": 82.16,
+    "Volume": 56,
+    "High": 0.5829
+  },
+  {
+    "symbol": "BIAF",
+    "Date": "2026-03-17",
+    "percent_gain": 62.83,
+    "Volume": 124,
+    "High": 3.11
+  },
+  {
+    "symbol": "HCWB",
+    "Date": "2026-03-17",
+    "percent_gain": 57.92,
+    "Volume": 460,
+    "High": 0.815
+  },
+  {
+    "symbol": "AIRS",
+    "Date": "2026-03-17",
+    "percent_gain": 56.22,
+    "Volume": 77,
+    "High": 2.89
+  },
+  {
+    "symbol": "EDSA",
+    "Date": "2026-03-17",
+    "percent_gain": 55.66,
+    "Volume": 9,
+    "High": 7.97
+  },
+  {
+    "symbol": "LIDR",
+    "Date": "2026-03-17",
+    "percent_gain": 49.69,
+    "Volume": 67,
+    "High": 2.3202
+  },
+  {
+    "symbol": "SMX",
+    "Date": "2026-03-17",
+    "percent_gain": 48.98,
+    "Volume": 1,
+    "High": 17.55
+  },
+  {
+    "symbol": "PSQH",
+    "Date": "2026-03-17",
+    "percent_gain": 40.12,
+    "Volume": 23,
+    "High": 0.9
+  },
+  {
     "symbol": "WNW",
     "Date": "2026-03-16",
     "percent_gain": 643.89,
@@ -21140,18 +21357,18 @@
     "High": 2.42
   },
   {
-    "symbol": "MFI",
-    "Date": "2025-06-05",
-    "percent_gain": 62,
-    "Volume": 6,
-    "High": 3.1088
-  },
-  {
     "symbol": "PL",
     "Date": "2025-06-05",
     "percent_gain": 62,
     "Volume": 68,
     "High": 6.45
+  },
+  {
+    "symbol": "MFI",
+    "Date": "2025-06-05",
+    "percent_gain": 62,
+    "Volume": 6,
+    "High": 3.1088
   },
   {
     "symbol": "TGL",
@@ -21581,18 +21798,18 @@
     "High": 10.54
   },
   {
-    "symbol": "KYMR",
-    "Date": "2025-06-02",
-    "percent_gain": 48,
-    "Volume": 6,
-    "High": 43.965
-  },
-  {
     "symbol": "NVVE",
     "Date": "2025-06-02",
     "percent_gain": 48,
     "Volume": 12,
     "High": 1.7605
+  },
+  {
+    "symbol": "KYMR",
+    "Date": "2025-06-02",
+    "percent_gain": 48,
+    "Volume": 6,
+    "High": 43.965
   },
   {
     "symbol": "FAAS",
@@ -21693,18 +21910,18 @@
     "High": 0.6024
   },
   {
-    "symbol": "IMNN",
-    "Date": "2025-05-30",
-    "percent_gain": 46,
-    "Volume": 33,
-    "High": 2.8987
-  },
-  {
     "symbol": "FAAS",
     "Date": "2025-05-30",
     "percent_gain": 46,
     "Volume": 32,
     "High": 1.53
+  },
+  {
+    "symbol": "IMNN",
+    "Date": "2025-05-30",
+    "percent_gain": 46,
+    "Volume": 33,
+    "High": 2.8987
   },
   {
     "symbol": "VVPR",
@@ -22232,18 +22449,18 @@
     "High": 4.3999
   },
   {
-    "symbol": "NAKA",
-    "Date": "2025-05-22",
-    "percent_gain": 52,
-    "Volume": 10,
-    "High": 34.77
-  },
-  {
     "symbol": "KDLY",
     "Date": "2025-05-22",
     "percent_gain": 52,
     "Volume": 9,
     "High": 29.87
+  },
+  {
+    "symbol": "NAKA",
+    "Date": "2025-05-22",
+    "percent_gain": 52,
+    "Volume": 10,
+    "High": 34.77
   },
   {
     "symbol": "BDRX",
@@ -22638,18 +22855,18 @@
     "High": 3.4901
   },
   {
-    "symbol": "KDLY",
-    "Date": "2025-05-15",
-    "percent_gain": 89,
-    "Volume": 29,
-    "High": 14.37
-  },
-  {
     "symbol": "NAKA",
     "Date": "2025-05-15",
     "percent_gain": 89,
     "Volume": 29,
     "High": 14.49
+  },
+  {
+    "symbol": "KDLY",
+    "Date": "2025-05-15",
+    "percent_gain": 89,
+    "Volume": 29,
+    "High": 14.37
   },
   {
     "symbol": "FL",
@@ -24241,18 +24458,18 @@
     "High": 3.1345
   },
   {
-    "symbol": "CHA",
-    "Date": "2025-04-17",
-    "percent_gain": 58,
-    "Volume": 14,
-    "High": 41.8
-  },
-  {
     "symbol": "SMX",
     "Date": "2025-04-17",
     "percent_gain": 58,
     "Volume": 38,
     "High": 2.26
+  },
+  {
+    "symbol": "CHA",
+    "Date": "2025-04-17",
+    "percent_gain": 58,
+    "Volume": 14,
+    "High": 41.8
   },
   {
     "symbol": "DXF",
@@ -24493,18 +24710,18 @@
     "High": 1.3899
   },
   {
-    "symbol": "USAR",
-    "Date": "2025-04-14",
-    "percent_gain": 61,
-    "Volume": 11,
-    "High": 13.38
-  },
-  {
     "symbol": "THTX",
     "Date": "2025-04-14",
     "percent_gain": 61,
     "Volume": 59,
     "High": 3.03
+  },
+  {
+    "symbol": "USAR",
+    "Date": "2025-04-14",
+    "percent_gain": 61,
+    "Volume": 11,
+    "High": 13.38
   },
   {
     "symbol": "TMC",
@@ -24661,18 +24878,18 @@
     "High": 3.98
   },
   {
-    "symbol": "HYFM",
-    "Date": "2025-04-10",
-    "percent_gain": 46,
-    "Volume": 15,
-    "High": 2.416
-  },
-  {
     "symbol": "UVXY",
     "Date": "2025-04-10",
     "percent_gain": 46,
     "Volume": 30,
     "High": 47.48
+  },
+  {
+    "symbol": "HYFM",
+    "Date": "2025-04-10",
+    "percent_gain": 46,
+    "Volume": 15,
+    "High": 2.416
   },
   {
     "symbol": "ICCT",
@@ -24773,18 +24990,18 @@
     "High": 12.74
   },
   {
-    "symbol": "MSTU",
-    "Date": "2025-04-09",
-    "percent_gain": 54,
-    "Volume": 185,
-    "High": 5.45
-  },
-  {
     "symbol": "MSTX",
     "Date": "2025-04-09",
     "percent_gain": 54,
     "Volume": 11,
     "High": 19.64
+  },
+  {
+    "symbol": "MSTU",
+    "Date": "2025-04-09",
+    "percent_gain": 54,
+    "Volume": 185,
+    "High": 5.45
   },
   {
     "symbol": "MBOT",
@@ -24920,18 +25137,18 @@
     "High": 6.08
   },
   {
-    "symbol": "JNVR",
-    "Date": "2025-04-07",
-    "percent_gain": 1112,
-    "Volume": 21,
-    "High": 29.9701
-  },
-  {
     "symbol": "DFDV",
     "Date": "2025-04-07",
     "percent_gain": 1112,
     "Volume": 25,
     "High": 48.47
+  },
+  {
+    "symbol": "JNVR",
+    "Date": "2025-04-07",
+    "percent_gain": 1112,
+    "Volume": 21,
+    "High": 29.9701
   },
   {
     "symbol": "MKDW",
@@ -25305,18 +25522,18 @@
     "High": 29.2
   },
   {
-    "symbol": "NWTG",
-    "Date": "2025-03-31",
-    "percent_gain": 70,
-    "Volume": 65,
-    "High": 2.4603
-  },
-  {
     "symbol": "MYSZ",
     "Date": "2025-03-31",
     "percent_gain": 70,
     "Volume": 49,
     "High": 2.99
+  },
+  {
+    "symbol": "NWTG",
+    "Date": "2025-03-31",
+    "percent_gain": 70,
+    "Volume": 65,
+    "High": 2.4603
   },
   {
     "symbol": "MULN",
@@ -26320,18 +26537,18 @@
     "High": 12.7
   },
   {
-    "symbol": "MYO",
-    "Date": "2025-03-11",
-    "percent_gain": 51,
-    "Volume": 5,
-    "High": 6.25
-  },
-  {
     "symbol": "HSAI",
     "Date": "2025-03-11",
     "percent_gain": 51,
     "Volume": 5,
     "High": 19.99
+  },
+  {
+    "symbol": "MYO",
+    "Date": "2025-03-11",
+    "percent_gain": 51,
+    "Volume": 5,
+    "High": 6.25
   },
   {
     "symbol": "PSTV",
@@ -26922,14 +27139,14 @@
     "High": 101
   },
   {
-    "symbol": "ONVO",
+    "symbol": "VIVS",
     "Date": "2025-02-25",
     "percent_gain": 395.93,
     "Volume": 386,
     "High": 1.83
   },
   {
-    "symbol": "VIVS",
+    "symbol": "ONVO",
     "Date": "2025-02-25",
     "percent_gain": 395.93,
     "Volume": 386,
@@ -27587,14 +27804,14 @@
     "High": 9.49
   },
   {
-    "symbol": "NAKA",
+    "symbol": "KDLY",
     "Date": "2025-02-12",
     "percent_gain": 269.3,
     "Volume": 219,
     "High": 5.2499
   },
   {
-    "symbol": "KDLY",
+    "symbol": "NAKA",
     "Date": "2025-02-12",
     "percent_gain": 269.3,
     "Volume": 219,
@@ -27629,14 +27846,14 @@
     "High": 0.633
   },
   {
-    "symbol": "NWTG",
+    "symbol": "SPGC",
     "Date": "2025-02-12",
     "percent_gain": 113.25,
     "Volume": 72,
     "High": 0.85
   },
   {
-    "symbol": "SPGC",
+    "symbol": "NWTG",
     "Date": "2025-02-12",
     "percent_gain": 113.25,
     "Volume": 72,
@@ -30002,14 +30219,14 @@
     "High": 1.35
   },
   {
-    "symbol": "CTCX",
+    "symbol": "XAGE",
     "Date": "2025-01-02",
     "percent_gain": 329.95,
     "Volume": 314,
     "High": 1.2
   },
   {
-    "symbol": "XAGE",
+    "symbol": "CTCX",
     "Date": "2025-01-02",
     "percent_gain": 329.95,
     "Volume": 314,
@@ -30268,14 +30485,14 @@
     "High": 9.25
   },
   {
-    "symbol": "FFIE",
+    "symbol": "FFAI",
     "Date": "2024-12-31",
     "percent_gain": 42.04,
     "Volume": 159,
     "High": 4.46
   },
   {
-    "symbol": "FFAI",
+    "symbol": "FFIE",
     "Date": "2024-12-31",
     "percent_gain": 42.04,
     "Volume": 159,
@@ -30380,14 +30597,14 @@
     "High": 3.04
   },
   {
-    "symbol": "FFAI",
+    "symbol": "FFIE",
     "Date": "2024-12-30",
     "percent_gain": 84.09,
     "Volume": 159,
     "High": 3.24
   },
   {
-    "symbol": "FFIE",
+    "symbol": "FFAI",
     "Date": "2024-12-30",
     "percent_gain": 84.09,
     "Volume": 159,
@@ -31066,14 +31283,14 @@
     "High": 9.59
   },
   {
-    "symbol": "AADI",
+    "symbol": "WHWK",
     "Date": "2024-12-20",
     "percent_gain": 55.17,
     "Volume": 9,
     "High": 3.6
   },
   {
-    "symbol": "WHWK",
+    "symbol": "AADI",
     "Date": "2024-12-20",
     "percent_gain": 55.17,
     "Volume": 9,
@@ -31731,18 +31948,18 @@
     "High": 1.75
   },
   {
-    "symbol": "CDIO",
-    "Date": "2024-12-11",
-    "percent_gain": 51.85,
-    "Volume": 17,
-    "High": 1.64
-  },
-  {
     "symbol": "SFIX",
     "Date": "2024-12-11",
     "percent_gain": 51.85,
     "Volume": 27,
     "High": 6.985
+  },
+  {
+    "symbol": "CDIO",
+    "Date": "2024-12-11",
+    "percent_gain": 51.85,
+    "Volume": 17,
+    "High": 1.64
   },
   {
     "symbol": "MIND",
@@ -32039,14 +32256,14 @@
     "High": 0.6929
   },
   {
-    "symbol": "ZDAI",
+    "symbol": "PGHL",
     "Date": "2024-12-06",
     "percent_gain": 46.07,
     "Volume": 15,
     "High": 1.95
   },
   {
-    "symbol": "PGHL",
+    "symbol": "ZDAI",
     "Date": "2024-12-06",
     "percent_gain": 46.07,
     "Volume": 15,
@@ -32466,14 +32683,14 @@
     "High": 9.73
   },
   {
-    "symbol": "ZDAI",
+    "symbol": "PGHL",
     "Date": "2024-11-29",
     "percent_gain": 53.94,
     "Volume": 42,
     "High": 2.54
   },
   {
-    "symbol": "PGHL",
+    "symbol": "ZDAI",
     "Date": "2024-11-29",
     "percent_gain": 53.94,
     "Volume": 42,
@@ -32571,14 +32788,14 @@
     "High": 3.95
   },
   {
-    "symbol": "ZDAI",
+    "symbol": "PGHL",
     "Date": "2024-11-26",
     "percent_gain": 918.6,
     "Volume": 2,
     "High": 107.36
   },
   {
-    "symbol": "PGHL",
+    "symbol": "ZDAI",
     "Date": "2024-11-26",
     "percent_gain": 918.6,
     "Volume": 2,
@@ -33950,14 +34167,14 @@
     "High": 0.7469
   },
   {
-    "symbol": "CDXC",
+    "symbol": "NAGE",
     "Date": "2024-11-01",
     "percent_gain": 71.35,
     "Volume": 37,
     "High": 5.98
   },
   {
-    "symbol": "NAGE",
+    "symbol": "CDXC",
     "Date": "2024-11-01",
     "percent_gain": 71.35,
     "Volume": 37,
@@ -34657,14 +34874,14 @@
     "High": 19.35
   },
   {
-    "symbol": "PEGY",
+    "symbol": "SUNE",
     "Date": "2024-10-18",
     "percent_gain": 121.05,
     "Volume": 31,
     "High": 12.18
   },
   {
-    "symbol": "SUNE",
+    "symbol": "PEGY",
     "Date": "2024-10-18",
     "percent_gain": 121.05,
     "Volume": 31,
@@ -34825,14 +35042,14 @@
     "High": 9.59
   },
   {
-    "symbol": "CTCX",
+    "symbol": "XAGE",
     "Date": "2024-10-16",
     "percent_gain": 267.37,
     "Volume": 203,
     "High": 1.27
   },
   {
-    "symbol": "XAGE",
+    "symbol": "CTCX",
     "Date": "2024-10-16",
     "percent_gain": 267.37,
     "Volume": 203,
@@ -35000,18 +35217,18 @@
     "High": 2.66
   },
   {
-    "symbol": "INVO",
-    "Date": "2024-10-14",
-    "percent_gain": 116.79,
-    "Volume": 56,
-    "High": 1.42
-  },
-  {
     "symbol": "NAYA",
     "Date": "2024-10-14",
     "percent_gain": 116.79,
     "Volume": 4,
     "High": 17.04
+  },
+  {
+    "symbol": "INVO",
+    "Date": "2024-10-14",
+    "percent_gain": 116.79,
+    "Volume": 56,
+    "High": 1.42
   },
   {
     "symbol": "VERB",
@@ -35259,14 +35476,14 @@
     "High": 0.781
   },
   {
-    "symbol": "LUXE",
+    "symbol": "MYTE",
     "Date": "2024-10-07",
     "percent_gain": 67.75,
     "Volume": 12,
     "High": 7.2299
   },
   {
-    "symbol": "MYTE",
+    "symbol": "LUXE",
     "Date": "2024-10-07",
     "percent_gain": 67.75,
     "Volume": 12,
@@ -36435,13 +36652,6 @@
     "High": 5.71
   },
   {
-    "symbol": "WISA",
-    "Date": "2024-09-04",
-    "percent_gain": 138.97,
-    "Volume": 195,
-    "High": 3.25
-  },
-  {
     "symbol": "DVLT",
     "Date": "2024-09-04",
     "percent_gain": 138.97,
@@ -36449,14 +36659,21 @@
     "High": 3.25
   },
   {
-    "symbol": "FFAI",
+    "symbol": "WISA",
+    "Date": "2024-09-04",
+    "percent_gain": 138.97,
+    "Volume": 195,
+    "High": 3.25
+  },
+  {
+    "symbol": "FFIE",
     "Date": "2024-09-04",
     "percent_gain": 88.92,
     "Volume": 69,
     "High": 6.48
   },
   {
-    "symbol": "FFIE",
+    "symbol": "FFAI",
     "Date": "2024-09-04",
     "percent_gain": 88.92,
     "Volume": 69,
@@ -36855,14 +37072,14 @@
     "High": 9.4399
   },
   {
-    "symbol": "FFIE",
+    "symbol": "FFAI",
     "Date": "2024-08-22",
     "percent_gain": 147.63,
     "Volume": 153,
     "High": 8.89
   },
   {
-    "symbol": "FFAI",
+    "symbol": "FFIE",
     "Date": "2024-08-22",
     "percent_gain": 147.63,
     "Volume": 153,
@@ -37051,14 +37268,14 @@
     "High": 6.12
   },
   {
-    "symbol": "FFAI",
+    "symbol": "FFIE",
     "Date": "2024-08-19",
     "percent_gain": 3786.29,
     "Volume": 5,
     "High": 4.99
   },
   {
-    "symbol": "FFIE",
+    "symbol": "FFAI",
     "Date": "2024-08-19",
     "percent_gain": 3786.29,
     "Volume": 5,
@@ -38430,18 +38647,18 @@
     "High": 8.92
   },
   {
-    "symbol": "DATS",
-    "Date": "2024-07-15",
-    "percent_gain": 98.08,
-    "Volume": 54,
-    "High": 2.06
-  },
-  {
     "symbol": "AREB",
     "Date": "2024-07-15",
     "percent_gain": 98.08,
     "Volume": 103,
     "High": 1.03
+  },
+  {
+    "symbol": "DATS",
+    "Date": "2024-07-15",
+    "percent_gain": 98.08,
+    "Volume": 54,
+    "High": 2.06
   },
   {
     "symbol": "CYN",
@@ -39053,14 +39270,14 @@
     "High": 25.48
   },
   {
-    "symbol": "FFAI",
+    "symbol": "FFIE",
     "Date": "2024-06-27",
     "percent_gain": 50.49,
     "Volume": 575,
     "High": 0.69
   },
   {
-    "symbol": "FFIE",
+    "symbol": "FFAI",
     "Date": "2024-06-27",
     "percent_gain": 50.49,
     "Volume": 575,
@@ -40579,14 +40796,14 @@
     "High": 3.48
   },
   {
-    "symbol": "FFIE",
+    "symbol": "FFAI",
     "Date": "2024-05-17",
     "percent_gain": 136.36,
     "Volume": 1310,
     "High": 3.9
   },
   {
-    "symbol": "FFAI",
+    "symbol": "FFIE",
     "Date": "2024-05-17",
     "percent_gain": 136.36,
     "Volume": 1310,
@@ -41580,14 +41797,14 @@
     "High": 3.53
   },
   {
-    "symbol": "DVLT",
+    "symbol": "WISA",
     "Date": "2024-04-23",
     "percent_gain": 40.74,
     "Volume": 8,
     "High": 6.08
   },
   {
-    "symbol": "WISA",
+    "symbol": "DVLT",
     "Date": "2024-04-23",
     "percent_gain": 40.74,
     "Volume": 8,
@@ -41699,14 +41916,14 @@
     "High": 3.388
   },
   {
-    "symbol": "WISA",
+    "symbol": "DVLT",
     "Date": "2024-04-19",
     "percent_gain": 46.69,
     "Volume": 35,
     "High": 8.64
   },
   {
-    "symbol": "DVLT",
+    "symbol": "WISA",
     "Date": "2024-04-19",
     "percent_gain": 46.69,
     "Volume": 35,
@@ -41776,18 +41993,18 @@
     "High": 3.44
   },
   {
-    "symbol": "INVO",
-    "Date": "2024-04-17",
-    "percent_gain": 360.53,
-    "Volume": 226,
-    "High": 3.5
-  },
-  {
     "symbol": "NAYA",
     "Date": "2024-04-17",
     "percent_gain": 360.53,
     "Volume": 18,
     "High": 42
+  },
+  {
+    "symbol": "INVO",
+    "Date": "2024-04-17",
+    "percent_gain": 360.53,
+    "Volume": 226,
+    "High": 3.5
   },
   {
     "symbol": "EDBL",
@@ -42021,14 +42238,14 @@
     "High": 28.9
   },
   {
-    "symbol": "YYAI",
+    "symbol": "CNXA",
     "Date": "2024-04-12",
     "percent_gain": 45.37,
     "Volume": 16,
     "High": 1.57
   },
   {
-    "symbol": "CNXA",
+    "symbol": "YYAI",
     "Date": "2024-04-12",
     "percent_gain": 45.37,
     "Volume": 16,
@@ -42259,18 +42476,18 @@
     "High": 5.47
   },
   {
-    "symbol": "MSPR",
-    "Date": "2024-04-08",
-    "percent_gain": 101.53,
-    "Volume": 24,
-    "High": 2.64
-  },
-  {
     "symbol": "LIFW",
     "Date": "2024-04-08",
     "percent_gain": 101.53,
     "Volume": 0,
     "High": 66
+  },
+  {
+    "symbol": "MSPR",
+    "Date": "2024-04-08",
+    "percent_gain": 101.53,
+    "Volume": 24,
+    "High": 2.64
   },
   {
     "symbol": "UCAR",
@@ -42812,14 +43029,14 @@
     "High": 3.56
   },
   {
-    "symbol": "DWAC",
+    "symbol": "DJT",
     "Date": "2024-03-25",
     "percent_gain": 42.93,
     "Volume": 22,
     "High": 52.8
   },
   {
-    "symbol": "DJT",
+    "symbol": "DWAC",
     "Date": "2024-03-25",
     "percent_gain": 42.93,
     "Volume": 22,
@@ -44373,14 +44590,14 @@
     "High": 2.02
   },
   {
-    "symbol": "TCTM",
+    "symbol": "VSA",
     "Date": "2024-02-16",
     "percent_gain": 126.42,
     "Volume": 12,
     "High": 2.4
   },
   {
-    "symbol": "VSA",
+    "symbol": "TCTM",
     "Date": "2024-02-16",
     "percent_gain": 126.42,
     "Volume": 12,
@@ -44436,18 +44653,18 @@
     "High": 8.85
   },
   {
-    "symbol": "JXG",
-    "Date": "2024-02-15",
-    "percent_gain": 597.54,
-    "Volume": 12,
-    "High": 34.04
-  },
-  {
     "symbol": "JXJT",
     "Date": "2024-02-15",
     "percent_gain": 597.54,
     "Volume": 48,
     "High": 8.51
+  },
+  {
+    "symbol": "JXG",
+    "Date": "2024-02-15",
+    "percent_gain": 597.54,
+    "Volume": 12,
+    "High": 34.04
   },
   {
     "symbol": "DXF",
@@ -44891,18 +45108,18 @@
     "High": 1316.91
   },
   {
-    "symbol": "GLT",
-    "Date": "2024-02-07",
-    "percent_gain": 111.72,
-    "Volume": 66,
-    "High": 2.71
-  },
-  {
     "symbol": "MAGN",
     "Date": "2024-02-07",
     "percent_gain": 111.72,
     "Volume": 5,
     "High": 35.23
+  },
+  {
+    "symbol": "GLT",
+    "Date": "2024-02-07",
+    "percent_gain": 111.72,
+    "Volume": 66,
+    "High": 2.71
   },
   {
     "symbol": "MLGO",
@@ -45045,14 +45262,14 @@
     "High": 7.72
   },
   {
-    "symbol": "MTVA",
+    "symbol": "NRBO",
     "Date": "2024-02-01",
     "percent_gain": 85.32,
     "Volume": 68,
     "High": 6.0599
   },
   {
-    "symbol": "NRBO",
+    "symbol": "MTVA",
     "Date": "2024-02-01",
     "percent_gain": 85.32,
     "Volume": 68,
@@ -45073,18 +45290,18 @@
     "High": 2.25
   },
   {
-    "symbol": "CNXA",
-    "Date": "2024-01-31",
-    "percent_gain": 269.72,
-    "Volume": 235,
-    "High": 0.735
-  },
-  {
     "symbol": "YYAI",
     "Date": "2024-01-31",
     "percent_gain": 269.72,
     "Volume": 11,
     "High": 14.7
+  },
+  {
+    "symbol": "CNXA",
+    "Date": "2024-01-31",
+    "percent_gain": 269.72,
+    "Volume": 235,
+    "High": 0.735
   },
   {
     "symbol": "MINM",
@@ -45458,14 +45675,14 @@
     "High": 20.71
   },
   {
-    "symbol": "DWAC",
+    "symbol": "DJT",
     "Date": "2024-01-22",
     "percent_gain": 90.3,
     "Volume": 29,
     "High": 50.2
   },
   {
-    "symbol": "DJT",
+    "symbol": "DWAC",
     "Date": "2024-01-22",
     "percent_gain": 90.3,
     "Volume": 29,
@@ -45563,14 +45780,14 @@
     "High": 1.35
   },
   {
-    "symbol": "YHC",
+    "symbol": "LQR",
     "Date": "2024-01-17",
     "percent_gain": 66.82,
     "Volume": 21,
     "High": 2.247
   },
   {
-    "symbol": "LQR",
+    "symbol": "YHC",
     "Date": "2024-01-17",
     "percent_gain": 66.82,
     "Volume": 21,
@@ -46060,14 +46277,14 @@
     "High": 1.73
   },
   {
-    "symbol": "ENFY",
+    "symbol": "CGA",
     "Date": "2023-12-29",
     "percent_gain": 110.53,
     "Volume": 9,
     "High": 4
   },
   {
-    "symbol": "CGA",
+    "symbol": "ENFY",
     "Date": "2023-12-29",
     "percent_gain": 110.53,
     "Volume": 9,
@@ -47124,14 +47341,14 @@
     "High": 69.75
   },
   {
-    "symbol": "EONR",
+    "symbol": "HNRA",
     "Date": "2023-11-28",
     "percent_gain": 139.88,
     "Volume": 45,
     "High": 4.15
   },
   {
-    "symbol": "HNRA",
+    "symbol": "EONR",
     "Date": "2023-11-28",
     "percent_gain": 139.88,
     "Volume": 45,
@@ -47516,14 +47733,14 @@
     "High": 3.4
   },
   {
-    "symbol": "NAYA",
+    "symbol": "INVO",
     "Date": "2023-11-14",
     "percent_gain": 53.42,
     "Volume": 23,
     "High": 2.47
   },
   {
-    "symbol": "INVO",
+    "symbol": "NAYA",
     "Date": "2023-11-14",
     "percent_gain": 53.42,
     "Volume": 23,
@@ -47572,17 +47789,17 @@
     "High": 1.9
   },
   {
-    "symbol": "INVO",
-    "Date": "2023-11-10",
-    "percent_gain": 196.94,
-    "Volume": 68,
-    "High": 2.04
-  },
-  {
     "symbol": "NAYA",
     "Date": "2023-11-10",
     "percent_gain": 196.94,
     "Volume": 72,
+    "High": 2.04
+  },
+  {
+    "symbol": "INVO",
+    "Date": "2023-11-10",
+    "percent_gain": 196.94,
+    "Volume": 68,
     "High": 2.04
   },
   {
@@ -47614,14 +47831,14 @@
     "High": 9.367
   },
   {
-    "symbol": "ALTS",
+    "symbol": "JAN",
     "Date": "2023-11-09",
     "percent_gain": 154.45,
     "Volume": 59,
     "High": 0.8201
   },
   {
-    "symbol": "JAN",
+    "symbol": "ALTS",
     "Date": "2023-11-09",
     "percent_gain": 154.45,
     "Volume": 59,
@@ -47894,18 +48111,18 @@
     "High": 6.64
   },
   {
-    "symbol": "LIFW",
-    "Date": "2023-10-31",
-    "percent_gain": 77.98,
-    "Volume": 12,
-    "High": 2.99
-  },
-  {
     "symbol": "MSPR",
     "Date": "2023-10-31",
     "percent_gain": 77.98,
     "Volume": 0,
     "High": 74.75
+  },
+  {
+    "symbol": "LIFW",
+    "Date": "2023-10-31",
+    "percent_gain": 77.98,
+    "Volume": 12,
+    "High": 2.99
   },
   {
     "symbol": "RVPH",
@@ -49119,18 +49336,18 @@
     "High": 2.25
   },
   {
-    "symbol": "CNXA",
-    "Date": "2023-09-19",
-    "percent_gain": 253.37,
-    "Volume": 11,
-    "High": 10.7
-  },
-  {
     "symbol": "YYAI",
     "Date": "2023-09-19",
     "percent_gain": 253.37,
     "Volume": 0,
     "High": 214
+  },
+  {
+    "symbol": "CNXA",
+    "Date": "2023-09-19",
+    "percent_gain": 253.37,
+    "Volume": 11,
+    "High": 10.7
   },
   {
     "symbol": "CART",
@@ -49238,14 +49455,14 @@
     "High": 22.2
   },
   {
-    "symbol": "ESLA",
+    "symbol": "UPTD",
     "Date": "2023-09-14",
     "percent_gain": 103.27,
     "Volume": 10,
     "High": 14.9
   },
   {
-    "symbol": "UPTD",
+    "symbol": "ESLA",
     "Date": "2023-09-14",
     "percent_gain": 103.27,
     "Volume": 10,
@@ -49462,14 +49679,14 @@
     "High": 6782.4
   },
   {
-    "symbol": "RCLF",
+    "symbol": "MDAI",
     "Date": "2023-09-07",
     "percent_gain": 90.99,
     "Volume": 4,
     "High": 19.5
   },
   {
-    "symbol": "MDAI",
+    "symbol": "RCLF",
     "Date": "2023-09-07",
     "percent_gain": 90.99,
     "Volume": 4,
@@ -49574,13 +49791,6 @@
     "High": 4.1
   },
   {
-    "symbol": "LQR",
-    "Date": "2023-09-05",
-    "percent_gain": 46.02,
-    "Volume": 0,
-    "High": 99
-  },
-  {
     "symbol": "YHC",
     "Date": "2023-09-05",
     "percent_gain": 46.02,
@@ -49588,14 +49798,21 @@
     "High": 66
   },
   {
-    "symbol": "UPTD",
+    "symbol": "LQR",
+    "Date": "2023-09-05",
+    "percent_gain": 46.02,
+    "Volume": 0,
+    "High": 99
+  },
+  {
+    "symbol": "ESLA",
     "Date": "2023-09-01",
     "percent_gain": 352.05,
     "Volume": 4,
     "High": 33
   },
   {
-    "symbol": "ESLA",
+    "symbol": "UPTD",
     "Date": "2023-09-01",
     "percent_gain": 352.05,
     "Volume": 4,
@@ -50386,14 +50603,14 @@
     "High": 24.71
   },
   {
-    "symbol": "SVFD",
+    "symbol": "NITO",
     "Date": "2023-08-07",
     "percent_gain": 272.91,
     "Volume": 9,
     "High": 16.52
   },
   {
-    "symbol": "NITO",
+    "symbol": "SVFD",
     "Date": "2023-08-07",
     "percent_gain": 272.91,
     "Volume": 9,
@@ -50568,18 +50785,18 @@
     "High": 5.95
   },
   {
-    "symbol": "WAVD",
-    "Date": "2023-08-02",
-    "percent_gain": 227.27,
-    "Volume": 11,
-    "High": 9
-  },
-  {
     "symbol": "AIFF",
     "Date": "2023-08-02",
     "percent_gain": 227.27,
     "Volume": 3,
     "High": 27
+  },
+  {
+    "symbol": "WAVD",
+    "Date": "2023-08-02",
+    "percent_gain": 227.27,
+    "Volume": 11,
+    "High": 9
   },
   {
     "symbol": "LTRY",
@@ -50666,14 +50883,14 @@
     "High": 13.84
   },
   {
-    "symbol": "DMK",
+    "symbol": "ADMP",
     "Date": "2023-08-01",
     "percent_gain": 479.02,
     "Volume": 20,
     "High": 8.28
   },
   {
-    "symbol": "ADMP",
+    "symbol": "DMK",
     "Date": "2023-08-01",
     "percent_gain": 479.02,
     "Volume": 20,
@@ -50750,14 +50967,14 @@
     "High": 3.28
   },
   {
-    "symbol": "BEEP",
+    "symbol": "FWAC",
     "Date": "2023-07-31",
     "percent_gain": 71.23,
     "Volume": 1,
     "High": 20.12
   },
   {
-    "symbol": "FWAC",
+    "symbol": "BEEP",
     "Date": "2023-07-31",
     "percent_gain": 71.23,
     "Volume": 1,
@@ -50792,18 +51009,18 @@
     "High": 6.87
   },
   {
-    "symbol": "BETR",
-    "Date": "2023-07-28",
-    "percent_gain": 204.5,
-    "Volume": 0,
-    "High": 3145.5
-  },
-  {
     "symbol": "AURC",
     "Date": "2023-07-28",
     "percent_gain": 204.5,
     "Volume": 3,
     "High": 62.91
+  },
+  {
+    "symbol": "BETR",
+    "Date": "2023-07-28",
+    "percent_gain": 204.5,
+    "Volume": 0,
+    "High": 3145.5
   },
   {
     "symbol": "UFAB",
@@ -51212,14 +51429,14 @@
     "High": 3.55
   },
   {
-    "symbol": "MICS",
+    "symbol": "RIME",
     "Date": "2023-07-18",
     "percent_gain": 60.54,
     "Volume": 40,
     "High": 2.49
   },
   {
-    "symbol": "RIME",
+    "symbol": "MICS",
     "Date": "2023-07-18",
     "percent_gain": 60.54,
     "Volume": 40,
@@ -51324,14 +51541,14 @@
     "High": 403.44
   },
   {
-    "symbol": "KRRO",
+    "symbol": "FREQ",
     "Date": "2023-07-14",
     "percent_gain": 102.55,
     "Volume": 1,
     "High": 40.51
   },
   {
-    "symbol": "FREQ",
+    "symbol": "KRRO",
     "Date": "2023-07-14",
     "percent_gain": 102.55,
     "Volume": 1,
@@ -51835,18 +52052,18 @@
     "High": 28
   },
   {
-    "symbol": "KTRA",
-    "Date": "2023-06-29",
-    "percent_gain": 67.22,
-    "Volume": 7,
-    "High": 5
-  },
-  {
     "symbol": "HURA",
     "Date": "2023-06-29",
     "percent_gain": 67.22,
     "Volume": 0,
     "High": 175
+  },
+  {
+    "symbol": "KTRA",
+    "Date": "2023-06-29",
+    "percent_gain": 67.22,
+    "Volume": 7,
+    "High": 5
   },
   {
     "symbol": "TOP",
@@ -51996,14 +52213,14 @@
     "High": 9.999
   },
   {
-    "symbol": "SYRE",
+    "symbol": "AGLE",
     "Date": "2023-06-22",
     "percent_gain": 802.26,
     "Volume": 10,
     "High": 24
   },
   {
-    "symbol": "AGLE",
+    "symbol": "SYRE",
     "Date": "2023-06-22",
     "percent_gain": 802.26,
     "Volume": 10,
@@ -52164,14 +52381,14 @@
     "High": 4.27
   },
   {
-    "symbol": "WETG",
+    "symbol": "NXTT",
     "Date": "2023-06-14",
     "percent_gain": 174.41,
     "Volume": 16,
     "High": 23.16
   },
   {
-    "symbol": "NXTT",
+    "symbol": "WETG",
     "Date": "2023-06-14",
     "percent_gain": 174.41,
     "Volume": 16,
@@ -52437,14 +52654,14 @@
     "High": 14.35
   },
   {
-    "symbol": "NIXX",
+    "symbol": "RCRT",
     "Date": "2023-06-06",
     "percent_gain": 160.51,
     "Volume": 8,
     "High": 7.5
   },
   {
-    "symbol": "RCRT",
+    "symbol": "NIXX",
     "Date": "2023-06-06",
     "percent_gain": 160.51,
     "Volume": 8,
@@ -53515,14 +53732,14 @@
     "High": 6.19
   },
   {
-    "symbol": "SVFD",
+    "symbol": "NITO",
     "Date": "2023-05-05",
     "percent_gain": 71.07,
     "Volume": 3,
     "High": 9.38
   },
   {
-    "symbol": "NITO",
+    "symbol": "SVFD",
     "Date": "2023-05-05",
     "percent_gain": 71.07,
     "Volume": 3,
@@ -54047,14 +54264,14 @@
     "High": 477
   },
   {
-    "symbol": "SAI",
+    "symbol": "SAIH",
     "Date": "2023-04-26",
     "percent_gain": 68.72,
     "Volume": 57,
     "High": 4.7
   },
   {
-    "symbol": "SAIH",
+    "symbol": "SAI",
     "Date": "2023-04-26",
     "percent_gain": 68.72,
     "Volume": 57,
@@ -54194,14 +54411,14 @@
     "High": 4
   },
   {
-    "symbol": "LOGC",
+    "symbol": "WISH",
     "Date": "2023-04-21",
     "percent_gain": 43.45,
     "Volume": 20,
     "High": 10.3
   },
   {
-    "symbol": "WISH",
+    "symbol": "LOGC",
     "Date": "2023-04-21",
     "percent_gain": 43.45,
     "Volume": 20,
@@ -54271,14 +54488,14 @@
     "High": 27.8
   },
   {
-    "symbol": "SAIH",
+    "symbol": "SAI",
     "Date": "2023-04-19",
     "percent_gain": 69.32,
     "Volume": 16,
     "High": 4.25
   },
   {
-    "symbol": "SAI",
+    "symbol": "SAIH",
     "Date": "2023-04-19",
     "percent_gain": 69.32,
     "Volume": 16,
@@ -54488,14 +54705,14 @@
     "High": 171.5
   },
   {
-    "symbol": "SAI",
+    "symbol": "SAIH",
     "Date": "2023-04-14",
     "percent_gain": 386.84,
     "Volume": 44,
     "High": 7.4
   },
   {
-    "symbol": "SAIH",
+    "symbol": "SAI",
     "Date": "2023-04-14",
     "percent_gain": 386.84,
     "Volume": 44,
@@ -54572,18 +54789,18 @@
     "High": 9.73
   },
   {
-    "symbol": "XTIA",
-    "Date": "2023-04-13",
-    "percent_gain": 134.77,
-    "Volume": 0,
-    "High": 74
-  },
-  {
     "symbol": "INPX",
     "Date": "2023-04-13",
     "percent_gain": 134.77,
     "Volume": 63,
     "High": 0.74
+  },
+  {
+    "symbol": "XTIA",
+    "Date": "2023-04-13",
+    "percent_gain": 134.77,
+    "Volume": 0,
+    "High": 74
   },
   {
     "symbol": "AUUD",
@@ -54894,18 +55111,18 @@
     "High": 3.9299
   },
   {
-    "symbol": "NFTG",
-    "Date": "2023-04-04",
-    "percent_gain": 79.78,
-    "Volume": 22,
-    "High": 2.4
-  },
-  {
     "symbol": "GXAI",
     "Date": "2023-04-04",
     "percent_gain": 79.78,
     "Volume": 1,
     "High": 28.8
+  },
+  {
+    "symbol": "NFTG",
+    "Date": "2023-04-04",
+    "percent_gain": 79.78,
+    "Volume": 22,
+    "High": 2.4
   },
   {
     "symbol": "NOGN",
@@ -55167,14 +55384,14 @@
     "High": 37.35
   },
   {
-    "symbol": "UHG",
+    "symbol": "DHHC",
     "Date": "2023-03-23",
     "percent_gain": 175.1,
     "Volume": 2,
     "High": 28.5
   },
   {
-    "symbol": "DHHC",
+    "symbol": "UHG",
     "Date": "2023-03-23",
     "percent_gain": 175.1,
     "Volume": 2,
@@ -55244,14 +55461,14 @@
     "High": 15.7899
   },
   {
-    "symbol": "JAN",
+    "symbol": "ALTS",
     "Date": "2023-03-22",
     "percent_gain": 42.74,
     "Volume": 15,
     "High": 1.67
   },
   {
-    "symbol": "ALTS",
+    "symbol": "JAN",
     "Date": "2023-03-22",
     "percent_gain": 42.74,
     "Volume": 15,
@@ -55958,14 +56175,14 @@
     "High": 189.96
   },
   {
-    "symbol": "NTBL",
+    "symbol": "VBLT",
     "Date": "2023-02-23",
     "percent_gain": 92.6,
     "Volume": 4,
     "High": 8.75
   },
   {
-    "symbol": "VBLT",
+    "symbol": "NTBL",
     "Date": "2023-02-23",
     "percent_gain": 92.6,
     "Volume": 4,
@@ -56182,18 +56399,18 @@
     "High": 2.47
   },
   {
-    "symbol": "NXU",
-    "Date": "2023-02-15",
-    "percent_gain": 75.48,
-    "Volume": 0,
-    "High": 408
-  },
-  {
     "symbol": "AMV",
     "Date": "2023-02-15",
     "percent_gain": 75.48,
     "Volume": 25,
     "High": 2.72
+  },
+  {
+    "symbol": "NXU",
+    "Date": "2023-02-15",
+    "percent_gain": 75.48,
+    "Volume": 0,
+    "High": 408
   },
   {
     "symbol": "IREN",
@@ -56273,14 +56490,14 @@
     "High": 36.9
   },
   {
-    "symbol": "LOGC",
+    "symbol": "WISH",
     "Date": "2023-02-13",
     "percent_gain": 67.27,
     "Volume": 5,
     "High": 32.1
   },
   {
-    "symbol": "WISH",
+    "symbol": "LOGC",
     "Date": "2023-02-13",
     "percent_gain": 67.27,
     "Volume": 5,
@@ -56336,18 +56553,18 @@
     "High": 13.4499
   },
   {
-    "symbol": "GRI",
-    "Date": "2023-02-10",
-    "percent_gain": 202.58,
-    "Volume": 0,
-    "High": 2211.3
-  },
-  {
     "symbol": "VLON",
     "Date": "2023-02-10",
     "percent_gain": 202.58,
     "Volume": 4,
     "High": 24.3
+  },
+  {
+    "symbol": "GRI",
+    "Date": "2023-02-10",
+    "percent_gain": 202.58,
+    "Volume": 0,
+    "High": 2211.3
   },
   {
     "symbol": "SQL",
@@ -56434,18 +56651,18 @@
     "High": 14.2
   },
   {
-    "symbol": "AVRO",
-    "Date": "2023-02-08",
-    "percent_gain": 104.01,
-    "Volume": 40,
-    "High": 1.78
-  },
-  {
     "symbol": "TECX",
     "Date": "2023-02-08",
     "percent_gain": 104.01,
     "Volume": 3,
     "High": 21.36
+  },
+  {
+    "symbol": "AVRO",
+    "Date": "2023-02-08",
+    "percent_gain": 104.01,
+    "Volume": 40,
+    "High": 1.78
   },
   {
     "symbol": "KPRX",
@@ -57141,14 +57358,14 @@
     "High": 4640
   },
   {
-    "symbol": "HLBZ",
+    "symbol": "MCOM",
     "Date": "2023-01-23",
     "percent_gain": 135.76,
     "Volume": 14,
     "High": 24
   },
   {
-    "symbol": "MCOM",
+    "symbol": "HLBZ",
     "Date": "2023-01-23",
     "percent_gain": 135.76,
     "Volume": 14,
@@ -57183,14 +57400,14 @@
     "High": 91.5
   },
   {
-    "symbol": "MCOM",
+    "symbol": "HLBZ",
     "Date": "2023-01-20",
     "percent_gain": 199.76,
     "Volume": 12,
     "High": 18.45
   },
   {
-    "symbol": "HLBZ",
+    "symbol": "MCOM",
     "Date": "2023-01-20",
     "percent_gain": 199.76,
     "Volume": 12,
@@ -57309,14 +57526,14 @@
     "High": 2.5
   },
   {
-    "symbol": "CLXT",
+    "symbol": "CBUS",
     "Date": "2023-01-17",
     "percent_gain": 173.45,
     "Volume": 1,
     "High": 25.39
   },
   {
-    "symbol": "CBUS",
+    "symbol": "CLXT",
     "Date": "2023-01-17",
     "percent_gain": 173.45,
     "Volume": 1,
@@ -57806,18 +58023,18 @@
     "High": 5400
   },
   {
-    "symbol": "OCTO",
-    "Date": "2023-01-04",
-    "percent_gain": 195.34,
-    "Volume": 0,
-    "High": 142.5
-  },
-  {
     "symbol": "TYDE",
     "Date": "2023-01-04",
     "percent_gain": 195.34,
     "Volume": 1,
     "High": 28.5
+  },
+  {
+    "symbol": "OCTO",
+    "Date": "2023-01-04",
+    "percent_gain": 195.34,
+    "Volume": 0,
+    "High": 142.5
   },
   {
     "symbol": "KALA",
@@ -58541,6 +58758,13 @@
     "High": 2.34
   },
   {
+    "symbol": "CACO",
+    "Date": "2022-12-06",
+    "percent_gain": 91.68,
+    "Volume": 8,
+    "High": 9.68
+  },
+  {
     "symbol": "PAFO",
     "Date": "2022-12-06",
     "percent_gain": 91.68,
@@ -58549,13 +58773,6 @@
   },
   {
     "symbol": "HTCO",
-    "Date": "2022-12-06",
-    "percent_gain": 91.68,
-    "Volume": 8,
-    "High": 9.68
-  },
-  {
-    "symbol": "CACO",
     "Date": "2022-12-06",
     "percent_gain": 91.68,
     "Volume": 8,
@@ -58597,18 +58814,18 @@
     "High": 71.28
   },
   {
-    "symbol": "VTAK",
-    "Date": "2022-12-02",
-    "percent_gain": 56.78,
-    "Volume": 2,
-    "High": 49.7
-  },
-  {
     "symbol": "RMED",
     "Date": "2022-12-02",
     "percent_gain": 56.78,
     "Volume": 23,
     "High": 4.97
+  },
+  {
+    "symbol": "VTAK",
+    "Date": "2022-12-02",
+    "percent_gain": 56.78,
+    "Volume": 2,
+    "High": 49.7
   },
   {
     "symbol": "COSM",
@@ -58940,14 +59157,14 @@
     "High": 1.98
   },
   {
-    "symbol": "ALTI",
+    "symbol": "GLBL",
     "Date": "2022-11-16",
     "percent_gain": 180.14,
     "Volume": 1,
     "High": 28.49
   },
   {
-    "symbol": "GLBL",
+    "symbol": "ALTI",
     "Date": "2022-11-16",
     "percent_gain": 180.14,
     "Volume": 1,
@@ -59430,14 +59647,14 @@
     "High": 4.49
   },
   {
-    "symbol": "AGLE",
+    "symbol": "SYRE",
     "Date": "2022-10-28",
     "percent_gain": 98.25,
     "Volume": 1,
     "High": 28.25
   },
   {
-    "symbol": "SYRE",
+    "symbol": "AGLE",
     "Date": "2022-10-28",
     "percent_gain": 98.25,
     "Volume": 1,
@@ -59661,18 +59878,18 @@
     "High": 2.42
   },
   {
-    "symbol": "LMAO",
-    "Date": "2022-10-19",
-    "percent_gain": 51.66,
-    "Volume": 3,
-    "High": 12.8
-  },
-  {
     "symbol": "ICU",
     "Date": "2022-10-19",
     "percent_gain": 51.66,
     "Volume": 0,
     "High": 320
+  },
+  {
+    "symbol": "LMAO",
+    "Date": "2022-10-19",
+    "percent_gain": 51.66,
+    "Volume": 3,
+    "High": 12.8
   },
   {
     "symbol": "COMS",
@@ -59682,14 +59899,14 @@
     "High": 17
   },
   {
-    "symbol": "HLBZ",
+    "symbol": "MCOM",
     "Date": "2022-10-18",
     "percent_gain": 98.95,
     "Volume": 1,
     "High": 26.5
   },
   {
-    "symbol": "MCOM",
+    "symbol": "HLBZ",
     "Date": "2022-10-18",
     "percent_gain": 98.95,
     "Volume": 1,
@@ -59731,18 +59948,18 @@
     "High": 14.95
   },
   {
-    "symbol": "RMED",
-    "Date": "2022-10-18",
-    "percent_gain": 42.2,
-    "Volume": 17,
-    "High": 7.75
-  },
-  {
     "symbol": "VTAK",
     "Date": "2022-10-18",
     "percent_gain": 42.2,
     "Volume": 1,
     "High": 77.5
+  },
+  {
+    "symbol": "RMED",
+    "Date": "2022-10-18",
+    "percent_gain": 42.2,
+    "Volume": 17,
+    "High": 7.75
   },
   {
     "symbol": "ACOR",
@@ -59836,14 +60053,14 @@
     "High": 429.6
   },
   {
-    "symbol": "ELVN",
+    "symbol": "IMRA",
     "Date": "2022-10-14",
     "percent_gain": 48.06,
     "Volume": 9,
     "High": 15.28
   },
   {
-    "symbol": "IMRA",
+    "symbol": "ELVN",
     "Date": "2022-10-14",
     "percent_gain": 48.06,
     "Volume": 9,
@@ -60067,18 +60284,18 @@
     "High": 30.99
   },
   {
-    "symbol": "PEGY",
-    "Date": "2022-10-06",
-    "percent_gain": 77.9,
-    "Volume": 80,
-    "High": 4.91
-  },
-  {
     "symbol": "SUNE",
     "Date": "2022-10-06",
     "percent_gain": 77.9,
     "Volume": 0,
     "High": 3682.5
+  },
+  {
+    "symbol": "PEGY",
+    "Date": "2022-10-06",
+    "percent_gain": 77.9,
+    "Volume": 80,
+    "High": 4.91
   },
   {
     "symbol": "MOTS",
@@ -60816,14 +61033,14 @@
     "High": 7.277
   },
   {
-    "symbol": "MTVA",
+    "symbol": "NRBO",
     "Date": "2022-09-13",
     "percent_gain": 282.94,
     "Volume": 1,
     "High": 510.8
   },
   {
-    "symbol": "NRBO",
+    "symbol": "MTVA",
     "Date": "2022-09-13",
     "percent_gain": 282.94,
     "Volume": 1,
@@ -60858,14 +61075,14 @@
     "High": 7.75
   },
   {
-    "symbol": "MTVA",
+    "symbol": "NRBO",
     "Date": "2022-09-12",
     "percent_gain": 191.79,
     "Volume": 0,
     "High": 193.34
   },
   {
-    "symbol": "NRBO",
+    "symbol": "MTVA",
     "Date": "2022-09-12",
     "percent_gain": 191.79,
     "Volume": 0,
@@ -60963,14 +61180,14 @@
     "High": 1.46
   },
   {
-    "symbol": "IMRA",
+    "symbol": "ELVN",
     "Date": "2022-09-07",
     "percent_gain": 74.36,
     "Volume": 25,
     "High": 8.16
   },
   {
-    "symbol": "ELVN",
+    "symbol": "IMRA",
     "Date": "2022-09-07",
     "percent_gain": 74.36,
     "Volume": 25,
@@ -61334,14 +61551,14 @@
     "High": 110.38
   },
   {
-    "symbol": "VACC",
+    "symbol": "BRNS",
     "Date": "2022-08-25",
     "percent_gain": 62.29,
     "Volume": 28,
     "High": 7.45
   },
   {
-    "symbol": "BRNS",
+    "symbol": "VACC",
     "Date": "2022-08-25",
     "percent_gain": 62.29,
     "Volume": 28,
@@ -61397,14 +61614,14 @@
     "High": 349.8
   },
   {
-    "symbol": "WEST",
+    "symbol": "RVAC",
     "Date": "2022-08-24",
     "percent_gain": 40.21,
     "Volume": 2,
     "High": 14.4
   },
   {
-    "symbol": "RVAC",
+    "symbol": "WEST",
     "Date": "2022-08-24",
     "percent_gain": 40.21,
     "Volume": 2,
@@ -61460,18 +61677,18 @@
     "High": 17.25
   },
   {
-    "symbol": "ANPC",
-    "Date": "2022-08-22",
-    "percent_gain": 172.77,
-    "Volume": 4,
-    "High": 11.8
-  },
-  {
     "symbol": "FRES",
     "Date": "2022-08-22",
     "percent_gain": 172.77,
     "Volume": 0,
     "High": 118
+  },
+  {
+    "symbol": "ANPC",
+    "Date": "2022-08-22",
+    "percent_gain": 172.77,
+    "Volume": 4,
+    "High": 11.8
   },
   {
     "symbol": "AKLI",
@@ -61565,14 +61782,14 @@
     "High": 60
   },
   {
-    "symbol": "AGLE",
+    "symbol": "SYRE",
     "Date": "2022-08-19",
     "percent_gain": 106.02,
     "Volume": 3,
     "High": 26
   },
   {
-    "symbol": "SYRE",
+    "symbol": "AGLE",
     "Date": "2022-08-19",
     "percent_gain": 106.02,
     "Volume": 3,
@@ -61768,18 +61985,18 @@
     "High": 4.36
   },
   {
-    "symbol": "RVYL",
-    "Date": "2022-08-16",
-    "percent_gain": 125.2,
-    "Volume": 11,
-    "High": 28.6
-  },
-  {
     "symbol": "GBOX",
     "Date": "2022-08-16",
     "percent_gain": 125.2,
     "Volume": 113,
     "High": 2.86
+  },
+  {
+    "symbol": "RVYL",
+    "Date": "2022-08-16",
+    "percent_gain": 125.2,
+    "Volume": 11,
+    "High": 28.6
   },
   {
     "symbol": "BBIG",
@@ -62223,14 +62440,14 @@
     "High": 19.29
   },
   {
-    "symbol": "AERC",
+    "symbol": "MKUL",
     "Date": "2022-08-09",
     "percent_gain": 69.16,
     "Volume": 49,
     "High": 7.68
   },
   {
-    "symbol": "MKUL",
+    "symbol": "AERC",
     "Date": "2022-08-09",
     "percent_gain": 69.16,
     "Volume": 49,
@@ -63049,13 +63266,6 @@
     "High": 215.2
   },
   {
-    "symbol": "OCTO",
-    "Date": "2022-07-27",
-    "percent_gain": 101.4,
-    "Volume": 0,
-    "High": 445
-  },
-  {
     "symbol": "TYDE",
     "Date": "2022-07-27",
     "percent_gain": 101.4,
@@ -63063,11 +63273,11 @@
     "High": 89
   },
   {
-    "symbol": "BWV",
+    "symbol": "OCTO",
     "Date": "2022-07-27",
-    "percent_gain": 97.07,
-    "Volume": 83,
-    "High": 4.04
+    "percent_gain": 101.4,
+    "Volume": 0,
+    "High": 445
   },
   {
     "symbol": "ONCO",
@@ -63075,6 +63285,13 @@
     "percent_gain": 97.07,
     "Volume": 2,
     "High": 161.6
+  },
+  {
+    "symbol": "BWV",
+    "Date": "2022-07-27",
+    "percent_gain": 97.07,
+    "Volume": 83,
+    "High": 4.04
   },
   {
     "symbol": "DAVE",
@@ -63714,18 +63931,18 @@
     "High": 20.71
   },
   {
-    "symbol": "RMED",
-    "Date": "2022-07-05",
-    "percent_gain": 90.94,
-    "Volume": 3,
-    "High": 29.5
-  },
-  {
     "symbol": "VTAK",
     "Date": "2022-07-05",
     "percent_gain": 90.94,
     "Volume": 0,
     "High": 295
+  },
+  {
+    "symbol": "RMED",
+    "Date": "2022-07-05",
+    "percent_gain": 90.94,
+    "Volume": 3,
+    "High": 29.5
   },
   {
     "symbol": "FFIE",
@@ -63840,14 +64057,14 @@
     "High": 4.69
   },
   {
-    "symbol": "FRTX",
+    "symbol": "BBI",
     "Date": "2022-06-29",
     "percent_gain": 140.32,
     "Volume": 3,
     "High": 12.6
   },
   {
-    "symbol": "BBI",
+    "symbol": "FRTX",
     "Date": "2022-06-29",
     "percent_gain": 140.32,
     "Volume": 3,
@@ -64113,13 +64330,6 @@
     "High": 920
   },
   {
-    "symbol": "GV",
-    "Date": "2022-06-22",
-    "percent_gain": 64.96,
-    "Volume": 0,
-    "High": 28.95
-  },
-  {
     "symbol": "VEDU",
     "Date": "2022-06-22",
     "percent_gain": 64.96,
@@ -64127,11 +64337,11 @@
     "High": 1.93
   },
   {
-    "symbol": "JXJT",
+    "symbol": "GV",
     "Date": "2022-06-22",
-    "percent_gain": 63.76,
-    "Volume": 3,
-    "High": 24.4
+    "percent_gain": 64.96,
+    "Volume": 0,
+    "High": 28.95
   },
   {
     "symbol": "LLL",
@@ -64139,6 +64349,13 @@
     "percent_gain": 63.76,
     "Volume": 31,
     "High": 2.44
+  },
+  {
+    "symbol": "JXJT",
+    "Date": "2022-06-22",
+    "percent_gain": 63.76,
+    "Volume": 3,
+    "High": 24.4
   },
   {
     "symbol": "REV",
@@ -64582,18 +64799,18 @@
     "High": 13.7
   },
   {
-    "symbol": "PBTS",
-    "Date": "2022-06-10",
-    "percent_gain": 45.54,
-    "Volume": 0,
-    "High": 391.2
-  },
-  {
     "symbol": "XTKG",
     "Date": "2022-06-10",
     "percent_gain": 45.54,
     "Volume": 0,
     "High": 2888.6
+  },
+  {
+    "symbol": "PBTS",
+    "Date": "2022-06-10",
+    "percent_gain": 45.54,
+    "Volume": 0,
+    "High": 391.2
   },
   {
     "symbol": "XTKG",
@@ -64701,14 +64918,14 @@
     "High": 24.71
   },
   {
-    "symbol": "AERC",
+    "symbol": "MKUL",
     "Date": "2022-06-07",
     "percent_gain": 199.58,
     "Volume": 121,
     "High": 14.23
   },
   {
-    "symbol": "MKUL",
+    "symbol": "AERC",
     "Date": "2022-06-07",
     "percent_gain": 199.58,
     "Volume": 121,
@@ -64729,14 +64946,14 @@
     "High": 281.25
   },
   {
-    "symbol": "ALTS",
+    "symbol": "JAN",
     "Date": "2022-06-07",
     "percent_gain": 100,
     "Volume": 85,
     "High": 5
   },
   {
-    "symbol": "JAN",
+    "symbol": "ALTS",
     "Date": "2022-06-07",
     "percent_gain": 100,
     "Volume": 85,
@@ -64757,13 +64974,6 @@
     "High": 7.33
   },
   {
-    "symbol": "AERC",
-    "Date": "2022-06-06",
-    "percent_gain": 104.22,
-    "Volume": 71,
-    "High": 4.84
-  },
-  {
     "symbol": "MKUL",
     "Date": "2022-06-06",
     "percent_gain": 104.22,
@@ -64771,14 +64981,21 @@
     "High": 4.84
   },
   {
-    "symbol": "KA",
+    "symbol": "AERC",
+    "Date": "2022-06-06",
+    "percent_gain": 104.22,
+    "Volume": 71,
+    "High": 4.84
+  },
+  {
+    "symbol": "YMTX",
     "Date": "2022-06-06",
     "percent_gain": 54.23,
     "Volume": 8,
     "High": 15.33
   },
   {
-    "symbol": "YMTX",
+    "symbol": "KA",
     "Date": "2022-06-06",
     "percent_gain": 54.23,
     "Volume": 8,
@@ -64876,14 +65093,14 @@
     "High": 9.99
   },
   {
-    "symbol": "ALTS",
+    "symbol": "JAN",
     "Date": "2022-05-31",
     "percent_gain": 118.3,
     "Volume": 33,
     "High": 4.89
   },
   {
-    "symbol": "JAN",
+    "symbol": "ALTS",
     "Date": "2022-05-31",
     "percent_gain": 118.3,
     "Volume": 33,
@@ -65023,14 +65240,14 @@
     "High": 35.55
   },
   {
-    "symbol": "GYRE",
+    "symbol": "CBIO",
     "Date": "2022-05-23",
     "percent_gain": 286.79,
     "Volume": 16,
     "High": 2.986
   },
   {
-    "symbol": "CBIO",
+    "symbol": "GYRE",
     "Date": "2022-05-23",
     "percent_gain": 286.79,
     "Volume": 16,
@@ -65380,18 +65597,18 @@
     "High": 30.87
   },
   {
-    "symbol": "BWV",
-    "Date": "2022-05-03",
-    "percent_gain": 113.17,
-    "Volume": 35,
-    "High": 7.12
-  },
-  {
     "symbol": "ONCO",
     "Date": "2022-05-03",
     "percent_gain": 113.17,
     "Volume": 0,
     "High": 284.8
+  },
+  {
+    "symbol": "BWV",
+    "Date": "2022-05-03",
+    "percent_gain": 113.17,
+    "Volume": 35,
+    "High": 7.12
   },
   {
     "symbol": "BLTE",
@@ -65660,18 +65877,18 @@
     "High": 18.95
   },
   {
-    "symbol": "ERYP",
-    "Date": "2022-04-25",
-    "percent_gain": 78.69,
-    "Volume": 48,
-    "High": 2.18
-  },
-  {
     "symbol": "PHXM",
     "Date": "2022-04-25",
     "percent_gain": 78.69,
     "Volume": 4,
     "High": 21.8
+  },
+  {
+    "symbol": "ERYP",
+    "Date": "2022-04-25",
+    "percent_gain": 78.69,
+    "Volume": 48,
+    "High": 2.18
   },
   {
     "symbol": "RDBX",
@@ -66136,18 +66353,18 @@
     "High": 19740
   },
   {
-    "symbol": "IMAC",
-    "Date": "2022-04-07",
-    "percent_gain": 46,
-    "Volume": 33,
-    "High": 1.46
-  },
-  {
     "symbol": "BACK",
     "Date": "2022-04-07",
     "percent_gain": 46,
     "Volume": 1,
     "High": 43.8
+  },
+  {
+    "symbol": "IMAC",
+    "Date": "2022-04-07",
+    "percent_gain": 46,
+    "Volume": 33,
+    "High": 1.46
   },
   {
     "symbol": "SST",
@@ -66248,18 +66465,18 @@
     "High": 17.05
   },
   {
-    "symbol": "GBS",
-    "Date": "2022-04-04",
-    "percent_gain": 97.44,
-    "Volume": 23,
-    "High": 1.54
-  },
-  {
     "symbol": "INBS",
     "Date": "2022-04-04",
     "percent_gain": 97.44,
     "Volume": 0,
     "High": 369.6
+  },
+  {
+    "symbol": "GBS",
+    "Date": "2022-04-04",
+    "percent_gain": 97.44,
+    "Volume": 23,
+    "High": 1.54
   },
   {
     "symbol": "PLX",
@@ -66430,14 +66647,14 @@
     "High": 1042.5
   },
   {
-    "symbol": "ISIG",
+    "symbol": "LDWY",
     "Date": "2022-03-30",
     "percent_gain": 64.61,
     "Volume": 21,
     "High": 14.42
   },
   {
-    "symbol": "LDWY",
+    "symbol": "ISIG",
     "Date": "2022-03-30",
     "percent_gain": 64.61,
     "Volume": 21,
@@ -66654,18 +66871,18 @@
     "High": 3.4
   },
   {
-    "symbol": "TKAT",
-    "Date": "2022-03-24",
-    "percent_gain": 44.08,
-    "Volume": 26,
-    "High": 3.53
-  },
-  {
     "symbol": "MI",
     "Date": "2022-03-24",
     "percent_gain": 44.08,
     "Volume": 0,
     "High": 176.5
+  },
+  {
+    "symbol": "TKAT",
+    "Date": "2022-03-24",
+    "percent_gain": 44.08,
+    "Volume": 26,
+    "High": 3.53
   },
   {
     "symbol": "FSRD",
@@ -66829,18 +67046,18 @@
     "High": 10.26
   },
   {
-    "symbol": "UTME",
-    "Date": "2022-03-21",
-    "percent_gain": 50,
-    "Volume": 13,
-    "High": 2.94
-  },
-  {
     "symbol": "WTO",
     "Date": "2022-03-21",
     "percent_gain": 50,
     "Volume": 0,
     "High": 73.5
+  },
+  {
+    "symbol": "UTME",
+    "Date": "2022-03-21",
+    "percent_gain": 50,
+    "Volume": 13,
+    "High": 2.94
   },
   {
     "symbol": "BBLG",
@@ -66955,14 +67172,14 @@
     "High": 13.3994
   },
   {
-    "symbol": "BYU",
+    "symbol": "GLG",
     "Date": "2022-03-17",
     "percent_gain": 84.9,
     "Volume": 0,
     "High": 109.7
   },
   {
-    "symbol": "GLG",
+    "symbol": "BYU",
     "Date": "2022-03-17",
     "percent_gain": 84.9,
     "Volume": 0,
@@ -67403,14 +67620,14 @@
     "High": 2205
   },
   {
-    "symbol": "LDWY",
+    "symbol": "ISIG",
     "Date": "2022-03-09",
     "percent_gain": 78.96,
     "Volume": 5,
     "High": 11.99
   },
   {
-    "symbol": "ISIG",
+    "symbol": "LDWY",
     "Date": "2022-03-09",
     "percent_gain": 78.96,
     "Volume": 5,
@@ -67788,18 +68005,18 @@
     "High": 1406.25
   },
   {
-    "symbol": "GBS",
-    "Date": "2022-03-01",
-    "percent_gain": 136.96,
-    "Volume": 84,
-    "High": 1.09
-  },
-  {
     "symbol": "INBS",
     "Date": "2022-03-01",
     "percent_gain": 136.96,
     "Volume": 0,
     "High": 261.6
+  },
+  {
+    "symbol": "GBS",
+    "Date": "2022-03-01",
+    "percent_gain": 136.96,
+    "Volume": 84,
+    "High": 1.09
   },
   {
     "symbol": "RMED",
@@ -68439,14 +68656,14 @@
     "High": 34.65
   },
   {
-    "symbol": "UOKA",
+    "symbol": "MDJH",
     "Date": "2022-02-02",
     "percent_gain": 70.83,
     "Volume": 30,
     "High": 2.87
   },
   {
-    "symbol": "MDJH",
+    "symbol": "UOKA",
     "Date": "2022-02-02",
     "percent_gain": 70.83,
     "Volume": 30,
@@ -68831,14 +69048,14 @@
     "High": 8.91
   },
   {
-    "symbol": "DMK",
+    "symbol": "ADMP",
     "Date": "2022-01-10",
     "percent_gain": 47.43,
     "Volume": 0,
     "High": 59.34
   },
   {
-    "symbol": "ADMP",
+    "symbol": "DMK",
     "Date": "2022-01-10",
     "percent_gain": 47.43,
     "Volume": 0,
@@ -69090,14 +69307,14 @@
     "High": 8.7
   },
   {
-    "symbol": "ISIG",
+    "symbol": "LDWY",
     "Date": "2021-12-29",
     "percent_gain": 57.26,
     "Volume": 28,
     "High": 29.91
   },
   {
-    "symbol": "LDWY",
+    "symbol": "ISIG",
     "Date": "2021-12-29",
     "percent_gain": 57.26,
     "Volume": 28,
@@ -69132,13 +69349,6 @@
     "High": 34.6
   },
   {
-    "symbol": "TKAT",
-    "Date": "2021-12-29",
-    "percent_gain": 43.99,
-    "Volume": 28,
-    "High": 5.4862
-  },
-  {
     "symbol": "MI",
     "Date": "2021-12-29",
     "percent_gain": 43.99,
@@ -69146,11 +69356,11 @@
     "High": 274.31
   },
   {
-    "symbol": "TBIO",
+    "symbol": "TKAT",
     "Date": "2021-12-29",
-    "percent_gain": 42.92,
-    "Volume": 5,
-    "High": 9.59
+    "percent_gain": 43.99,
+    "Volume": 28,
+    "High": 5.4862
   },
   {
     "symbol": "DNAY",
@@ -69160,14 +69370,21 @@
     "High": 9.59
   },
   {
-    "symbol": "LDWY",
+    "symbol": "TBIO",
+    "Date": "2021-12-29",
+    "percent_gain": 42.92,
+    "Volume": 5,
+    "High": 9.59
+  },
+  {
+    "symbol": "ISIG",
     "Date": "2021-12-28",
     "percent_gain": 102.77,
     "Volume": 43,
     "High": 23.3999
   },
   {
-    "symbol": "ISIG",
+    "symbol": "LDWY",
     "Date": "2021-12-28",
     "percent_gain": 102.77,
     "Volume": 43,
@@ -69251,18 +69468,18 @@
     "High": 25200
   },
   {
-    "symbol": "BVXV",
-    "Date": "2021-12-22",
-    "percent_gain": 135.81,
-    "Volume": 15,
-    "High": 34.9
-  },
-  {
     "symbol": "SCNI",
     "Date": "2021-12-22",
     "percent_gain": 135.81,
     "Volume": 1,
     "High": 349
+  },
+  {
+    "symbol": "BVXV",
+    "Date": "2021-12-22",
+    "percent_gain": 135.81,
+    "Volume": 15,
+    "High": 34.9
   },
   {
     "symbol": "EVTL",
@@ -69293,14 +69510,14 @@
     "High": 279
   },
   {
-    "symbol": "GRCE",
+    "symbol": "ACST",
     "Date": "2021-12-22",
     "percent_gain": 61.26,
     "Volume": 7,
     "High": 10.74
   },
   {
-    "symbol": "ACST",
+    "symbol": "GRCE",
     "Date": "2021-12-22",
     "percent_gain": 61.26,
     "Volume": 7,
@@ -69671,14 +69888,14 @@
     "High": 3.46
   },
   {
-    "symbol": "NWTN",
+    "symbol": "ESSC",
     "Date": "2021-12-14",
     "percent_gain": 42.77,
     "Volume": 22,
     "High": 26.27
   },
   {
-    "symbol": "ESSC",
+    "symbol": "NWTN",
     "Date": "2021-12-14",
     "percent_gain": 42.77,
     "Volume": 22,
@@ -69825,14 +70042,14 @@
     "High": 7.25
   },
   {
-    "symbol": "LDWY",
+    "symbol": "ISIG",
     "Date": "2021-12-08",
     "percent_gain": 139.4,
     "Volume": 68,
     "High": 24.85
   },
   {
-    "symbol": "ISIG",
+    "symbol": "LDWY",
     "Date": "2021-12-08",
     "percent_gain": 139.4,
     "Volume": 68,
@@ -70161,14 +70378,14 @@
     "High": 52
   },
   {
-    "symbol": "IVVD",
+    "symbol": "ADGI",
     "Date": "2021-11-29",
     "percent_gain": 113.85,
     "Volume": 18,
     "High": 53.7199
   },
   {
-    "symbol": "ADGI",
+    "symbol": "IVVD",
     "Date": "2021-11-29",
     "percent_gain": 113.85,
     "Volume": 18,
@@ -70301,18 +70518,18 @@
     "High": 15
   },
   {
-    "symbol": "BTTX",
-    "Date": "2021-11-24",
-    "percent_gain": 60.69,
-    "Volume": 12,
-    "High": 10.3
-  },
-  {
     "symbol": "LOCL",
     "Date": "2021-11-24",
     "percent_gain": 60.69,
     "Volume": 0,
     "High": 167.31
+  },
+  {
+    "symbol": "BTTX",
+    "Date": "2021-11-24",
+    "percent_gain": 60.69,
+    "Volume": 12,
+    "High": 10.3
   },
   {
     "symbol": "OCUP",
@@ -70651,18 +70868,18 @@
     "High": 11.17
   },
   {
-    "symbol": "BTB",
-    "Date": "2021-11-12",
-    "percent_gain": 50,
-    "Volume": 1,
-    "High": 45
-  },
-  {
     "symbol": "BETS",
     "Date": "2021-11-12",
     "percent_gain": 50,
     "Volume": 0,
     "High": 45000
+  },
+  {
+    "symbol": "BTB",
+    "Date": "2021-11-12",
+    "percent_gain": 50,
+    "Volume": 1,
+    "High": 45
   },
   {
     "symbol": "NUZE",
@@ -71113,14 +71330,14 @@
     "High": 29.4
   },
   {
-    "symbol": "GRIL",
+    "symbol": "SDOT",
     "Date": "2021-11-01",
     "percent_gain": 98.2,
     "Volume": 82,
     "High": 2.2
   },
   {
-    "symbol": "SDOT",
+    "symbol": "GRIL",
     "Date": "2021-11-01",
     "percent_gain": 98.2,
     "Volume": 82,
@@ -71141,18 +71358,18 @@
     "High": 60.2267
   },
   {
-    "symbol": "LGMK",
-    "Date": "2021-11-01",
-    "percent_gain": 50,
-    "Volume": 1,
-    "High": 111
-  },
-  {
     "symbol": "NXTD",
     "Date": "2021-11-01",
     "percent_gain": 50,
     "Volume": 34,
     "High": 5.55
+  },
+  {
+    "symbol": "LGMK",
+    "Date": "2021-11-01",
+    "percent_gain": 50,
+    "Volume": 1,
+    "High": 111
   },
   {
     "symbol": "GFAI",
@@ -71232,14 +71449,14 @@
     "High": 9.51
   },
   {
-    "symbol": "METX",
+    "symbol": "BTCT",
     "Date": "2021-10-28",
     "percent_gain": 53.95,
     "Volume": 0,
     "High": 383.34
   },
   {
-    "symbol": "BTCT",
+    "symbol": "METX",
     "Date": "2021-10-28",
     "percent_gain": 53.95,
     "Volume": 0,
@@ -71386,14 +71603,14 @@
     "High": 275.7
   },
   {
-    "symbol": "METX",
+    "symbol": "BTCT",
     "Date": "2021-10-26",
     "percent_gain": 81.1,
     "Volume": 1,
     "High": 414
   },
   {
-    "symbol": "BTCT",
+    "symbol": "METX",
     "Date": "2021-10-26",
     "percent_gain": 81.1,
     "Volume": 1,
@@ -71463,14 +71680,14 @@
     "High": 11.25
   },
   {
-    "symbol": "FAZE",
+    "symbol": "BRPM",
     "Date": "2021-10-26",
     "percent_gain": 40.66,
     "Volume": 44,
     "High": 15.74
   },
   {
-    "symbol": "BRPM",
+    "symbol": "FAZE",
     "Date": "2021-10-26",
     "percent_gain": 40.66,
     "Volume": 44,
@@ -71596,14 +71813,14 @@
     "High": 44.1903
   },
   {
-    "symbol": "BTCT",
+    "symbol": "METX",
     "Date": "2021-10-25",
     "percent_gain": 43.31,
     "Volume": 0,
     "High": 262.68
   },
   {
-    "symbol": "METX",
+    "symbol": "BTCT",
     "Date": "2021-10-25",
     "percent_gain": 43.31,
     "Volume": 0,
@@ -71722,14 +71939,14 @@
     "High": 3.41
   },
   {
-    "symbol": "XTKG",
+    "symbol": "PBTS",
     "Date": "2021-10-22",
     "percent_gain": 60.83,
     "Volume": 0,
     "High": 463.2
   },
   {
-    "symbol": "PBTS",
+    "symbol": "XTKG",
     "Date": "2021-10-22",
     "percent_gain": 60.83,
     "Volume": 0,
@@ -71848,14 +72065,14 @@
     "High": 57.75
   },
   {
-    "symbol": "AHG",
+    "symbol": "HX",
     "Date": "2021-10-19",
     "percent_gain": 48.43,
     "Volume": 15,
     "High": 9.9
   },
   {
-    "symbol": "HX",
+    "symbol": "AHG",
     "Date": "2021-10-19",
     "percent_gain": 48.43,
     "Volume": 15,
@@ -71918,14 +72135,14 @@
     "High": 5.75
   },
   {
-    "symbol": "WTRH",
+    "symbol": "ASAP",
     "Date": "2021-10-15",
     "percent_gain": 51.46,
     "Volume": 4,
     "High": 31.2
   },
   {
-    "symbol": "ASAP",
+    "symbol": "WTRH",
     "Date": "2021-10-15",
     "percent_gain": 51.46,
     "Volume": 4,
@@ -71967,14 +72184,14 @@
     "High": 10.09
   },
   {
-    "symbol": "UPXI",
+    "symbol": "GRVI",
     "Date": "2021-10-14",
     "percent_gain": 86.83,
     "Volume": 118,
     "High": 9.36
   },
   {
-    "symbol": "GRVI",
+    "symbol": "UPXI",
     "Date": "2021-10-14",
     "percent_gain": 86.83,
     "Volume": 118,
@@ -72002,14 +72219,14 @@
     "High": 182.4
   },
   {
-    "symbol": "WTRH",
+    "symbol": "ASAP",
     "Date": "2021-10-13",
     "percent_gain": 69.68,
     "Volume": 8,
     "High": 27.2
   },
   {
-    "symbol": "ASAP",
+    "symbol": "WTRH",
     "Date": "2021-10-13",
     "percent_gain": 69.68,
     "Volume": 8,
@@ -72072,18 +72289,18 @@
     "High": 9.89
   },
   {
-    "symbol": "PROG",
-    "Date": "2021-10-11",
-    "percent_gain": 59.26,
-    "Volume": 204,
-    "High": 2.15
-  },
-  {
     "symbol": "BIOR",
     "Date": "2021-10-11",
     "percent_gain": 59.26,
     "Volume": 8,
     "High": 53.75
+  },
+  {
+    "symbol": "PROG",
+    "Date": "2021-10-11",
+    "percent_gain": 59.26,
+    "Volume": 204,
+    "High": 2.15
   },
   {
     "symbol": "CCXI",
@@ -72534,14 +72751,14 @@
     "High": 17.9
   },
   {
-    "symbol": "HLBZ",
+    "symbol": "MCOM",
     "Date": "2021-09-17",
     "percent_gain": 186.44,
     "Volume": 1,
     "High": 1289
   },
   {
-    "symbol": "MCOM",
+    "symbol": "HLBZ",
     "Date": "2021-09-17",
     "percent_gain": 186.44,
     "Volume": 1,
@@ -72653,18 +72870,18 @@
     "High": 19
   },
   {
-    "symbol": "FWBI",
-    "Date": "2021-09-14",
-    "percent_gain": 46.34,
-    "Volume": 0,
-    "High": 25200
-  },
-  {
     "symbol": "AZRX",
     "Date": "2021-09-14",
     "percent_gain": 46.34,
     "Volume": 11,
     "High": 6
+  },
+  {
+    "symbol": "FWBI",
+    "Date": "2021-09-14",
+    "percent_gain": 46.34,
+    "Volume": 0,
+    "High": 25200
   },
   {
     "symbol": "VINO",
@@ -72961,18 +73178,18 @@
     "High": 10.89
   },
   {
-    "symbol": "GBS",
-    "Date": "2021-09-01",
-    "percent_gain": 50.31,
-    "Volume": 27,
-    "High": 4.87
-  },
-  {
     "symbol": "INBS",
     "Date": "2021-09-01",
     "percent_gain": 50.31,
     "Volume": 0,
     "High": 1168.8
+  },
+  {
+    "symbol": "GBS",
+    "Date": "2021-09-01",
+    "percent_gain": 50.31,
+    "Volume": 27,
+    "High": 4.87
   },
   {
     "symbol": "EVAX",
@@ -73031,18 +73248,18 @@
     "High": 6.72
   },
   {
-    "symbol": "VLON",
-    "Date": "2021-08-31",
-    "percent_gain": 44.62,
-    "Volume": 0,
-    "High": 246
-  },
-  {
     "symbol": "GRI",
     "Date": "2021-08-31",
     "percent_gain": 44.62,
     "Volume": 0,
     "High": 1722
+  },
+  {
+    "symbol": "VLON",
+    "Date": "2021-08-31",
+    "percent_gain": 44.62,
+    "Volume": 0,
+    "High": 246
   },
   {
     "symbol": "SONN",
@@ -73255,14 +73472,14 @@
     "High": 7900
   },
   {
-    "symbol": "TKAT",
+    "symbol": "MI",
     "Date": "2021-08-25",
     "percent_gain": 80.82,
     "Volume": 76,
     "High": 12.73
   },
   {
-    "symbol": "MI",
+    "symbol": "TKAT",
     "Date": "2021-08-25",
     "percent_gain": 80.82,
     "Volume": 76,
@@ -73409,13 +73626,6 @@
     "High": 36
   },
   {
-    "symbol": "SGOC",
-    "Date": "2021-08-18",
-    "percent_gain": 91.4,
-    "Volume": 58,
-    "High": 8.23
-  },
-  {
     "symbol": "TROO",
     "Date": "2021-08-18",
     "percent_gain": 91.4,
@@ -73423,11 +73633,11 @@
     "High": 8.23
   },
   {
-    "symbol": "FWBI",
+    "symbol": "SGOC",
     "Date": "2021-08-18",
-    "percent_gain": 62.54,
-    "Volume": 0,
-    "High": 35989.8
+    "percent_gain": 91.4,
+    "Volume": 58,
+    "High": 8.23
   },
   {
     "symbol": "AZRX",
@@ -73437,6 +73647,13 @@
     "High": 8.569
   },
   {
+    "symbol": "FWBI",
+    "Date": "2021-08-18",
+    "percent_gain": 62.54,
+    "Volume": 0,
+    "High": 35989.8
+  },
+  {
     "symbol": "NRXP",
     "Date": "2021-08-18",
     "percent_gain": 46.75,
@@ -73444,14 +73661,14 @@
     "High": 18.3
   },
   {
-    "symbol": "EMWP",
+    "symbol": "ESGC",
     "Date": "2021-08-18",
     "percent_gain": 43.41,
     "Volume": 2,
     "High": 14.8
   },
   {
-    "symbol": "ESGC",
+    "symbol": "EMWP",
     "Date": "2021-08-18",
     "percent_gain": 43.41,
     "Volume": 2,
@@ -73731,14 +73948,14 @@
     "High": 39.27
   },
   {
-    "symbol": "AIU",
+    "symbol": "ONE",
     "Date": "2021-08-06",
     "percent_gain": 43.22,
     "Volume": 2,
     "High": 25.25
   },
   {
-    "symbol": "ONE",
+    "symbol": "AIU",
     "Date": "2021-08-06",
     "percent_gain": 43.22,
     "Volume": 2,
@@ -73794,18 +74011,18 @@
     "High": 24.04
   },
   {
-    "symbol": "FRGT",
-    "Date": "2021-08-05",
-    "percent_gain": 44.23,
-    "Volume": 0,
-    "High": 990
-  },
-  {
     "symbol": "HUSN",
     "Date": "2021-08-05",
     "percent_gain": 44.23,
     "Volume": 25,
     "High": 9.9
+  },
+  {
+    "symbol": "FRGT",
+    "Date": "2021-08-05",
+    "percent_gain": 44.23,
+    "Volume": 0,
+    "High": 990
   },
   {
     "symbol": "BAOS",
@@ -74109,14 +74326,14 @@
     "High": 9.46
   },
   {
-    "symbol": "GRVI",
+    "symbol": "UPXI",
     "Date": "2021-07-28",
     "percent_gain": 59.14,
     "Volume": 55,
     "High": 7.4
   },
   {
-    "symbol": "UPXI",
+    "symbol": "GRVI",
     "Date": "2021-07-28",
     "percent_gain": 59.14,
     "Volume": 55,
@@ -74130,14 +74347,14 @@
     "High": 101.1
   },
   {
-    "symbol": "TYHT",
+    "symbol": "SISI",
     "Date": "2021-07-28",
     "percent_gain": 46.87,
     "Volume": 14,
     "High": 6.33
   },
   {
-    "symbol": "SISI",
+    "symbol": "TYHT",
     "Date": "2021-07-28",
     "percent_gain": 46.87,
     "Volume": 14,
@@ -74158,18 +74375,18 @@
     "High": 7.25
   },
   {
-    "symbol": "KPRX",
-    "Date": "2021-07-27",
-    "percent_gain": 106.09,
-    "Volume": 1,
-    "High": 257.2
-  },
-  {
     "symbol": "EYEG",
     "Date": "2021-07-27",
     "percent_gain": 106.09,
     "Volume": 51,
     "High": 6.43
+  },
+  {
+    "symbol": "KPRX",
+    "Date": "2021-07-27",
+    "percent_gain": 106.09,
+    "Volume": 1,
+    "High": 257.2
   },
   {
     "symbol": "OGEN",
@@ -74200,14 +74417,14 @@
     "High": 31.6
   },
   {
-    "symbol": "BVXV",
+    "symbol": "SCNI",
     "Date": "2021-07-27",
     "percent_gain": 49.08,
     "Volume": 2,
     "High": 40.4
   },
   {
-    "symbol": "SCNI",
+    "symbol": "BVXV",
     "Date": "2021-07-27",
     "percent_gain": 49.08,
     "Volume": 2,
@@ -74578,18 +74795,18 @@
     "High": 31.41
   },
   {
-    "symbol": "SBET",
-    "Date": "2021-07-19",
-    "percent_gain": 49.39,
-    "Volume": 2,
-    "High": 122.8
-  },
-  {
     "symbol": "MTSL",
     "Date": "2021-07-19",
     "percent_gain": 49.39,
     "Volume": 40,
     "High": 6.14
+  },
+  {
+    "symbol": "SBET",
+    "Date": "2021-07-19",
+    "percent_gain": 49.39,
+    "Volume": 2,
+    "High": 122.8
   },
   {
     "symbol": "CRTD",
@@ -74599,14 +74816,14 @@
     "High": 4.5
   },
   {
-    "symbol": "BYU",
+    "symbol": "GLG",
     "Date": "2021-07-16",
     "percent_gain": 71.2,
     "Volume": 0,
     "High": 347.5
   },
   {
-    "symbol": "GLG",
+    "symbol": "BYU",
     "Date": "2021-07-16",
     "percent_gain": 71.2,
     "Volume": 0,
@@ -74886,18 +75103,18 @@
     "High": 49.95
   },
   {
-    "symbol": "MTSL",
-    "Date": "2021-07-12",
-    "percent_gain": 88.61,
-    "Volume": 73,
-    "High": 8.94
-  },
-  {
     "symbol": "SBET",
     "Date": "2021-07-12",
     "percent_gain": 88.61,
     "Volume": 3,
     "High": 178.8
+  },
+  {
+    "symbol": "MTSL",
+    "Date": "2021-07-12",
+    "percent_gain": 88.61,
+    "Volume": 73,
+    "High": 8.94
   },
   {
     "symbol": "DTSS",
@@ -74956,14 +75173,14 @@
     "High": 45.39
   },
   {
-    "symbol": "SGOC",
+    "symbol": "TROO",
     "Date": "2021-07-09",
     "percent_gain": 628.68,
     "Volume": 124,
     "High": 18.8
   },
   {
-    "symbol": "TROO",
+    "symbol": "SGOC",
     "Date": "2021-07-09",
     "percent_gain": 628.68,
     "Volume": 124,
@@ -75061,14 +75278,14 @@
     "High": 7.81
   },
   {
-    "symbol": "ARPO",
+    "symbol": "AADI",
     "Date": "2021-07-08",
     "percent_gain": 94.15,
     "Volume": 16,
     "High": 49.8
   },
   {
-    "symbol": "AADI",
+    "symbol": "ARPO",
     "Date": "2021-07-08",
     "percent_gain": 94.15,
     "Volume": 16,
@@ -75194,14 +75411,14 @@
     "High": 16.14
   },
   {
-    "symbol": "PBTS",
+    "symbol": "XTKG",
     "Date": "2021-07-06",
     "percent_gain": 102.22,
     "Volume": 0,
     "High": 873.6
   },
   {
-    "symbol": "XTKG",
+    "symbol": "PBTS",
     "Date": "2021-07-06",
     "percent_gain": 102.22,
     "Volume": 0,
@@ -75565,14 +75782,14 @@
     "High": 3.9
   },
   {
-    "symbol": "WULF",
+    "symbol": "IKNX",
     "Date": "2021-06-28",
     "percent_gain": 48.17,
     "Volume": 7,
     "High": 27.5
   },
   {
-    "symbol": "IKNX",
+    "symbol": "WULF",
     "Date": "2021-06-28",
     "percent_gain": 48.17,
     "Volume": 7,
@@ -75600,14 +75817,14 @@
     "High": 25
   },
   {
-    "symbol": "UPXI",
+    "symbol": "GRVI",
     "Date": "2021-06-25",
     "percent_gain": 67.32,
     "Volume": 34,
     "High": 9.37
   },
   {
-    "symbol": "GRVI",
+    "symbol": "UPXI",
     "Date": "2021-06-25",
     "percent_gain": 67.32,
     "Volume": 34,
@@ -75705,14 +75922,14 @@
     "High": 16.45
   },
   {
-    "symbol": "ACGN",
+    "symbol": "IDRA",
     "Date": "2021-06-22",
     "percent_gain": 46.43,
     "Volume": 3,
     "High": 27.88
   },
   {
-    "symbol": "IDRA",
+    "symbol": "ACGN",
     "Date": "2021-06-22",
     "percent_gain": 46.43,
     "Volume": 3,
@@ -75747,18 +75964,18 @@
     "High": 9.41
   },
   {
-    "symbol": "MMAT",
-    "Date": "2021-06-21",
-    "percent_gain": 73.52,
-    "Volume": 2,
-    "High": 2176
-  },
-  {
     "symbol": "TRCH",
     "Date": "2021-06-21",
     "percent_gain": 73.52,
     "Volume": 202,
     "High": 21.76
+  },
+  {
+    "symbol": "MMAT",
+    "Date": "2021-06-21",
+    "percent_gain": 73.52,
+    "Volume": 2,
+    "High": 2176
   },
   {
     "symbol": "MOXC",
@@ -75957,14 +76174,14 @@
     "High": 11.24
   },
   {
-    "symbol": "ENOB",
+    "symbol": "RENB",
     "Date": "2021-06-14",
     "percent_gain": 194.56,
     "Volume": 105,
     "High": 12.99
   },
   {
-    "symbol": "RENB",
+    "symbol": "ENOB",
     "Date": "2021-06-14",
     "percent_gain": 194.56,
     "Volume": 105,
@@ -76111,14 +76328,14 @@
     "High": 147.5
   },
   {
-    "symbol": "NHWK",
+    "symbol": "SCPX",
     "Date": "2021-06-10",
     "percent_gain": 58.39,
     "Volume": 33,
     "High": 10.85
   },
   {
-    "symbol": "SCPX",
+    "symbol": "NHWK",
     "Date": "2021-06-10",
     "percent_gain": 58.39,
     "Volume": 33,
@@ -76405,18 +76622,18 @@
     "High": 18.5
   },
   {
-    "symbol": "MOSY",
-    "Date": "2021-06-04",
-    "percent_gain": 41.63,
-    "Volume": 28,
-    "High": 10.75
-  },
-  {
     "symbol": "PRSO",
     "Date": "2021-06-04",
     "percent_gain": 41.63,
     "Volume": 0,
     "High": 430
+  },
+  {
+    "symbol": "MOSY",
+    "Date": "2021-06-04",
+    "percent_gain": 41.63,
+    "Volume": 28,
+    "High": 10.75
   },
   {
     "symbol": "EFOI",
@@ -76440,14 +76657,14 @@
     "High": 20.98
   },
   {
-    "symbol": "ADMP",
+    "symbol": "DMK",
     "Date": "2021-06-03",
     "percent_gain": 68.57,
     "Volume": 1,
     "High": 82.6
   },
   {
-    "symbol": "DMK",
+    "symbol": "ADMP",
     "Date": "2021-06-03",
     "percent_gain": 68.57,
     "Volume": 1,
@@ -76461,14 +76678,14 @@
     "High": 18.3317
   },
   {
-    "symbol": "RMED",
+    "symbol": "VTAK",
     "Date": "2021-06-03",
     "percent_gain": 47.04,
     "Volume": 0,
     "High": 273.5
   },
   {
-    "symbol": "VTAK",
+    "symbol": "RMED",
     "Date": "2021-06-03",
     "percent_gain": 47.04,
     "Volume": 0,
@@ -76685,13 +76902,6 @@
     "High": 188.57
   },
   {
-    "symbol": "MOXC",
-    "Date": "2021-05-27",
-    "percent_gain": 48.27,
-    "Volume": 8,
-    "High": 24.36
-  },
-  {
     "symbol": "ABTS",
     "Date": "2021-05-27",
     "percent_gain": 48.27,
@@ -76699,14 +76909,21 @@
     "High": 24.36
   },
   {
-    "symbol": "LIZI",
+    "symbol": "MOXC",
+    "Date": "2021-05-27",
+    "percent_gain": 48.27,
+    "Volume": 8,
+    "High": 24.36
+  },
+  {
+    "symbol": "SOGP",
     "Date": "2021-05-26",
     "percent_gain": 84.33,
     "Volume": 7,
     "High": 80
   },
   {
-    "symbol": "SOGP",
+    "symbol": "LIZI",
     "Date": "2021-05-26",
     "percent_gain": 84.33,
     "Volume": 7,
@@ -76769,14 +76986,14 @@
     "High": 11.49
   },
   {
-    "symbol": "ABTS",
+    "symbol": "MOXC",
     "Date": "2021-05-25",
     "percent_gain": 43.03,
     "Volume": 8,
     "High": 19.71
   },
   {
-    "symbol": "MOXC",
+    "symbol": "ABTS",
     "Date": "2021-05-25",
     "percent_gain": 43.03,
     "Volume": 8,
@@ -76853,18 +77070,18 @@
     "High": 261
   },
   {
-    "symbol": "OBLN",
-    "Date": "2021-05-21",
-    "percent_gain": 82.13,
-    "Volume": 12,
-    "High": 14.37
-  },
-  {
     "symbol": "RSLS",
     "Date": "2021-05-21",
     "percent_gain": 82.13,
     "Volume": 0,
     "High": 718.5
+  },
+  {
+    "symbol": "OBLN",
+    "Date": "2021-05-21",
+    "percent_gain": 82.13,
+    "Volume": 12,
+    "High": 14.37
   },
   {
     "symbol": "WAFU",
@@ -76944,14 +77161,14 @@
     "High": 229.6
   },
   {
-    "symbol": "LLIT",
+    "symbol": "NEGG",
     "Date": "2021-05-19",
     "percent_gain": 41.08,
     "Volume": 13,
     "High": 10.44
   },
   {
-    "symbol": "NEGG",
+    "symbol": "LLIT",
     "Date": "2021-05-19",
     "percent_gain": 41.08,
     "Volume": 13,
@@ -77042,18 +77259,18 @@
     "High": 161856.2
   },
   {
-    "symbol": "PRSO",
-    "Date": "2021-05-14",
-    "percent_gain": 72.32,
-    "Volume": 1,
-    "High": 199.2
-  },
-  {
     "symbol": "MOSY",
     "Date": "2021-05-14",
     "percent_gain": 72.32,
     "Volume": 59,
     "High": 4.98
+  },
+  {
+    "symbol": "PRSO",
+    "Date": "2021-05-14",
+    "percent_gain": 72.32,
+    "Volume": 1,
+    "High": 199.2
   },
   {
     "symbol": "HYRE",
@@ -77182,18 +77399,18 @@
     "High": 6.581
   },
   {
-    "symbol": "RSLS",
-    "Date": "2021-05-10",
-    "percent_gain": 80.91,
-    "Volume": 0,
-    "High": 597
-  },
-  {
     "symbol": "OBLN",
     "Date": "2021-05-10",
     "percent_gain": 80.91,
     "Volume": 17,
     "High": 11.94
+  },
+  {
+    "symbol": "RSLS",
+    "Date": "2021-05-10",
+    "percent_gain": 80.91,
+    "Volume": 0,
+    "High": 597
   },
   {
     "symbol": "LEDS",
@@ -77420,14 +77637,14 @@
     "High": 84
   },
   {
-    "symbol": "TYHT",
+    "symbol": "SISI",
     "Date": "2021-05-04",
     "percent_gain": 54.1,
     "Volume": 5,
     "High": 18.4
   },
   {
-    "symbol": "SISI",
+    "symbol": "TYHT",
     "Date": "2021-05-04",
     "percent_gain": 54.1,
     "Volume": 5,
@@ -77448,14 +77665,14 @@
     "High": 5.87
   },
   {
-    "symbol": "ADMP",
+    "symbol": "DMK",
     "Date": "2021-05-04",
     "percent_gain": 40.08,
     "Volume": 0,
     "High": 74.9
   },
   {
-    "symbol": "DMK",
+    "symbol": "ADMP",
     "Date": "2021-05-04",
     "percent_gain": 40.08,
     "Volume": 0,
@@ -77532,14 +77749,14 @@
     "High": 10.11
   },
   {
-    "symbol": "ERNA",
+    "symbol": "BTX",
     "Date": "2021-04-30",
     "percent_gain": 74.14,
     "Volume": 2,
     "High": 1191.78
   },
   {
-    "symbol": "BTX",
+    "symbol": "ERNA",
     "Date": "2021-04-30",
     "percent_gain": 74.14,
     "Volume": 2,
@@ -77602,14 +77819,14 @@
     "High": 1464
   },
   {
-    "symbol": "ERNA",
+    "symbol": "BTX",
     "Date": "2021-04-28",
     "percent_gain": 117.83,
     "Volume": 2,
     "High": 1084.8
   },
   {
-    "symbol": "BTX",
+    "symbol": "ERNA",
     "Date": "2021-04-28",
     "percent_gain": 117.83,
     "Volume": 2,
@@ -77735,14 +77952,14 @@
     "High": 246
   },
   {
-    "symbol": "ERNA",
+    "symbol": "BTX",
     "Date": "2021-04-23",
     "percent_gain": 51.2,
     "Volume": 0,
     "High": 377.4
   },
   {
-    "symbol": "BTX",
+    "symbol": "ERNA",
     "Date": "2021-04-23",
     "percent_gain": 51.2,
     "Volume": 0,
@@ -77791,14 +78008,14 @@
     "High": 8.91
   },
   {
-    "symbol": "BTX",
+    "symbol": "ERNA",
     "Date": "2021-04-22",
     "percent_gain": 51.35,
     "Volume": 0,
     "High": 269.4
   },
   {
-    "symbol": "ERNA",
+    "symbol": "BTX",
     "Date": "2021-04-22",
     "percent_gain": 51.35,
     "Volume": 0,
@@ -77812,13 +78029,6 @@
     "High": 9.55
   },
   {
-    "symbol": "TKAT",
-    "Date": "2021-04-22",
-    "percent_gain": 43.73,
-    "Volume": 14,
-    "High": 29.45
-  },
-  {
     "symbol": "MI",
     "Date": "2021-04-22",
     "percent_gain": 43.73,
@@ -77826,14 +78036,21 @@
     "High": 29.45
   },
   {
-    "symbol": "SISI",
+    "symbol": "TKAT",
+    "Date": "2021-04-22",
+    "percent_gain": 43.73,
+    "Volume": 14,
+    "High": 29.45
+  },
+  {
+    "symbol": "TYHT",
     "Date": "2021-04-21",
     "percent_gain": 47.64,
     "Volume": 6,
     "High": 7.5
   },
   {
-    "symbol": "TYHT",
+    "symbol": "SISI",
     "Date": "2021-04-21",
     "percent_gain": 47.64,
     "Volume": 6,
@@ -77861,14 +78078,14 @@
     "High": 7.89
   },
   {
-    "symbol": "ERNA",
+    "symbol": "BTX",
     "Date": "2021-04-20",
     "percent_gain": 42.39,
     "Volume": 0,
     "High": 219
   },
   {
-    "symbol": "BTX",
+    "symbol": "ERNA",
     "Date": "2021-04-20",
     "percent_gain": 42.39,
     "Volume": 0,
@@ -78239,14 +78456,14 @@
     "High": 64
   },
   {
-    "symbol": "DMYD",
+    "symbol": "GENI",
     "Date": "2021-04-05",
     "percent_gain": 50.29,
     "Volume": 10,
     "High": 23.49
   },
   {
-    "symbol": "GENI",
+    "symbol": "DMYD",
     "Date": "2021-04-05",
     "percent_gain": 50.29,
     "Volume": 10,
@@ -78645,18 +78862,18 @@
     "High": 32.5
   },
   {
-    "symbol": "CIDM",
-    "Date": "2021-03-24",
-    "percent_gain": 46.36,
-    "Volume": 170,
-    "High": 2.21
-  },
-  {
     "symbol": "CNVS",
     "Date": "2021-03-24",
     "percent_gain": 46.36,
     "Volume": 8,
     "High": 44.2
+  },
+  {
+    "symbol": "CIDM",
+    "Date": "2021-03-24",
+    "percent_gain": 46.36,
+    "Volume": 170,
+    "High": 2.21
   },
   {
     "symbol": "PIXY",
@@ -78890,13 +79107,6 @@
     "High": 79
   },
   {
-    "symbol": "MOXC",
-    "Date": "2021-03-18",
-    "percent_gain": 96.65,
-    "Volume": 54,
-    "High": 4.7
-  },
-  {
     "symbol": "ABTS",
     "Date": "2021-03-18",
     "percent_gain": 96.65,
@@ -78904,14 +79114,21 @@
     "High": 4.7
   },
   {
-    "symbol": "TKAT",
+    "symbol": "MOXC",
+    "Date": "2021-03-18",
+    "percent_gain": 96.65,
+    "Volume": 54,
+    "High": 4.7
+  },
+  {
+    "symbol": "MI",
     "Date": "2021-03-18",
     "percent_gain": 79.38,
     "Volume": 49,
     "High": 40.54
   },
   {
-    "symbol": "MI",
+    "symbol": "TKAT",
     "Date": "2021-03-18",
     "percent_gain": 79.38,
     "Volume": 49,
@@ -79128,14 +79345,14 @@
     "High": 14.88
   },
   {
-    "symbol": "SOGP",
+    "symbol": "LIZI",
     "Date": "2021-03-16",
     "percent_gain": 44.97,
     "Volume": 6,
     "High": 152.8
   },
   {
-    "symbol": "LIZI",
+    "symbol": "SOGP",
     "Date": "2021-03-16",
     "percent_gain": 44.97,
     "Volume": 6,
@@ -79198,14 +79415,14 @@
     "High": 48.25
   },
   {
-    "symbol": "MI",
+    "symbol": "TKAT",
     "Date": "2021-03-15",
     "percent_gain": 127.38,
     "Volume": 8,
     "High": 9.3
   },
   {
-    "symbol": "TKAT",
+    "symbol": "MI",
     "Date": "2021-03-15",
     "percent_gain": 127.38,
     "Volume": 8,
@@ -79408,14 +79625,14 @@
     "High": 2.75
   },
   {
-    "symbol": "SLE",
+    "symbol": "SLGG",
     "Date": "2021-03-11",
     "percent_gain": 51.35,
     "Volume": 1,
     "High": 168
   },
   {
-    "symbol": "SLGG",
+    "symbol": "SLE",
     "Date": "2021-03-11",
     "percent_gain": 51.35,
     "Volume": 1,
@@ -79569,14 +79786,14 @@
     "High": 6.25
   },
   {
-    "symbol": "VANI",
+    "symbol": "EYES",
     "Date": "2021-03-09",
     "percent_gain": 69.92,
     "Volume": 35,
     "High": 60
   },
   {
-    "symbol": "EYES",
+    "symbol": "VANI",
     "Date": "2021-03-09",
     "percent_gain": 69.92,
     "Volume": 35,
@@ -79632,18 +79849,18 @@
     "High": 14.4
   },
   {
-    "symbol": "NXTD",
-    "Date": "2021-03-09",
-    "percent_gain": 42.75,
-    "Volume": 2,
-    "High": 18.7
-  },
-  {
     "symbol": "LGMK",
     "Date": "2021-03-09",
     "percent_gain": 42.75,
     "Volume": 0,
     "High": 374
+  },
+  {
+    "symbol": "NXTD",
+    "Date": "2021-03-09",
+    "percent_gain": 42.75,
+    "Volume": 2,
+    "High": 18.7
   },
   {
     "symbol": "VANI",
@@ -79849,14 +80066,14 @@
     "High": 4.75
   },
   {
-    "symbol": "SLE",
+    "symbol": "SLGG",
     "Date": "2021-03-03",
     "percent_gain": 59.55,
     "Volume": 3,
     "High": 127.96
   },
   {
-    "symbol": "SLGG",
+    "symbol": "SLE",
     "Date": "2021-03-03",
     "percent_gain": 59.55,
     "Volume": 3,
@@ -79982,14 +80199,14 @@
     "High": 16.31
   },
   {
-    "symbol": "VACQ",
+    "symbol": "RKLB",
     "Date": "2021-03-01",
     "percent_gain": 47.8,
     "Volume": 40,
     "High": 15.1499
   },
   {
-    "symbol": "RKLB",
+    "symbol": "VACQ",
     "Date": "2021-03-01",
     "percent_gain": 47.8,
     "Volume": 40,
@@ -80122,18 +80339,18 @@
     "High": 12.97
   },
   {
-    "symbol": "MPU",
-    "Date": "2021-02-25",
-    "percent_gain": 55.97,
-    "Volume": 10,
-    "High": 3.372
-  },
-  {
     "symbol": "ASLN",
     "Date": "2021-02-25",
     "percent_gain": 55.97,
     "Volume": 2,
     "High": 27.45
+  },
+  {
+    "symbol": "MPU",
+    "Date": "2021-02-25",
+    "percent_gain": 55.97,
+    "Volume": 10,
+    "High": 3.372
   },
   {
     "symbol": "SSNT",
@@ -80178,14 +80395,14 @@
     "High": 20.28
   },
   {
-    "symbol": "VIRX",
+    "symbol": "SNSS",
     "Date": "2021-02-24",
     "percent_gain": 65.55,
     "Volume": 20,
     "High": 24.8
   },
   {
-    "symbol": "SNSS",
+    "symbol": "VIRX",
     "Date": "2021-02-24",
     "percent_gain": 65.55,
     "Volume": 20,
@@ -80241,14 +80458,14 @@
     "High": 5
   },
   {
-    "symbol": "SNSS",
+    "symbol": "VIRX",
     "Date": "2021-02-23",
     "percent_gain": 55.94,
     "Volume": 13,
     "High": 19.43
   },
   {
-    "symbol": "VIRX",
+    "symbol": "SNSS",
     "Date": "2021-02-23",
     "percent_gain": 55.94,
     "Volume": 13,
@@ -80311,13 +80528,6 @@
     "High": 34.24
   },
   {
-    "symbol": "ENVX",
-    "Date": "2021-02-22",
-    "percent_gain": 80.95,
-    "Volume": 20,
-    "High": 28.5
-  },
-  {
     "symbol": "RSVA",
     "Date": "2021-02-22",
     "percent_gain": 80.95,
@@ -80325,14 +80535,21 @@
     "High": 28.5
   },
   {
-    "symbol": "CLSN",
+    "symbol": "ENVX",
+    "Date": "2021-02-22",
+    "percent_gain": 80.95,
+    "Volume": 20,
+    "High": 28.5
+  },
+  {
+    "symbol": "IMNN",
     "Date": "2021-02-22",
     "percent_gain": 71.05,
     "Volume": 22,
     "High": 48.75
   },
   {
-    "symbol": "IMNN",
+    "symbol": "CLSN",
     "Date": "2021-02-22",
     "percent_gain": 71.05,
     "Volume": 22,
@@ -80486,14 +80703,14 @@
     "High": 28.4
   },
   {
-    "symbol": "QSI",
+    "symbol": "CAPA",
     "Date": "2021-02-18",
     "percent_gain": 140.85,
     "Volume": 39,
     "High": 25
   },
   {
-    "symbol": "CAPA",
+    "symbol": "QSI",
     "Date": "2021-02-18",
     "percent_gain": 140.85,
     "Volume": 39,
@@ -80591,14 +80808,14 @@
     "High": 17.47
   },
   {
-    "symbol": "PBTS",
+    "symbol": "XTKG",
     "Date": "2021-02-17",
     "percent_gain": 145.55,
     "Volume": 0,
     "High": 2316
   },
   {
-    "symbol": "XTKG",
+    "symbol": "PBTS",
     "Date": "2021-02-17",
     "percent_gain": 145.55,
     "Volume": 0,
@@ -80619,18 +80836,18 @@
     "High": 30.95
   },
   {
-    "symbol": "LGMK",
-    "Date": "2021-02-17",
-    "percent_gain": 76.41,
-    "Volume": 0,
-    "High": 688
-  },
-  {
     "symbol": "NXTD",
     "Date": "2021-02-17",
     "percent_gain": 76.41,
     "Volume": 9,
     "High": 34.4
+  },
+  {
+    "symbol": "LGMK",
+    "Date": "2021-02-17",
+    "percent_gain": 76.41,
+    "Volume": 0,
+    "High": 688
   },
   {
     "symbol": "EH",
@@ -80766,18 +80983,18 @@
     "High": 350
   },
   {
-    "symbol": "TRCH",
-    "Date": "2021-02-16",
-    "percent_gain": 69.47,
-    "Volume": 130,
-    "High": 9.66
-  },
-  {
     "symbol": "MMAT",
     "Date": "2021-02-16",
     "percent_gain": 69.47,
     "Volume": 1,
     "High": 966
+  },
+  {
+    "symbol": "TRCH",
+    "Date": "2021-02-16",
+    "percent_gain": 69.47,
+    "Volume": 130,
+    "High": 9.66
   },
   {
     "symbol": "AEI",
@@ -80829,14 +81046,14 @@
     "High": 8.88
   },
   {
-    "symbol": "CRVO",
+    "symbol": "DFFN",
     "Date": "2021-02-16",
     "percent_gain": 43.55,
     "Volume": 1,
     "High": 133.5
   },
   {
-    "symbol": "DFFN",
+    "symbol": "CRVO",
     "Date": "2021-02-16",
     "percent_gain": 43.55,
     "Volume": 1,
@@ -80976,14 +81193,14 @@
     "High": 51.9
   },
   {
-    "symbol": "LLIT",
+    "symbol": "NEGG",
     "Date": "2021-02-12",
     "percent_gain": 44.11,
     "Volume": 9,
     "High": 11.99
   },
   {
-    "symbol": "NEGG",
+    "symbol": "LLIT",
     "Date": "2021-02-12",
     "percent_gain": 44.11,
     "Volume": 9,
@@ -81130,13 +81347,6 @@
     "High": 53.76
   },
   {
-    "symbol": "LGMK",
-    "Date": "2021-02-11",
-    "percent_gain": 44.77,
-    "Volume": 0,
-    "High": 498
-  },
-  {
     "symbol": "NXTD",
     "Date": "2021-02-11",
     "percent_gain": 44.77,
@@ -81144,11 +81354,11 @@
     "High": 24.9
   },
   {
-    "symbol": "CENN",
+    "symbol": "LGMK",
     "Date": "2021-02-11",
-    "percent_gain": 44.37,
-    "Volume": 3,
-    "High": 327
+    "percent_gain": 44.77,
+    "Volume": 0,
+    "High": 498
   },
   {
     "symbol": "NAKD",
@@ -81156,6 +81366,13 @@
     "percent_gain": 44.37,
     "Volume": 32,
     "High": 32.7
+  },
+  {
+    "symbol": "CENN",
+    "Date": "2021-02-11",
+    "percent_gain": 44.37,
+    "Volume": 3,
+    "High": 327
   },
   {
     "symbol": "GLMD",
@@ -81193,18 +81410,18 @@
     "High": 168.8
   },
   {
-    "symbol": "VYNT",
-    "Date": "2021-02-10",
-    "percent_gain": 203.29,
-    "Volume": 9,
-    "High": 87.5
-  },
-  {
     "symbol": "CGIX",
     "Date": "2021-02-10",
     "percent_gain": 203.29,
     "Volume": 49,
     "High": 17.5
+  },
+  {
+    "symbol": "VYNT",
+    "Date": "2021-02-10",
+    "percent_gain": 203.29,
+    "Volume": 9,
+    "High": 87.5
   },
   {
     "symbol": "OLB",
@@ -81270,18 +81487,18 @@
     "High": 81.3
   },
   {
-    "symbol": "WGS",
-    "Date": "2021-02-10",
-    "percent_gain": 65.85,
-    "Volume": 0,
-    "High": 849.42
-  },
-  {
     "symbol": "CMLF",
     "Date": "2021-02-10",
     "percent_gain": 65.85,
     "Volume": 25,
     "High": 25.74
+  },
+  {
+    "symbol": "WGS",
+    "Date": "2021-02-10",
+    "percent_gain": 65.85,
+    "Volume": 0,
+    "High": 849.42
   },
   {
     "symbol": "IGC",
@@ -81333,14 +81550,14 @@
     "High": 60.8
   },
   {
-    "symbol": "TRXC",
+    "symbol": "ASXC",
     "Date": "2021-02-10",
     "percent_gain": 51.75,
     "Volume": 71,
     "High": 6.95
   },
   {
-    "symbol": "ASXC",
+    "symbol": "TRXC",
     "Date": "2021-02-10",
     "percent_gain": 51.75,
     "Volume": 71,
@@ -81354,14 +81571,14 @@
     "High": 15
   },
   {
-    "symbol": "AESE",
+    "symbol": "AGAE",
     "Date": "2021-02-10",
     "percent_gain": 51.48,
     "Volume": 9,
     "High": 3.59
   },
   {
-    "symbol": "AGAE",
+    "symbol": "AESE",
     "Date": "2021-02-10",
     "percent_gain": 51.48,
     "Volume": 9,
@@ -81480,13 +81697,6 @@
     "High": 45
   },
   {
-    "symbol": "HTBX",
-    "Date": "2021-02-09",
-    "percent_gain": 103.11,
-    "Volume": 70,
-    "High": 17
-  },
-  {
     "symbol": "SCPX",
     "Date": "2021-02-09",
     "percent_gain": 103.11,
@@ -81495,6 +81705,13 @@
   },
   {
     "symbol": "NHWK",
+    "Date": "2021-02-09",
+    "percent_gain": 103.11,
+    "Volume": 70,
+    "High": 17
+  },
+  {
+    "symbol": "HTBX",
     "Date": "2021-02-09",
     "percent_gain": 103.11,
     "Volume": 70,
@@ -81641,18 +81858,18 @@
     "High": 3.37
   },
   {
-    "symbol": "LGMK",
-    "Date": "2021-02-09",
-    "percent_gain": 41.92,
-    "Volume": 0,
-    "High": 474
-  },
-  {
     "symbol": "NXTD",
     "Date": "2021-02-09",
     "percent_gain": 41.92,
     "Volume": 6,
     "High": 23.7
+  },
+  {
+    "symbol": "LGMK",
+    "Date": "2021-02-09",
+    "percent_gain": 41.92,
+    "Volume": 0,
+    "High": 474
   },
   {
     "symbol": "BTCM",
@@ -81690,14 +81907,14 @@
     "High": 349.6
   },
   {
-    "symbol": "NAUT",
+    "symbol": "ARYA",
     "Date": "2021-02-08",
     "percent_gain": 130.92,
     "Volume": 13,
     "High": 25.8863
   },
   {
-    "symbol": "ARYA",
+    "symbol": "NAUT",
     "Date": "2021-02-08",
     "percent_gain": 130.92,
     "Volume": 13,
@@ -81760,18 +81977,18 @@
     "High": 3.62
   },
   {
-    "symbol": "SINO",
-    "Date": "2021-02-08",
-    "percent_gain": 64.67,
-    "Volume": 20,
-    "High": 11
-  },
-  {
     "symbol": "SGLY",
     "Date": "2021-02-08",
     "percent_gain": 64.67,
     "Volume": 2,
     "High": 110
+  },
+  {
+    "symbol": "SINO",
+    "Date": "2021-02-08",
+    "percent_gain": 64.67,
+    "Volume": 20,
+    "High": 11
   },
   {
     "symbol": "NSPR",
@@ -81816,18 +82033,18 @@
     "High": 2.91
   },
   {
-    "symbol": "NXTD",
-    "Date": "2021-02-08",
-    "percent_gain": 51.64,
-    "Volume": 11,
-    "High": 18.5
-  },
-  {
     "symbol": "LGMK",
     "Date": "2021-02-08",
     "percent_gain": 51.64,
     "Volume": 0,
     "High": 370
+  },
+  {
+    "symbol": "NXTD",
+    "Date": "2021-02-08",
+    "percent_gain": 51.64,
+    "Volume": 11,
+    "High": 18.5
   },
   {
     "symbol": "PPBT",
@@ -81949,18 +82166,18 @@
     "High": 32.9
   },
   {
-    "symbol": "NGAC",
-    "Date": "2021-02-08",
-    "percent_gain": 40.27,
-    "Volume": 13,
-    "High": 14.63
-  },
-  {
     "symbol": "XOS",
     "Date": "2021-02-08",
     "percent_gain": 40.27,
     "Volume": 0,
     "High": 438.9
+  },
+  {
+    "symbol": "NGAC",
+    "Date": "2021-02-08",
+    "percent_gain": 40.27,
+    "Volume": 13,
+    "High": 14.63
   },
   {
     "symbol": "AAME",
@@ -82040,14 +82257,14 @@
     "High": 44.9
   },
   {
-    "symbol": "BTCT",
+    "symbol": "METX",
     "Date": "2021-02-05",
     "percent_gain": 55.84,
     "Volume": 0,
     "High": 2561.94
   },
   {
-    "symbol": "METX",
+    "symbol": "BTCT",
     "Date": "2021-02-05",
     "percent_gain": 55.84,
     "Volume": 0,
@@ -82201,14 +82418,14 @@
     "High": 4.9
   },
   {
-    "symbol": "METX",
+    "symbol": "BTCT",
     "Date": "2021-02-04",
     "percent_gain": 50,
     "Volume": 0,
     "High": 1710
   },
   {
-    "symbol": "BTCT",
+    "symbol": "METX",
     "Date": "2021-02-04",
     "percent_gain": 50,
     "Volume": 0,
@@ -82222,18 +82439,18 @@
     "High": 9.49
   },
   {
-    "symbol": "MTP",
-    "Date": "2021-02-04",
-    "percent_gain": 48.43,
-    "Volume": 0,
-    "High": 76.59
-  },
-  {
     "symbol": "BDRX",
     "Date": "2021-02-04",
     "percent_gain": 48.43,
     "Volume": 0,
     "High": 6127.2
+  },
+  {
+    "symbol": "MTP",
+    "Date": "2021-02-04",
+    "percent_gain": 48.43,
+    "Volume": 0,
+    "High": 76.59
   },
   {
     "symbol": "VERU",
@@ -82271,18 +82488,18 @@
     "High": 17.5
   },
   {
-    "symbol": "SGLY",
-    "Date": "2021-02-03",
-    "percent_gain": 138.4,
-    "Volume": 2,
-    "High": 113
-  },
-  {
     "symbol": "SINO",
     "Date": "2021-02-03",
     "percent_gain": 138.4,
     "Volume": 20,
     "High": 11.3
+  },
+  {
+    "symbol": "SGLY",
+    "Date": "2021-02-03",
+    "percent_gain": 138.4,
+    "Volume": 2,
+    "High": 113
   },
   {
     "symbol": "CLNN",
@@ -82292,14 +82509,14 @@
     "High": 13.68
   },
   {
-    "symbol": "LIZI",
+    "symbol": "SOGP",
     "Date": "2021-02-03",
     "percent_gain": 100.58,
     "Volume": 6,
     "High": 103.5
   },
   {
-    "symbol": "SOGP",
+    "symbol": "LIZI",
     "Date": "2021-02-03",
     "percent_gain": 100.58,
     "Volume": 6,
@@ -82446,14 +82663,14 @@
     "High": 3.73
   },
   {
-    "symbol": "LIZI",
+    "symbol": "SOGP",
     "Date": "2021-02-02",
     "percent_gain": 94.79,
     "Volume": 4,
     "High": 71.1
   },
   {
-    "symbol": "SOGP",
+    "symbol": "LIZI",
     "Date": "2021-02-02",
     "percent_gain": 94.79,
     "Volume": 4,
@@ -82845,18 +83062,18 @@
     "High": 260
   },
   {
-    "symbol": "SINO",
-    "Date": "2021-01-29",
-    "percent_gain": 65.24,
-    "Volume": 3,
-    "High": 8.32
-  },
-  {
     "symbol": "SGLY",
     "Date": "2021-01-29",
     "percent_gain": 65.24,
     "Volume": 0,
     "High": 83.2
+  },
+  {
+    "symbol": "SINO",
+    "Date": "2021-01-29",
+    "percent_gain": 65.24,
+    "Volume": 3,
+    "High": 8.32
   },
   {
     "symbol": "NAKD",
@@ -82964,14 +83181,14 @@
     "High": 45.96
   },
   {
-    "symbol": "NEGG",
+    "symbol": "LLIT",
     "Date": "2021-01-28",
     "percent_gain": 174.73,
     "Volume": 22,
     "High": 17.143
   },
   {
-    "symbol": "LLIT",
+    "symbol": "NEGG",
     "Date": "2021-01-28",
     "percent_gain": 174.73,
     "Volume": 22,
@@ -83153,18 +83370,18 @@
     "High": 129.01
   },
   {
-    "symbol": "NAKD",
-    "Date": "2021-01-27",
-    "percent_gain": 282.91,
-    "Volume": 152,
-    "High": 22.5
-  },
-  {
     "symbol": "CENN",
     "Date": "2021-01-27",
     "percent_gain": 282.91,
     "Volume": 15,
     "High": 225
+  },
+  {
+    "symbol": "NAKD",
+    "Date": "2021-01-27",
+    "percent_gain": 282.91,
+    "Volume": 152,
+    "High": 22.5
   },
   {
     "symbol": "CVM",
@@ -83370,14 +83587,14 @@
     "High": 5.6
   },
   {
-    "symbol": "GOTU",
+    "symbol": "GSX",
     "Date": "2021-01-27",
     "percent_gain": 42.03,
     "Volume": 34,
     "High": 149.05
   },
   {
-    "symbol": "GSX",
+    "symbol": "GOTU",
     "Date": "2021-01-27",
     "percent_gain": 42.03,
     "Volume": 34,
@@ -83461,14 +83678,14 @@
     "High": 78.28
   },
   {
-    "symbol": "AIKI",
+    "symbol": "DOMH",
     "Date": "2021-01-26",
     "percent_gain": 76.23,
     "Volume": 8,
     "High": 36.55
   },
   {
-    "symbol": "DOMH",
+    "symbol": "AIKI",
     "Date": "2021-01-26",
     "percent_gain": 76.23,
     "Volume": 8,
@@ -83706,18 +83923,18 @@
     "High": 65.9
   },
   {
-    "symbol": "SPRQ",
-    "Date": "2021-01-25",
-    "percent_gain": 41.07,
-    "Volume": 17,
-    "High": 16.66
-  },
-  {
     "symbol": "SUNL",
     "Date": "2021-01-25",
     "percent_gain": 41.07,
     "Volume": 0,
     "High": 333.2
+  },
+  {
+    "symbol": "SPRQ",
+    "Date": "2021-01-25",
+    "percent_gain": 41.07,
+    "Volume": 17,
+    "High": 16.66
   },
   {
     "symbol": "APWC",
@@ -83727,18 +83944,18 @@
     "High": 8.8
   },
   {
-    "symbol": "AZRX",
-    "Date": "2021-01-22",
-    "percent_gain": 112.1,
-    "Volume": 17,
-    "High": 26.3
-  },
-  {
     "symbol": "FWBI",
     "Date": "2021-01-22",
     "percent_gain": 112.1,
     "Volume": 0,
     "High": 110460
+  },
+  {
+    "symbol": "AZRX",
+    "Date": "2021-01-22",
+    "percent_gain": 112.1,
+    "Volume": 17,
+    "High": 26.3
   },
   {
     "symbol": "MKD",
@@ -83748,13 +83965,6 @@
     "High": 25.35
   },
   {
-    "symbol": "DMK",
-    "Date": "2021-01-22",
-    "percent_gain": 84.25,
-    "Volume": 2,
-    "High": 163.8
-  },
-  {
     "symbol": "ADMP",
     "Date": "2021-01-22",
     "percent_gain": 84.25,
@@ -83762,14 +83972,21 @@
     "High": 163.8
   },
   {
-    "symbol": "EVGO",
+    "symbol": "DMK",
+    "Date": "2021-01-22",
+    "percent_gain": 84.25,
+    "Volume": 2,
+    "High": 163.8
+  },
+  {
+    "symbol": "CLII",
     "Date": "2021-01-22",
     "percent_gain": 79.91,
     "Volume": 49,
     "High": 24
   },
   {
-    "symbol": "CLII",
+    "symbol": "EVGO",
     "Date": "2021-01-22",
     "percent_gain": 79.91,
     "Volume": 49,
@@ -83853,14 +84070,14 @@
     "High": 13460
   },
   {
-    "symbol": "IMNN",
+    "symbol": "CLSN",
     "Date": "2021-01-21",
     "percent_gain": 119.55,
     "Volume": 11,
     "High": 42
   },
   {
-    "symbol": "CLSN",
+    "symbol": "IMNN",
     "Date": "2021-01-21",
     "percent_gain": 119.55,
     "Volume": 11,
@@ -83895,13 +84112,6 @@
     "High": 377.4
   },
   {
-    "symbol": "FWBI",
-    "Date": "2021-01-21",
-    "percent_gain": 64.93,
-    "Volume": 0,
-    "High": 63840
-  },
-  {
     "symbol": "AZRX",
     "Date": "2021-01-21",
     "percent_gain": 64.93,
@@ -83909,14 +84119,21 @@
     "High": 15.2
   },
   {
-    "symbol": "BVXV",
+    "symbol": "FWBI",
+    "Date": "2021-01-21",
+    "percent_gain": 64.93,
+    "Volume": 0,
+    "High": 63840
+  },
+  {
+    "symbol": "SCNI",
     "Date": "2021-01-21",
     "percent_gain": 62.65,
     "Volume": 1,
     "High": 68.8
   },
   {
-    "symbol": "SCNI",
+    "symbol": "BVXV",
     "Date": "2021-01-21",
     "percent_gain": 62.65,
     "Volume": 1,
@@ -83937,14 +84154,14 @@
     "High": 15.2
   },
   {
-    "symbol": "LFWD",
+    "symbol": "RWLK",
     "Date": "2021-01-21",
     "percent_gain": 45,
     "Volume": 18,
     "High": 2.9
   },
   {
-    "symbol": "RWLK",
+    "symbol": "LFWD",
     "Date": "2021-01-21",
     "percent_gain": 45,
     "Volume": 18,
@@ -83979,13 +84196,6 @@
     "High": 1615.5
   },
   {
-    "symbol": "LSTA",
-    "Date": "2021-01-20",
-    "percent_gain": 200,
-    "Volume": 8,
-    "High": 73.35
-  },
-  {
     "symbol": "CLBS",
     "Date": "2021-01-20",
     "percent_gain": 200,
@@ -83993,14 +84203,21 @@
     "High": 73.35
   },
   {
-    "symbol": "DMK",
+    "symbol": "LSTA",
+    "Date": "2021-01-20",
+    "percent_gain": 200,
+    "Volume": 8,
+    "High": 73.35
+  },
+  {
+    "symbol": "ADMP",
     "Date": "2021-01-20",
     "percent_gain": 106.21,
     "Volume": 3,
     "High": 116.2
   },
   {
-    "symbol": "ADMP",
+    "symbol": "DMK",
     "Date": "2021-01-20",
     "percent_gain": 106.21,
     "Volume": 3,
@@ -84035,18 +84252,18 @@
     "High": 5.95
   },
   {
-    "symbol": "NTN",
-    "Date": "2021-01-20",
-    "percent_gain": 72.55,
-    "Volume": 6,
-    "High": 8.8
-  },
-  {
     "symbol": "ERNA",
     "Date": "2021-01-20",
     "percent_gain": 72.55,
     "Volume": 0,
     "High": 176
+  },
+  {
+    "symbol": "NTN",
+    "Date": "2021-01-20",
+    "percent_gain": 72.55,
+    "Volume": 6,
+    "High": 8.8
   },
   {
     "symbol": "TMDI",
@@ -84126,18 +84343,18 @@
     "High": 20.85
   },
   {
-    "symbol": "MYT",
-    "Date": "2021-01-20",
-    "percent_gain": 48.92,
-    "Volume": 11,
-    "High": 2.77
-  },
-  {
     "symbol": "BETS",
     "Date": "2021-01-20",
     "percent_gain": 48.92,
     "Volume": 0,
     "High": 41550
+  },
+  {
+    "symbol": "MYT",
+    "Date": "2021-01-20",
+    "percent_gain": 48.92,
+    "Volume": 11,
+    "High": 2.77
   },
   {
     "symbol": "NDRA",
@@ -84609,14 +84826,14 @@
     "High": 0.69
   },
   {
-    "symbol": "ADD",
+    "symbol": "CSCW",
     "Date": "2021-01-13",
     "percent_gain": 40.47,
     "Volume": 1,
     "High": 40.4
   },
   {
-    "symbol": "CSCW",
+    "symbol": "ADD",
     "Date": "2021-01-13",
     "percent_gain": 40.47,
     "Volume": 1,
@@ -84679,14 +84896,14 @@
     "High": 0.92
   },
   {
-    "symbol": "ACRX",
+    "symbol": "TLPH",
     "Date": "2021-01-12",
     "percent_gain": 62.5,
     "Volume": 1,
     "High": 44.2
   },
   {
-    "symbol": "TLPH",
+    "symbol": "ACRX",
     "Date": "2021-01-12",
     "percent_gain": 62.5,
     "Volume": 1,
@@ -84735,13 +84952,6 @@
     "High": 5.5
   },
   {
-    "symbol": "CENN",
-    "Date": "2021-01-12",
-    "percent_gain": 46.89,
-    "Volume": 3,
-    "High": 90
-  },
-  {
     "symbol": "NAKD",
     "Date": "2021-01-12",
     "percent_gain": 46.89,
@@ -84749,14 +84959,21 @@
     "High": 9
   },
   {
-    "symbol": "SYN",
+    "symbol": "CENN",
+    "Date": "2021-01-12",
+    "percent_gain": 46.89,
+    "Volume": 3,
+    "High": 90
+  },
+  {
+    "symbol": "TOVX",
     "Date": "2021-01-12",
     "percent_gain": 46.72,
     "Volume": 4,
     "High": 9.6
   },
   {
-    "symbol": "TOVX",
+    "symbol": "SYN",
     "Date": "2021-01-12",
     "percent_gain": 46.72,
     "Volume": 4,
@@ -84833,14 +85050,14 @@
     "High": 1459.8
   },
   {
-    "symbol": "SHOT",
+    "symbol": "JUPW",
     "Date": "2021-01-11",
     "percent_gain": 58.96,
     "Volume": 7,
     "High": 7.63
   },
   {
-    "symbol": "JUPW",
+    "symbol": "SHOT",
     "Date": "2021-01-11",
     "percent_gain": 58.96,
     "Volume": 7,
@@ -84959,14 +85176,14 @@
     "High": 1005.75
   },
   {
-    "symbol": "VIH",
+    "symbol": "BKKT",
     "Date": "2021-01-08",
     "percent_gain": 63.3,
     "Volume": 5,
     "High": 17
   },
   {
-    "symbol": "BKKT",
+    "symbol": "VIH",
     "Date": "2021-01-08",
     "percent_gain": 63.3,
     "Volume": 5,
@@ -85113,14 +85330,14 @@
     "High": 42
   },
   {
-    "symbol": "ISUN",
+    "symbol": "PECK",
     "Date": "2021-01-07",
     "percent_gain": 48.08,
     "Volume": 4,
     "High": 16.2
   },
   {
-    "symbol": "PECK",
+    "symbol": "ISUN",
     "Date": "2021-01-07",
     "percent_gain": 48.08,
     "Volume": 4,
@@ -85302,18 +85519,18 @@
     "High": 13.68
   },
   {
-    "symbol": "NAKD",
-    "Date": "2021-01-05",
-    "percent_gain": 115.86,
-    "Volume": 58,
-    "High": 7.05
-  },
-  {
     "symbol": "CENN",
     "Date": "2021-01-05",
     "percent_gain": 115.86,
     "Volume": 5,
     "High": 70.5
+  },
+  {
+    "symbol": "NAKD",
+    "Date": "2021-01-05",
+    "percent_gain": 115.86,
+    "Volume": 58,
+    "High": 7.05
   },
   {
     "symbol": "CHEK",
@@ -85568,14 +85785,14 @@
     "High": 29.99
   },
   {
-    "symbol": "DOMH",
+    "symbol": "AIKI",
     "Date": "2020-12-31",
     "percent_gain": 46.51,
     "Volume": 4,
     "High": 21.42
   },
   {
-    "symbol": "AIKI",
+    "symbol": "DOMH",
     "Date": "2020-12-31",
     "percent_gain": 46.51,
     "Volume": 4,
@@ -85603,14 +85820,14 @@
     "High": 1.77
   },
   {
-    "symbol": "SGOC",
+    "symbol": "TROO",
     "Date": "2020-12-30",
     "percent_gain": 306.88,
     "Volume": 10,
     "High": 4.21
   },
   {
-    "symbol": "TROO",
+    "symbol": "SGOC",
     "Date": "2020-12-30",
     "percent_gain": 306.88,
     "Volume": 10,
@@ -85708,18 +85925,18 @@
     "High": 1.74
   },
   {
-    "symbol": "NXTD",
-    "Date": "2020-12-30",
-    "percent_gain": 46.56,
-    "Volume": 5,
-    "High": 19.2
-  },
-  {
     "symbol": "LGMK",
     "Date": "2020-12-30",
     "percent_gain": 46.56,
     "Volume": 0,
     "High": 384
+  },
+  {
+    "symbol": "NXTD",
+    "Date": "2020-12-30",
+    "percent_gain": 46.56,
+    "Volume": 5,
+    "High": 19.2
   },
   {
     "symbol": "CTRM",
@@ -85729,14 +85946,14 @@
     "High": 2.458
   },
   {
-    "symbol": "DOMH",
+    "symbol": "AIKI",
     "Date": "2020-12-30",
     "percent_gain": 44.44,
     "Volume": 1,
     "High": 15.47
   },
   {
-    "symbol": "AIKI",
+    "symbol": "DOMH",
     "Date": "2020-12-30",
     "percent_gain": 44.44,
     "Volume": 1,
@@ -85883,18 +86100,18 @@
     "High": 10.08
   },
   {
-    "symbol": "ENVB",
-    "Date": "2020-12-28",
-    "percent_gain": 122.49,
-    "Volume": 0,
-    "High": 752
-  },
-  {
     "symbol": "AMRH",
     "Date": "2020-12-28",
     "percent_gain": 122.49,
     "Volume": 7,
     "High": 15.04
+  },
+  {
+    "symbol": "ENVB",
+    "Date": "2020-12-28",
+    "percent_gain": 122.49,
+    "Volume": 0,
+    "High": 752
   },
   {
     "symbol": "BTBT",
@@ -85953,18 +86170,18 @@
     "High": 3.55
   },
   {
-    "symbol": "LGMK",
-    "Date": "2020-12-28",
-    "percent_gain": 51.61,
-    "Volume": 0,
-    "High": 376
-  },
-  {
     "symbol": "NXTD",
     "Date": "2020-12-28",
     "percent_gain": 51.61,
     "Volume": 6,
     "High": 18.8
+  },
+  {
+    "symbol": "LGMK",
+    "Date": "2020-12-28",
+    "percent_gain": 51.61,
+    "Volume": 0,
+    "High": 376
   },
   {
     "symbol": "PSTX",
@@ -85988,14 +86205,14 @@
     "High": 10.2
   },
   {
-    "symbol": "NILE",
+    "symbol": "DPW",
     "Date": "2020-12-28",
     "percent_gain": 42.51,
     "Volume": 41,
     "High": 5.4295
   },
   {
-    "symbol": "DPW",
+    "symbol": "NILE",
     "Date": "2020-12-28",
     "percent_gain": 42.51,
     "Volume": 41,
@@ -86058,18 +86275,18 @@
     "High": 71.5
   },
   {
-    "symbol": "NLTX",
-    "Date": "2020-12-24",
-    "percent_gain": 66.67,
-    "Volume": 1,
-    "High": 89.75
-  },
-  {
     "symbol": "NGNE",
     "Date": "2020-12-24",
     "percent_gain": 66.67,
     "Volume": 0,
     "High": 359
+  },
+  {
+    "symbol": "NLTX",
+    "Date": "2020-12-24",
+    "percent_gain": 66.67,
+    "Volume": 1,
+    "High": 89.75
   },
   {
     "symbol": "BIOL",
@@ -86086,14 +86303,14 @@
     "High": 4.25
   },
   {
-    "symbol": "ADD",
+    "symbol": "CSCW",
     "Date": "2020-12-24",
     "percent_gain": 44.39,
     "Volume": 1,
     "High": 29.96
   },
   {
-    "symbol": "CSCW",
+    "symbol": "ADD",
     "Date": "2020-12-24",
     "percent_gain": 44.39,
     "Volume": 1,
@@ -86135,18 +86352,18 @@
     "High": 38.7
   },
   {
-    "symbol": "SPRU",
-    "Date": "2020-12-23",
-    "percent_gain": 97.55,
-    "Volume": 11,
-    "High": 276.88
-  },
-  {
     "symbol": "XL",
     "Date": "2020-12-23",
     "percent_gain": 97.55,
     "Volume": 91,
     "High": 34.61
+  },
+  {
+    "symbol": "SPRU",
+    "Date": "2020-12-23",
+    "percent_gain": 97.55,
+    "Volume": 11,
+    "High": 276.88
   },
   {
     "symbol": "ONTX",
@@ -86394,18 +86611,18 @@
     "High": 67
   },
   {
-    "symbol": "KPRX",
-    "Date": "2020-12-21",
-    "percent_gain": 129.13,
-    "Volume": 1,
-    "High": 327.2
-  },
-  {
     "symbol": "EYEG",
     "Date": "2020-12-21",
     "percent_gain": 129.13,
     "Volume": 44,
     "High": 8.18
+  },
+  {
+    "symbol": "KPRX",
+    "Date": "2020-12-21",
+    "percent_gain": 129.13,
+    "Volume": 1,
+    "High": 327.2
   },
   {
     "symbol": "CCRC",
@@ -86520,18 +86737,18 @@
     "High": 59.8
   },
   {
-    "symbol": "KPLT",
-    "Date": "2020-12-18",
-    "percent_gain": 42.86,
-    "Volume": 0,
-    "High": 375
-  },
-  {
     "symbol": "FSRV",
     "Date": "2020-12-18",
     "percent_gain": 42.86,
     "Volume": 17,
     "High": 15
+  },
+  {
+    "symbol": "KPLT",
+    "Date": "2020-12-18",
+    "percent_gain": 42.86,
+    "Volume": 0,
+    "High": 375
   },
   {
     "symbol": "SCPS",
@@ -86562,18 +86779,18 @@
     "High": 5623.8
   },
   {
-    "symbol": "LGMK",
-    "Date": "2020-12-17",
-    "percent_gain": 129.44,
-    "Volume": 2,
-    "High": 424
-  },
-  {
     "symbol": "NXTD",
     "Date": "2020-12-17",
     "percent_gain": 129.44,
     "Volume": 40,
     "High": 21.2
+  },
+  {
+    "symbol": "LGMK",
+    "Date": "2020-12-17",
+    "percent_gain": 129.44,
+    "Volume": 2,
+    "High": 424
   },
   {
     "symbol": "ELOX",
@@ -86681,18 +86898,18 @@
     "High": 2357.95
   },
   {
-    "symbol": "LGMK",
-    "Date": "2020-12-16",
-    "percent_gain": 119.44,
-    "Volume": 1,
-    "High": 214
-  },
-  {
     "symbol": "NXTD",
     "Date": "2020-12-16",
     "percent_gain": 119.44,
     "Volume": 30,
     "High": 10.7
+  },
+  {
+    "symbol": "LGMK",
+    "Date": "2020-12-16",
+    "percent_gain": 119.44,
+    "Volume": 1,
+    "High": 214
   },
   {
     "symbol": "AEMD",
@@ -86807,14 +87024,14 @@
     "High": 13.7
   },
   {
-    "symbol": "ANPC",
+    "symbol": "FRES",
     "Date": "2020-12-14",
     "percent_gain": 104.98,
     "Volume": 1,
     "High": 173
   },
   {
-    "symbol": "FRES",
+    "symbol": "ANPC",
     "Date": "2020-12-14",
     "percent_gain": 104.98,
     "Volume": 1,
@@ -87388,18 +87605,18 @@
     "High": 5.577
   },
   {
-    "symbol": "CIDM",
-    "Date": "2020-12-04",
-    "percent_gain": 41.07,
-    "Volume": 95,
-    "High": 0.79
-  },
-  {
     "symbol": "CNVS",
     "Date": "2020-12-04",
     "percent_gain": 41.07,
     "Volume": 4,
     "High": 15.8
+  },
+  {
+    "symbol": "CIDM",
+    "Date": "2020-12-04",
+    "percent_gain": 41.07,
+    "Volume": 95,
+    "High": 0.79
   },
   {
     "symbol": "AHG",
@@ -87437,14 +87654,14 @@
     "High": 59.09
   },
   {
-    "symbol": "NSCO",
+    "symbol": "CTOS",
     "Date": "2020-12-03",
     "percent_gain": 83.22,
     "Volume": 27,
     "High": 7.97
   },
   {
-    "symbol": "CTOS",
+    "symbol": "NSCO",
     "Date": "2020-12-03",
     "percent_gain": 83.22,
     "Volume": 27,
@@ -87514,18 +87731,18 @@
     "High": 7.1
   },
   {
-    "symbol": "LGMK",
-    "Date": "2020-12-02",
-    "percent_gain": 68.24,
-    "Volume": 0,
-    "High": 137.96
-  },
-  {
     "symbol": "NXTD",
     "Date": "2020-12-02",
     "percent_gain": 68.24,
     "Volume": 7,
     "High": 6.898
+  },
+  {
+    "symbol": "LGMK",
+    "Date": "2020-12-02",
+    "percent_gain": 68.24,
+    "Volume": 0,
+    "High": 137.96
   },
   {
     "symbol": "OGEN",
@@ -87556,13 +87773,6 @@
     "High": 21.4
   },
   {
-    "symbol": "CYTO",
-    "Date": "2020-12-01",
-    "percent_gain": 494.59,
-    "Volume": 0,
-    "High": 2640
-  },
-  {
     "symbol": "EARS",
     "Date": "2020-12-01",
     "percent_gain": 494.59,
@@ -87570,14 +87780,21 @@
     "High": 6.6
   },
   {
-    "symbol": "VANI",
+    "symbol": "CYTO",
+    "Date": "2020-12-01",
+    "percent_gain": 494.59,
+    "Volume": 0,
+    "High": 2640
+  },
+  {
+    "symbol": "EYES",
     "Date": "2020-12-01",
     "percent_gain": 143.83,
     "Volume": 23,
     "High": 7.11
   },
   {
-    "symbol": "EYES",
+    "symbol": "VANI",
     "Date": "2020-12-01",
     "percent_gain": 143.83,
     "Volume": 23,
@@ -87780,14 +87997,14 @@
     "High": 3.993
   },
   {
-    "symbol": "APXT",
+    "symbol": "AVPT",
     "Date": "2020-11-27",
     "percent_gain": 40.4,
     "Volume": 38,
     "High": 15.43
   },
   {
-    "symbol": "AVPT",
+    "symbol": "APXT",
     "Date": "2020-11-27",
     "percent_gain": 40.4,
     "Volume": 38,
@@ -87990,14 +88207,14 @@
     "High": 3.5
   },
   {
-    "symbol": "DPW",
+    "symbol": "NILE",
     "Date": "2020-11-23",
     "percent_gain": 272.3,
     "Volume": 303,
     "High": 7.93
   },
   {
-    "symbol": "NILE",
+    "symbol": "DPW",
     "Date": "2020-11-23",
     "percent_gain": 272.3,
     "Volume": 303,
@@ -88172,18 +88389,18 @@
     "High": 218.75
   },
   {
-    "symbol": "MULN",
-    "Date": "2020-11-20",
-    "percent_gain": 43.02,
-    "Volume": 0,
-    "High": 311175
-  },
-  {
     "symbol": "NETE",
     "Date": "2020-11-20",
     "percent_gain": 43.02,
     "Volume": 10,
     "High": 13.83
+  },
+  {
+    "symbol": "MULN",
+    "Date": "2020-11-20",
+    "percent_gain": 43.02,
+    "Volume": 0,
+    "High": 311175
   },
   {
     "symbol": "SUNW",
@@ -88249,18 +88466,18 @@
     "High": 52.48
   },
   {
-    "symbol": "HUSN",
-    "Date": "2020-11-19",
-    "percent_gain": 50.45,
-    "Volume": 5,
-    "High": 7.414
-  },
-  {
     "symbol": "FRGT",
     "Date": "2020-11-19",
     "percent_gain": 50.45,
     "Volume": 0,
     "High": 741.4
+  },
+  {
+    "symbol": "HUSN",
+    "Date": "2020-11-19",
+    "percent_gain": 50.45,
+    "Volume": 5,
+    "High": 7.414
   },
   {
     "symbol": "TTNP",
@@ -89082,14 +89299,14 @@
     "High": 9.48
   },
   {
-    "symbol": "ISIG",
+    "symbol": "LDWY",
     "Date": "2020-11-02",
     "percent_gain": 60.21,
     "Volume": 7,
     "High": 9.31
   },
   {
-    "symbol": "LDWY",
+    "symbol": "ISIG",
     "Date": "2020-11-02",
     "percent_gain": 60.21,
     "Volume": 7,
@@ -89138,14 +89355,14 @@
     "High": 2.38
   },
   {
-    "symbol": "VRDN",
+    "symbol": "MGEN",
     "Date": "2020-10-28",
     "percent_gain": 163.5,
     "Volume": 17,
     "High": 20.55
   },
   {
-    "symbol": "MGEN",
+    "symbol": "VRDN",
     "Date": "2020-10-28",
     "percent_gain": 163.5,
     "Volume": 17,
@@ -89194,18 +89411,18 @@
     "High": 87.6
   },
   {
-    "symbol": "GOED",
-    "Date": "2020-10-27",
-    "percent_gain": 156.87,
-    "Volume": 13,
-    "High": 17.75
-  },
-  {
     "symbol": "POL",
     "Date": "2020-10-27",
     "percent_gain": 156.87,
     "Volume": 0,
     "High": 887.5
+  },
+  {
+    "symbol": "GOED",
+    "Date": "2020-10-27",
+    "percent_gain": 156.87,
+    "Volume": 13,
+    "High": 17.75
   },
   {
     "symbol": "SRRK",
@@ -89215,14 +89432,14 @@
     "High": 31.69
   },
   {
-    "symbol": "LDWY",
+    "symbol": "ISIG",
     "Date": "2020-10-27",
     "percent_gain": 83.19,
     "Volume": 14,
     "High": 12.18
   },
   {
-    "symbol": "ISIG",
+    "symbol": "LDWY",
     "Date": "2020-10-27",
     "percent_gain": 83.19,
     "Volume": 14,
@@ -89250,14 +89467,14 @@
     "High": 5.88
   },
   {
-    "symbol": "SDOT",
+    "symbol": "GRIL",
     "Date": "2020-10-26",
     "percent_gain": 75.82,
     "Volume": 84,
     "High": 2.69
   },
   {
-    "symbol": "GRIL",
+    "symbol": "SDOT",
     "Date": "2020-10-26",
     "percent_gain": 75.82,
     "Volume": 84,
@@ -89355,18 +89572,18 @@
     "High": 99.75
   },
   {
-    "symbol": "KBSF",
-    "Date": "2020-10-22",
-    "percent_gain": 75.51,
-    "Volume": 16,
-    "High": 4.3
-  },
-  {
     "symbol": "JXJT",
     "Date": "2020-10-22",
     "percent_gain": 75.51,
     "Volume": 1,
     "High": 43
+  },
+  {
+    "symbol": "KBSF",
+    "Date": "2020-10-22",
+    "percent_gain": 75.51,
+    "Volume": 16,
+    "High": 4.3
   },
   {
     "symbol": "GLBS",
@@ -89453,14 +89670,14 @@
     "High": 4.422
   },
   {
-    "symbol": "STAB",
+    "symbol": "CBLI",
     "Date": "2020-10-20",
     "percent_gain": 150.23,
     "Volume": 147,
     "High": 5.43
   },
   {
-    "symbol": "CBLI",
+    "symbol": "STAB",
     "Date": "2020-10-20",
     "percent_gain": 150.23,
     "Volume": 147,
@@ -89537,14 +89754,14 @@
     "High": 201
   },
   {
-    "symbol": "GDC",
+    "symbol": "CCNC",
     "Date": "2020-10-19",
     "percent_gain": 272.73,
     "Volume": 1,
     "High": 123
   },
   {
-    "symbol": "CCNC",
+    "symbol": "GDC",
     "Date": "2020-10-19",
     "percent_gain": 272.73,
     "Volume": 1,
@@ -89985,14 +90202,14 @@
     "High": 0.8799
   },
   {
-    "symbol": "PECK",
+    "symbol": "ISUN",
     "Date": "2020-10-07",
     "percent_gain": 98.62,
     "Volume": 24,
     "High": 14.42
   },
   {
-    "symbol": "ISUN",
+    "symbol": "PECK",
     "Date": "2020-10-07",
     "percent_gain": 98.62,
     "Volume": 24,
@@ -90363,14 +90580,14 @@
     "High": 28.8
   },
   {
-    "symbol": "PECK",
+    "symbol": "ISUN",
     "Date": "2020-09-28",
     "percent_gain": 84.44,
     "Volume": 12,
     "High": 9.48
   },
   {
-    "symbol": "ISUN",
+    "symbol": "PECK",
     "Date": "2020-09-28",
     "percent_gain": 84.44,
     "Volume": 12,
@@ -90475,14 +90692,14 @@
     "High": 3.98
   },
   {
-    "symbol": "TOON",
+    "symbol": "GNUS",
     "Date": "2020-09-25",
     "percent_gain": 43.27,
     "Volume": 15,
     "High": 14.9
   },
   {
-    "symbol": "GNUS",
+    "symbol": "TOON",
     "Date": "2020-09-25",
     "percent_gain": 43.27,
     "Volume": 15,
@@ -90496,14 +90713,14 @@
     "High": 8.5
   },
   {
-    "symbol": "ISUN",
+    "symbol": "PECK",
     "Date": "2020-09-24",
     "percent_gain": 319.35,
     "Volume": 28,
     "High": 14.3
   },
   {
-    "symbol": "PECK",
+    "symbol": "ISUN",
     "Date": "2020-09-24",
     "percent_gain": 319.35,
     "Volume": 28,
@@ -90741,14 +90958,14 @@
     "High": 5.67
   },
   {
-    "symbol": "ELDN",
+    "symbol": "NVUS",
     "Date": "2020-09-15",
     "percent_gain": 256.2,
     "Volume": 10,
     "High": 24.3
   },
   {
-    "symbol": "NVUS",
+    "symbol": "ELDN",
     "Date": "2020-09-15",
     "percent_gain": 256.2,
     "Volume": 10,
@@ -90818,18 +91035,18 @@
     "High": 28.77
   },
   {
-    "symbol": "CNVS",
-    "Date": "2020-09-11",
-    "percent_gain": 62.24,
-    "Volume": 5,
-    "High": 23.2
-  },
-  {
     "symbol": "CIDM",
     "Date": "2020-09-11",
     "percent_gain": 62.24,
     "Volume": 100,
     "High": 1.16
+  },
+  {
+    "symbol": "CNVS",
+    "Date": "2020-09-11",
+    "percent_gain": 62.24,
+    "Volume": 5,
+    "High": 23.2
   },
   {
     "symbol": "YTEN",
@@ -91196,14 +91413,14 @@
     "High": 0.519
   },
   {
-    "symbol": "MOXC",
+    "symbol": "ABTS",
     "Date": "2020-08-27",
     "percent_gain": 63.8,
     "Volume": 42,
     "High": 3.44
   },
   {
-    "symbol": "ABTS",
+    "symbol": "MOXC",
     "Date": "2020-08-27",
     "percent_gain": 63.8,
     "Volume": 42,
@@ -91280,18 +91497,18 @@
     "High": 14.4
   },
   {
-    "symbol": "SASI",
-    "Date": "2020-08-25",
-    "percent_gain": 111.24,
-    "Volume": 3,
-    "High": 105.2
-  },
-  {
     "symbol": "SGLB",
     "Date": "2020-08-25",
     "percent_gain": 111.24,
     "Volume": 67,
     "High": 5.26
+  },
+  {
+    "symbol": "SASI",
+    "Date": "2020-08-25",
+    "percent_gain": 111.24,
+    "Volume": 3,
+    "High": 105.2
   },
   {
     "symbol": "PPSI",
@@ -91315,14 +91532,14 @@
     "High": 6.55
   },
   {
-    "symbol": "NVNO",
+    "symbol": "HJLI",
     "Date": "2020-08-25",
     "percent_gain": 51.9,
     "Volume": 1,
     "High": 15
   },
   {
-    "symbol": "HJLI",
+    "symbol": "NVNO",
     "Date": "2020-08-25",
     "percent_gain": 51.9,
     "Volume": 1,
@@ -91427,18 +91644,18 @@
     "High": 166.6
   },
   {
-    "symbol": "MTP",
-    "Date": "2020-08-21",
-    "percent_gain": 41.43,
-    "Volume": 1,
-    "High": 59.4
-  },
-  {
     "symbol": "BDRX",
     "Date": "2020-08-21",
     "percent_gain": 41.43,
     "Volume": 0,
     "High": 4752
+  },
+  {
+    "symbol": "MTP",
+    "Date": "2020-08-21",
+    "percent_gain": 41.43,
+    "Volume": 1,
+    "High": 59.4
   },
   {
     "symbol": "GEVO",
@@ -91504,14 +91721,14 @@
     "High": 3.8
   },
   {
-    "symbol": "AESE",
+    "symbol": "AGAE",
     "Date": "2020-08-19",
     "percent_gain": 113.33,
     "Volume": 140,
     "High": 2.88
   },
   {
-    "symbol": "AGAE",
+    "symbol": "AESE",
     "Date": "2020-08-19",
     "percent_gain": 113.33,
     "Volume": 140,
@@ -91658,18 +91875,18 @@
     "High": 12.2
   },
   {
-    "symbol": "BDRX",
-    "Date": "2020-08-14",
-    "percent_gain": 131.55,
-    "Volume": 0,
-    "High": 6928
-  },
-  {
     "symbol": "MTP",
     "Date": "2020-08-14",
     "percent_gain": 131.55,
     "Volume": 7,
     "High": 86.6
+  },
+  {
+    "symbol": "BDRX",
+    "Date": "2020-08-14",
+    "percent_gain": 131.55,
+    "Volume": 0,
+    "High": 6928
   },
   {
     "symbol": "FAMI",
@@ -91721,18 +91938,18 @@
     "High": 2.8533
   },
   {
-    "symbol": "NTN",
-    "Date": "2020-08-13",
-    "percent_gain": 319.46,
-    "Volume": 104,
-    "High": 15.52
-  },
-  {
     "symbol": "ERNA",
     "Date": "2020-08-13",
     "percent_gain": 319.46,
     "Volume": 5,
     "High": 310.4
+  },
+  {
+    "symbol": "NTN",
+    "Date": "2020-08-13",
+    "percent_gain": 319.46,
+    "Volume": 104,
+    "High": 15.52
   },
   {
     "symbol": "HX",
@@ -91875,14 +92092,14 @@
     "High": 2.87
   },
   {
-    "symbol": "MOXC",
+    "symbol": "ABTS",
     "Date": "2020-08-10",
     "percent_gain": 95.08,
     "Volume": 14,
     "High": 2.38
   },
   {
-    "symbol": "ABTS",
+    "symbol": "MOXC",
     "Date": "2020-08-10",
     "percent_gain": 95.08,
     "Volume": 14,
@@ -92043,18 +92260,18 @@
     "High": 104
   },
   {
-    "symbol": "MYOS",
-    "Date": "2020-08-05",
-    "percent_gain": 132.26,
-    "Volume": 6,
-    "High": 34.56
-  },
-  {
     "symbol": "MDVL",
     "Date": "2020-08-05",
     "percent_gain": 132.26,
     "Volume": 0,
     "High": 1728
+  },
+  {
+    "symbol": "MYOS",
+    "Date": "2020-08-05",
+    "percent_gain": 132.26,
+    "Volume": 6,
+    "High": 34.56
   },
   {
     "symbol": "IPDN",
@@ -92218,18 +92435,18 @@
     "High": 5.36
   },
   {
-    "symbol": "LGMK",
-    "Date": "2020-08-03",
-    "percent_gain": 49.69,
-    "Volume": 0,
-    "High": 145.8
-  },
-  {
     "symbol": "NXTD",
     "Date": "2020-08-03",
     "percent_gain": 49.69,
     "Volume": 3,
     "High": 7.29
+  },
+  {
+    "symbol": "LGMK",
+    "Date": "2020-08-03",
+    "percent_gain": 49.69,
+    "Volume": 0,
+    "High": 145.8
   },
   {
     "symbol": "COCP",
@@ -92379,14 +92596,14 @@
     "High": 6.716
   },
   {
-    "symbol": "PEIX",
+    "symbol": "ALTO",
     "Date": "2020-07-30",
     "percent_gain": 57.14,
     "Volume": 20,
     "High": 2.75
   },
   {
-    "symbol": "ALTO",
+    "symbol": "PEIX",
     "Date": "2020-07-30",
     "percent_gain": 57.14,
     "Volume": 20,
@@ -92624,14 +92841,14 @@
     "High": 8.67
   },
   {
-    "symbol": "SNSS",
+    "symbol": "VIRX",
     "Date": "2020-07-27",
     "percent_gain": 43.39,
     "Volume": 1,
     "High": 17.68
   },
   {
-    "symbol": "VIRX",
+    "symbol": "SNSS",
     "Date": "2020-07-27",
     "percent_gain": 43.39,
     "Volume": 1,
@@ -92687,14 +92904,14 @@
     "High": 1.3
   },
   {
-    "symbol": "VRDN",
+    "symbol": "MGEN",
     "Date": "2020-07-24",
     "percent_gain": 46.99,
     "Volume": 2,
     "High": 24.15
   },
   {
-    "symbol": "MGEN",
+    "symbol": "VRDN",
     "Date": "2020-07-24",
     "percent_gain": 46.99,
     "Volume": 2,
@@ -92988,14 +93205,14 @@
     "High": 110.4
   },
   {
-    "symbol": "SCPX",
+    "symbol": "HTBX",
     "Date": "2020-07-20",
     "percent_gain": 62.2,
     "Volume": 29,
     "High": 27.93
   },
   {
-    "symbol": "HTBX",
+    "symbol": "SCPX",
     "Date": "2020-07-20",
     "percent_gain": 62.2,
     "Volume": 29,
@@ -93121,7 +93338,7 @@
     "High": 3.45
   },
   {
-    "symbol": "HTBX",
+    "symbol": "SCPX",
     "Date": "2020-07-17",
     "percent_gain": 43.51,
     "Volume": 25,
@@ -93135,7 +93352,7 @@
     "High": 19.79
   },
   {
-    "symbol": "SCPX",
+    "symbol": "HTBX",
     "Date": "2020-07-17",
     "percent_gain": 43.51,
     "Volume": 25,
@@ -93205,6 +93422,13 @@
     "High": 13
   },
   {
+    "symbol": "NHWK",
+    "Date": "2020-07-16",
+    "percent_gain": 76.71,
+    "Volume": 34,
+    "High": 18.06
+  },
+  {
     "symbol": "SCPX",
     "Date": "2020-07-16",
     "percent_gain": 76.71,
@@ -93213,13 +93437,6 @@
   },
   {
     "symbol": "HTBX",
-    "Date": "2020-07-16",
-    "percent_gain": 76.71,
-    "Volume": 34,
-    "High": 18.06
-  },
-  {
-    "symbol": "NHWK",
     "Date": "2020-07-16",
     "percent_gain": 76.71,
     "Volume": 34,
@@ -93471,14 +93688,14 @@
     "High": 19.25
   },
   {
-    "symbol": "BVXV",
+    "symbol": "SCNI",
     "Date": "2020-07-13",
     "percent_gain": 49.07,
     "Volume": 0,
     "High": 620
   },
   {
-    "symbol": "SCNI",
+    "symbol": "BVXV",
     "Date": "2020-07-13",
     "percent_gain": 49.07,
     "Volume": 0,
@@ -93527,14 +93744,14 @@
     "High": 19.2
   },
   {
-    "symbol": "TEDU",
+    "symbol": "TCTM",
     "Date": "2020-07-10",
     "percent_gain": 53.42,
     "Volume": 2,
     "High": 12.35
   },
   {
-    "symbol": "TCTM",
+    "symbol": "TEDU",
     "Date": "2020-07-10",
     "percent_gain": 53.42,
     "Volume": 2,
@@ -93709,18 +93926,18 @@
     "High": 95.8
   },
   {
-    "symbol": "COGT",
-    "Date": "2020-07-07",
-    "percent_gain": 54.55,
-    "Volume": 10,
-    "High": 13.6
-  },
-  {
     "symbol": "UMRX",
     "Date": "2020-07-07",
     "percent_gain": 54.55,
     "Volume": 42,
     "High": 3.4
+  },
+  {
+    "symbol": "COGT",
+    "Date": "2020-07-07",
+    "percent_gain": 54.55,
+    "Volume": 10,
+    "High": 13.6
   },
   {
     "symbol": "VSLR",
@@ -93793,18 +94010,18 @@
     "High": 8.5
   },
   {
-    "symbol": "MULN",
-    "Date": "2020-07-06",
-    "percent_gain": 46.4,
-    "Volume": 0,
-    "High": 292500
-  },
-  {
     "symbol": "NETE",
     "Date": "2020-07-06",
     "percent_gain": 46.4,
     "Volume": 3,
     "High": 13
+  },
+  {
+    "symbol": "MULN",
+    "Date": "2020-07-06",
+    "percent_gain": 46.4,
+    "Volume": 0,
+    "High": 292500
   },
   {
     "symbol": "KNDI",
@@ -94087,14 +94304,14 @@
     "High": 2.6
   },
   {
-    "symbol": "HYLN",
+    "symbol": "SHLL",
     "Date": "2020-06-29",
     "percent_gain": 41.11,
     "Volume": 37,
     "High": 34.67
   },
   {
-    "symbol": "SHLL",
+    "symbol": "HYLN",
     "Date": "2020-06-29",
     "percent_gain": 41.11,
     "Volume": 37,
@@ -94157,14 +94374,14 @@
     "High": 1345
   },
   {
-    "symbol": "HYLN",
+    "symbol": "SHLL",
     "Date": "2020-06-26",
     "percent_gain": 49.08,
     "Volume": 37,
     "High": 25.94
   },
   {
-    "symbol": "SHLL",
+    "symbol": "HYLN",
     "Date": "2020-06-26",
     "percent_gain": 49.08,
     "Volume": 37,
@@ -94507,14 +94724,14 @@
     "High": 12.78
   },
   {
-    "symbol": "SHLL",
+    "symbol": "HYLN",
     "Date": "2020-06-19",
     "percent_gain": 60.47,
     "Volume": 17,
     "High": 16.4
   },
   {
-    "symbol": "HYLN",
+    "symbol": "SHLL",
     "Date": "2020-06-19",
     "percent_gain": 60.47,
     "Volume": 17,
@@ -94654,18 +94871,18 @@
     "High": 6.68
   },
   {
-    "symbol": "NTN",
-    "Date": "2020-06-18",
-    "percent_gain": 44.35,
-    "Volume": 4,
-    "High": 6.9
-  },
-  {
     "symbol": "ERNA",
     "Date": "2020-06-18",
     "percent_gain": 44.35,
     "Volume": 0,
     "High": 138
+  },
+  {
+    "symbol": "NTN",
+    "Date": "2020-06-18",
+    "percent_gain": 44.35,
+    "Volume": 4,
+    "High": 6.9
   },
   {
     "symbol": "OVID",
@@ -94773,14 +94990,14 @@
     "High": 21.75
   },
   {
-    "symbol": "MLND",
+    "symbol": "TPST",
     "Date": "2020-06-17",
     "percent_gain": 52.94,
     "Volume": 1,
     "High": 54.6
   },
   {
-    "symbol": "TPST",
+    "symbol": "MLND",
     "Date": "2020-06-17",
     "percent_gain": 52.94,
     "Volume": 1,
@@ -94927,14 +95144,14 @@
     "High": 302175
   },
   {
-    "symbol": "FRTX",
+    "symbol": "BBI",
     "Date": "2020-06-15",
     "percent_gain": 107.14,
     "Volume": 0,
     "High": 117.45
   },
   {
-    "symbol": "BBI",
+    "symbol": "FRTX",
     "Date": "2020-06-15",
     "percent_gain": 107.14,
     "Volume": 0,
@@ -95025,18 +95242,18 @@
     "High": 170
   },
   {
-    "symbol": "KBSF",
-    "Date": "2020-06-12",
-    "percent_gain": 102.27,
-    "Volume": 10,
-    "High": 4.45
-  },
-  {
     "symbol": "JXJT",
     "Date": "2020-06-12",
     "percent_gain": 102.27,
     "Volume": 1,
     "High": 44.5
+  },
+  {
+    "symbol": "KBSF",
+    "Date": "2020-06-12",
+    "percent_gain": 102.27,
+    "Volume": 10,
+    "High": 4.45
   },
   {
     "symbol": "GLYC",
@@ -95116,13 +95333,6 @@
     "High": 11.09
   },
   {
-    "symbol": "NAKD",
-    "Date": "2020-06-11",
-    "percent_gain": 51.96,
-    "Volume": 1,
-    "High": 23.25
-  },
-  {
     "symbol": "CENN",
     "Date": "2020-06-11",
     "percent_gain": 51.96,
@@ -95130,14 +95340,21 @@
     "High": 232.5
   },
   {
-    "symbol": "LLIT",
+    "symbol": "NAKD",
+    "Date": "2020-06-11",
+    "percent_gain": 51.96,
+    "Volume": 1,
+    "High": 23.25
+  },
+  {
+    "symbol": "NEGG",
     "Date": "2020-06-11",
     "percent_gain": 50,
     "Volume": 4,
     "High": 6.72
   },
   {
-    "symbol": "NEGG",
+    "symbol": "LLIT",
     "Date": "2020-06-11",
     "percent_gain": 50,
     "Volume": 4,
@@ -95158,14 +95375,14 @@
     "High": 26.62
   },
   {
-    "symbol": "NILE",
+    "symbol": "DPW",
     "Date": "2020-06-10",
     "percent_gain": 361.27,
     "Volume": 126,
     "High": 6.55
   },
   {
-    "symbol": "DPW",
+    "symbol": "NILE",
     "Date": "2020-06-10",
     "percent_gain": 361.27,
     "Volume": 126,
@@ -95788,18 +96005,18 @@
     "High": 1.57
   },
   {
-    "symbol": "CNVS",
-    "Date": "2020-06-04",
-    "percent_gain": 358.02,
-    "Volume": 11,
-    "High": 120
-  },
-  {
     "symbol": "CIDM",
     "Date": "2020-06-04",
     "percent_gain": 358.02,
     "Volume": 224,
     "High": 6
+  },
+  {
+    "symbol": "CNVS",
+    "Date": "2020-06-04",
+    "percent_gain": 358.02,
+    "Volume": 11,
+    "High": 120
   },
   {
     "symbol": "VISL",
@@ -95844,14 +96061,14 @@
     "High": 18.18
   },
   {
-    "symbol": "GNUS",
+    "symbol": "TOON",
     "Date": "2020-06-04",
     "percent_gain": 47.92,
     "Volume": 23,
     "High": 117.3
   },
   {
-    "symbol": "TOON",
+    "symbol": "GNUS",
     "Date": "2020-06-04",
     "percent_gain": 47.92,
     "Volume": 23,
@@ -95893,14 +96110,14 @@
     "High": 30
   },
   {
-    "symbol": "TOON",
+    "symbol": "GNUS",
     "Date": "2020-06-03",
     "percent_gain": 99,
     "Volume": 41,
     "High": 80
   },
   {
-    "symbol": "GNUS",
+    "symbol": "TOON",
     "Date": "2020-06-03",
     "percent_gain": 99,
     "Volume": 41,
@@ -96243,18 +96460,18 @@
     "High": 3.5
   },
   {
-    "symbol": "XSPA",
-    "Date": "2020-05-22",
-    "percent_gain": 124.37,
-    "Volume": 117,
-    "High": 3.48
-  },
-  {
     "symbol": "XWEL",
     "Date": "2020-05-22",
     "percent_gain": 124.37,
     "Volume": 5,
     "High": 69.6
+  },
+  {
+    "symbol": "XSPA",
+    "Date": "2020-05-22",
+    "percent_gain": 124.37,
+    "Volume": 117,
+    "High": 3.48
   },
   {
     "symbol": "SNDL",
@@ -96348,13 +96565,6 @@
     "High": 3
   },
   {
-    "symbol": "CNVS",
-    "Date": "2020-05-20",
-    "percent_gain": 324.19,
-    "Volume": 4,
-    "High": 52.6
-  },
-  {
     "symbol": "CIDM",
     "Date": "2020-05-20",
     "percent_gain": 324.19,
@@ -96362,11 +96572,11 @@
     "High": 2.63
   },
   {
-    "symbol": "CCCL",
+    "symbol": "CNVS",
     "Date": "2020-05-20",
-    "percent_gain": 160.68,
-    "Volume": 14,
-    "High": 5.31
+    "percent_gain": 324.19,
+    "Volume": 4,
+    "High": 52.6
   },
   {
     "symbol": "AEHL",
@@ -96374,6 +96584,13 @@
     "percent_gain": 160.68,
     "Volume": 0,
     "High": 212.4
+  },
+  {
+    "symbol": "CCCL",
+    "Date": "2020-05-20",
+    "percent_gain": 160.68,
+    "Volume": 14,
+    "High": 5.31
   },
   {
     "symbol": "BOXL",
@@ -96635,14 +96852,14 @@
     "High": 5.5
   },
   {
-    "symbol": "GNUS",
+    "symbol": "TOON",
     "Date": "2020-05-13",
     "percent_gain": 93.57,
     "Volume": 10,
     "High": 14.1
   },
   {
-    "symbol": "TOON",
+    "symbol": "GNUS",
     "Date": "2020-05-13",
     "percent_gain": 93.57,
     "Volume": 10,
@@ -96684,14 +96901,14 @@
     "High": 23.38
   },
   {
-    "symbol": "SLGG",
+    "symbol": "SLE",
     "Date": "2020-05-13",
     "percent_gain": 42.86,
     "Volume": 0,
     "High": 130
   },
   {
-    "symbol": "SLE",
+    "symbol": "SLGG",
     "Date": "2020-05-13",
     "percent_gain": 42.86,
     "Volume": 0,
@@ -96859,14 +97076,14 @@
     "High": 3.5
   },
   {
-    "symbol": "TOON",
+    "symbol": "GNUS",
     "Date": "2020-05-07",
     "percent_gain": 114.58,
     "Volume": 13,
     "High": 10.3
   },
   {
-    "symbol": "GNUS",
+    "symbol": "TOON",
     "Date": "2020-05-07",
     "percent_gain": 114.58,
     "Volume": 13,
@@ -97153,14 +97370,14 @@
     "High": 1.88
   },
   {
-    "symbol": "FLDM",
+    "symbol": "LAB",
     "Date": "2020-05-01",
     "percent_gain": 95.98,
     "Volume": 17,
     "High": 4.39
   },
   {
-    "symbol": "LAB",
+    "symbol": "FLDM",
     "Date": "2020-05-01",
     "percent_gain": 95.98,
     "Volume": 17,
@@ -97531,14 +97748,14 @@
     "High": 3.5
   },
   {
-    "symbol": "PECK",
+    "symbol": "ISUN",
     "Date": "2020-04-22",
     "percent_gain": 165.71,
     "Volume": 9,
     "High": 9.3
   },
   {
-    "symbol": "ISUN",
+    "symbol": "PECK",
     "Date": "2020-04-22",
     "percent_gain": 165.71,
     "Volume": 9,
@@ -97706,18 +97923,18 @@
     "High": 10.87
   },
   {
-    "symbol": "MOSY",
-    "Date": "2020-04-16",
-    "percent_gain": 241.91,
-    "Volume": 10,
-    "High": 4.65
-  },
-  {
     "symbol": "PRSO",
     "Date": "2020-04-16",
     "percent_gain": 241.91,
     "Volume": 0,
     "High": 186
+  },
+  {
+    "symbol": "MOSY",
+    "Date": "2020-04-16",
+    "percent_gain": 241.91,
+    "Volume": 10,
+    "High": 4.65
   },
   {
     "symbol": "BBIG",
@@ -97832,14 +98049,14 @@
     "High": 3.48
   },
   {
-    "symbol": "AIKI",
+    "symbol": "DOMH",
     "Date": "2020-04-14",
     "percent_gain": 308.96,
     "Volume": 5,
     "High": 46.58
   },
   {
-    "symbol": "DOMH",
+    "symbol": "AIKI",
     "Date": "2020-04-14",
     "percent_gain": 308.96,
     "Volume": 5,
@@ -97958,14 +98175,14 @@
     "High": 126
   },
   {
-    "symbol": "PLUR",
+    "symbol": "PSTI",
     "Date": "2020-04-09",
     "percent_gain": 77.11,
     "Volume": 14,
     "High": 8.59
   },
   {
-    "symbol": "PSTI",
+    "symbol": "PLUR",
     "Date": "2020-04-09",
     "percent_gain": 77.11,
     "Volume": 14,
@@ -98154,14 +98371,14 @@
     "High": 12.01
   },
   {
-    "symbol": "PSTI",
+    "symbol": "PLUR",
     "Date": "2020-04-07",
     "percent_gain": 54.76,
     "Volume": 20,
     "High": 5.2
   },
   {
-    "symbol": "PLUR",
+    "symbol": "PSTI",
     "Date": "2020-04-07",
     "percent_gain": 54.76,
     "Volume": 20,
@@ -98273,14 +98490,14 @@
     "High": 7.393
   },
   {
-    "symbol": "CZR",
+    "symbol": "ERI",
     "Date": "2020-04-06",
     "percent_gain": 42.72,
     "Volume": 11,
     "High": 14.5
   },
   {
-    "symbol": "ERI",
+    "symbol": "CZR",
     "Date": "2020-04-06",
     "percent_gain": 42.72,
     "Volume": 11,
@@ -98364,13 +98581,6 @@
     "High": 7.686
   },
   {
-    "symbol": "ALAR",
-    "Date": "2020-04-01",
-    "percent_gain": 156.02,
-    "Volume": 3,
-    "High": 42.5
-  },
-  {
     "symbol": "SFET",
     "Date": "2020-04-01",
     "percent_gain": 156.02,
@@ -98378,14 +98588,21 @@
     "High": 42.5
   },
   {
-    "symbol": "CRVO",
+    "symbol": "ALAR",
+    "Date": "2020-04-01",
+    "percent_gain": 156.02,
+    "Volume": 3,
+    "High": 42.5
+  },
+  {
+    "symbol": "DFFN",
     "Date": "2020-04-01",
     "percent_gain": 132.13,
     "Volume": 1,
     "High": 55.13
   },
   {
-    "symbol": "DFFN",
+    "symbol": "CRVO",
     "Date": "2020-04-01",
     "percent_gain": 132.13,
     "Volume": 1,
@@ -98756,18 +98973,18 @@
     "High": 12.67
   },
   {
-    "symbol": "APY",
-    "Date": "2020-03-25",
-    "percent_gain": 44.39,
-    "Volume": 4,
-    "High": 6.05
-  },
-  {
     "symbol": "CHX",
     "Date": "2020-03-25",
     "percent_gain": 44.39,
     "Volume": 4,
     "High": 5.904
+  },
+  {
+    "symbol": "APY",
+    "Date": "2020-03-25",
+    "percent_gain": 44.39,
+    "Volume": 4,
+    "High": 6.05
   },
   {
     "symbol": "HA",
@@ -99106,14 +99323,14 @@
     "High": 398
   },
   {
-    "symbol": "WTRH",
+    "symbol": "ASAP",
     "Date": "2020-03-23",
     "percent_gain": 43.44,
     "Volume": 1,
     "High": 35
   },
   {
-    "symbol": "ASAP",
+    "symbol": "WTRH",
     "Date": "2020-03-23",
     "percent_gain": 43.44,
     "Volume": 1,
@@ -99372,18 +99589,18 @@
     "High": 55.3
   },
   {
-    "symbol": "SONN",
-    "Date": "2020-03-19",
-    "percent_gain": 200,
-    "Volume": 0,
-    "High": 16816.8
-  },
-  {
     "symbol": "BURG",
     "Date": "2020-03-19",
     "percent_gain": 200,
     "Volume": 0,
     "High": 54.6
+  },
+  {
+    "symbol": "SONN",
+    "Date": "2020-03-19",
+    "percent_gain": 200,
+    "Volume": 0,
+    "High": 16816.8
   },
   {
     "symbol": "GES",
@@ -99400,14 +99617,14 @@
     "High": 23.39
   },
   {
-    "symbol": "ASAP",
+    "symbol": "WTRH",
     "Date": "2020-03-19",
     "percent_gain": 123.35,
     "Volume": 5,
     "High": 88
   },
   {
-    "symbol": "WTRH",
+    "symbol": "ASAP",
     "Date": "2020-03-19",
     "percent_gain": 123.35,
     "Volume": 5,
@@ -99834,14 +100051,14 @@
     "High": 233.88
   },
   {
-    "symbol": "ASAP",
+    "symbol": "WTRH",
     "Date": "2020-03-18",
     "percent_gain": 175,
     "Volume": 4,
     "High": 41.8
   },
   {
-    "symbol": "WTRH",
+    "symbol": "ASAP",
     "Date": "2020-03-18",
     "percent_gain": 175,
     "Volume": 4,
@@ -100359,6 +100576,13 @@
     "High": 13.5
   },
   {
+    "symbol": "NHWK",
+    "Date": "2020-03-11",
+    "percent_gain": 43.37,
+    "Volume": 6,
+    "High": 6.023
+  },
+  {
     "symbol": "HTBX",
     "Date": "2020-03-11",
     "percent_gain": 43.37,
@@ -100367,13 +100591,6 @@
   },
   {
     "symbol": "SCPX",
-    "Date": "2020-03-11",
-    "percent_gain": 43.37,
-    "Volume": 6,
-    "High": 6.023
-  },
-  {
-    "symbol": "NHWK",
     "Date": "2020-03-11",
     "percent_gain": 43.37,
     "Volume": 6,
@@ -100394,14 +100611,14 @@
     "High": 598
   },
   {
-    "symbol": "ALAR",
+    "symbol": "SFET",
     "Date": "2020-03-10",
     "percent_gain": 180.47,
     "Volume": 0,
     "High": 35.9
   },
   {
-    "symbol": "SFET",
+    "symbol": "ALAR",
     "Date": "2020-03-10",
     "percent_gain": 180.47,
     "Volume": 0,
@@ -100506,18 +100723,18 @@
     "High": 7.11
   },
   {
-    "symbol": "DOMH",
-    "Date": "2020-03-09",
-    "percent_gain": 236.59,
-    "Volume": 4,
-    "High": 93.84
-  },
-  {
     "symbol": "SPEX",
     "Date": "2020-03-09",
     "percent_gain": 236.59,
     "Volume": 79,
     "High": 5.52
+  },
+  {
+    "symbol": "DOMH",
+    "Date": "2020-03-09",
+    "percent_gain": 236.59,
+    "Volume": 4,
+    "High": 93.84
   },
   {
     "symbol": "DRIP",
@@ -100583,14 +100800,14 @@
     "High": 442
   },
   {
-    "symbol": "DRAD",
+    "symbol": "STRR",
     "Date": "2020-03-06",
     "percent_gain": 177.12,
     "Volume": 12,
     "High": 8.84
   },
   {
-    "symbol": "STRR",
+    "symbol": "DRAD",
     "Date": "2020-03-06",
     "percent_gain": 177.12,
     "Volume": 12,
@@ -100653,14 +100870,14 @@
     "High": 8.75
   },
   {
-    "symbol": "HTBX",
+    "symbol": "SCPX",
     "Date": "2020-03-05",
     "percent_gain": 52.44,
     "Volume": 20,
     "High": 8.75
   },
   {
-    "symbol": "SCPX",
+    "symbol": "HTBX",
     "Date": "2020-03-05",
     "percent_gain": 52.44,
     "Volume": 20,
@@ -100709,14 +100926,14 @@
     "High": 6.23
   },
   {
-    "symbol": "SCPX",
+    "symbol": "NHWK",
     "Date": "2020-03-04",
     "percent_gain": 47.53,
     "Volume": 9,
     "High": 6.23
   },
   {
-    "symbol": "NHWK",
+    "symbol": "SCPX",
     "Date": "2020-03-04",
     "percent_gain": 47.53,
     "Volume": 9,
@@ -100779,7 +100996,7 @@
     "High": 98.61
   },
   {
-    "symbol": "SCPX",
+    "symbol": "HTBX",
     "Date": "2020-03-02",
     "percent_gain": 166.36,
     "Volume": 17,
@@ -100793,7 +101010,7 @@
     "High": 6.153
   },
   {
-    "symbol": "HTBX",
+    "symbol": "SCPX",
     "Date": "2020-03-02",
     "percent_gain": 166.36,
     "Volume": 17,
@@ -101192,14 +101409,14 @@
     "High": 22.95
   },
   {
-    "symbol": "FBRX",
+    "symbol": "TOCA",
     "Date": "2020-02-21",
     "percent_gain": 161.11,
     "Volume": 3,
     "High": 35.25
   },
   {
-    "symbol": "TOCA",
+    "symbol": "FBRX",
     "Date": "2020-02-21",
     "percent_gain": 161.11,
     "Volume": 3,
@@ -101654,13 +101871,6 @@
     "High": 82
   },
   {
-    "symbol": "STAB",
-    "Date": "2020-01-27",
-    "percent_gain": 271.21,
-    "Volume": 14,
-    "High": 4.9
-  },
-  {
     "symbol": "CBLI",
     "Date": "2020-01-27",
     "percent_gain": 271.21,
@@ -101668,14 +101878,21 @@
     "High": 4.9
   },
   {
-    "symbol": "NEGG",
+    "symbol": "STAB",
+    "Date": "2020-01-27",
+    "percent_gain": 271.21,
+    "Volume": 14,
+    "High": 4.9
+  },
+  {
+    "symbol": "LLIT",
     "Date": "2020-01-27",
     "percent_gain": 161.11,
     "Volume": 1,
     "High": 22.56
   },
   {
-    "symbol": "LLIT",
+    "symbol": "NEGG",
     "Date": "2020-01-27",
     "percent_gain": 161.11,
     "Volume": 1,
@@ -101717,14 +101934,14 @@
     "High": 71.4
   },
   {
-    "symbol": "VRDN",
+    "symbol": "MGEN",
     "Date": "2020-01-24",
     "percent_gain": 113.24,
     "Volume": 1,
     "High": 21.75
   },
   {
-    "symbol": "MGEN",
+    "symbol": "VRDN",
     "Date": "2020-01-24",
     "percent_gain": 113.24,
     "Volume": 1,
@@ -101745,14 +101962,14 @@
     "High": 396
   },
   {
-    "symbol": "KSPN",
+    "symbol": "TWMC",
     "Date": "2020-01-23",
     "percent_gain": 320.78,
     "Volume": 9,
     "High": 9.72
   },
   {
-    "symbol": "TWMC",
+    "symbol": "KSPN",
     "Date": "2020-01-23",
     "percent_gain": 320.78,
     "Volume": 9,
@@ -101948,14 +102165,14 @@
     "High": 5.4
   },
   {
-    "symbol": "ASXC",
+    "symbol": "TRXC",
     "Date": "2020-01-14",
     "percent_gain": 78.23,
     "Volume": 32,
     "High": 2.62
   },
   {
-    "symbol": "TRXC",
+    "symbol": "ASXC",
     "Date": "2020-01-14",
     "percent_gain": 78.23,
     "Volume": 32,
@@ -102081,18 +102298,18 @@
     "High": 4.15
   },
   {
-    "symbol": "MTP",
-    "Date": "2020-01-08",
-    "percent_gain": 102.55,
-    "Volume": 0,
-    "High": 138
-  },
-  {
     "symbol": "BDRX",
     "Date": "2020-01-08",
     "percent_gain": 102.55,
     "Volume": 0,
     "High": 11040
+  },
+  {
+    "symbol": "MTP",
+    "Date": "2020-01-08",
+    "percent_gain": 102.55,
+    "Volume": 0,
+    "High": 138
   },
   {
     "symbol": "APLT",
@@ -102375,14 +102592,14 @@
     "High": 47.8381
   },
   {
-    "symbol": "NLNK",
+    "symbol": "LUMO",
     "Date": "2019-12-26",
     "percent_gain": 54.51,
     "Volume": 2,
     "High": 32.4
   },
   {
-    "symbol": "LUMO",
+    "symbol": "NLNK",
     "Date": "2019-12-26",
     "percent_gain": 54.51,
     "Volume": 2,
@@ -102403,18 +102620,18 @@
     "High": 20.15
   },
   {
-    "symbol": "KA",
-    "Date": "2019-12-24",
-    "percent_gain": 57.72,
-    "Volume": 0,
-    "High": 329
-  },
-  {
     "symbol": "PTI",
     "Date": "2019-12-24",
     "percent_gain": 57.72,
     "Volume": 1,
     "High": 47
+  },
+  {
+    "symbol": "KA",
+    "Date": "2019-12-24",
+    "percent_gain": 57.72,
+    "Volume": 0,
+    "High": 329
   },
   {
     "symbol": "ITCI",
@@ -102508,14 +102725,14 @@
     "High": 28
   },
   {
-    "symbol": "NK",
+    "symbol": "IBRX",
     "Date": "2019-12-17",
     "percent_gain": 53.29,
     "Volume": 11,
     "High": 4.89
   },
   {
-    "symbol": "IBRX",
+    "symbol": "NK",
     "Date": "2019-12-17",
     "percent_gain": 53.29,
     "Volume": 11,
@@ -102781,14 +102998,14 @@
     "High": 167
   },
   {
-    "symbol": "ALAR",
+    "symbol": "SFET",
     "Date": "2019-11-27",
     "percent_gain": 57.62,
     "Volume": 0,
     "High": 107.18
   },
   {
-    "symbol": "SFET",
+    "symbol": "ALAR",
     "Date": "2019-11-27",
     "percent_gain": 57.62,
     "Volume": 0,
@@ -102886,18 +103103,18 @@
     "High": 151.2
   },
   {
-    "symbol": "VYNT",
-    "Date": "2019-11-20",
-    "percent_gain": 274.52,
-    "Volume": 4,
-    "High": 38.95
-  },
-  {
     "symbol": "CGIX",
     "Date": "2019-11-20",
     "percent_gain": 274.52,
     "Volume": 23,
     "High": 7.79
+  },
+  {
+    "symbol": "VYNT",
+    "Date": "2019-11-20",
+    "percent_gain": 274.52,
+    "Volume": 4,
+    "High": 38.95
   },
   {
     "symbol": "ARAV",
@@ -103124,18 +103341,18 @@
     "High": 3780
   },
   {
-    "symbol": "NUWE",
-    "Date": "2019-11-01",
-    "percent_gain": 106.52,
-    "Volume": 0,
-    "High": 5700
-  },
-  {
     "symbol": "CHFS",
     "Date": "2019-11-01",
     "percent_gain": 106.52,
     "Volume": 1,
     "High": 57
+  },
+  {
+    "symbol": "NUWE",
+    "Date": "2019-11-01",
+    "percent_gain": 106.52,
+    "Volume": 0,
+    "High": 5700
   },
   {
     "symbol": "CRC",
@@ -103747,14 +103964,14 @@
     "High": 52.5
   },
   {
-    "symbol": "ARCI",
+    "symbol": "JAN",
     "Date": "2019-08-29",
     "percent_gain": 40.71,
     "Volume": 6,
     "High": 5.53
   },
   {
-    "symbol": "JAN",
+    "symbol": "ARCI",
     "Date": "2019-08-29",
     "percent_gain": 40.71,
     "Volume": 6,
@@ -103796,6 +104013,13 @@
     "High": 2.34
   },
   {
+    "symbol": "ARCI",
+    "Date": "2019-08-27",
+    "percent_gain": 52.73,
+    "Volume": 4,
+    "High": 9.24
+  },
+  {
     "symbol": "JAN",
     "Date": "2019-08-27",
     "percent_gain": 52.73,
@@ -103803,21 +104027,14 @@
     "High": 9.24
   },
   {
-    "symbol": "ARCI",
-    "Date": "2019-08-27",
-    "percent_gain": 52.73,
-    "Volume": 4,
-    "High": 9.24
-  },
-  {
-    "symbol": "ARCI",
+    "symbol": "JAN",
     "Date": "2019-08-26",
     "percent_gain": 116.86,
     "Volume": 11,
     "High": 7.59
   },
   {
-    "symbol": "JAN",
+    "symbol": "ARCI",
     "Date": "2019-08-26",
     "percent_gain": 116.86,
     "Volume": 11,
@@ -103845,18 +104062,18 @@
     "High": 6.75
   },
   {
-    "symbol": "NETE",
-    "Date": "2019-08-22",
-    "percent_gain": 74.24,
-    "Volume": 17,
-    "High": 5.75
-  },
-  {
     "symbol": "MULN",
     "Date": "2019-08-22",
     "percent_gain": 74.24,
     "Volume": 0,
     "High": 129375
+  },
+  {
+    "symbol": "NETE",
+    "Date": "2019-08-22",
+    "percent_gain": 74.24,
+    "Volume": 17,
+    "High": 5.75
   },
   {
     "symbol": "CETX",
@@ -103894,14 +104111,14 @@
     "High": 6.45
   },
   {
-    "symbol": "DPW",
+    "symbol": "NILE",
     "Date": "2019-08-19",
     "percent_gain": 418.45,
     "Volume": 15,
     "High": 10.68
   },
   {
-    "symbol": "NILE",
+    "symbol": "DPW",
     "Date": "2019-08-19",
     "percent_gain": 418.45,
     "Volume": 15,
@@ -104461,14 +104678,14 @@
     "High": 35.2
   },
   {
-    "symbol": "AXGT",
+    "symbol": "SIOX",
     "Date": "2019-06-21",
     "percent_gain": 47.15,
     "Volume": 19,
     "High": 8.52
   },
   {
-    "symbol": "SIOX",
+    "symbol": "AXGT",
     "Date": "2019-06-21",
     "percent_gain": 47.15,
     "Volume": 19,
@@ -104496,18 +104713,18 @@
     "High": 94.92
   },
   {
-    "symbol": "GRYP",
-    "Date": "2019-06-20",
-    "percent_gain": 45.88,
-    "Volume": 0,
-    "High": 29060
-  },
-  {
     "symbol": "KERN",
     "Date": "2019-06-20",
     "percent_gain": 45.88,
     "Volume": 0,
     "High": 1453
+  },
+  {
+    "symbol": "GRYP",
+    "Date": "2019-06-20",
+    "percent_gain": 45.88,
+    "Volume": 0,
+    "High": 29060
   },
   {
     "symbol": "MLNT",
@@ -104517,18 +104734,18 @@
     "High": 7.27
   },
   {
-    "symbol": "GRYP",
-    "Date": "2019-06-19",
-    "percent_gain": 227.82,
-    "Volume": 0,
-    "High": 20128
-  },
-  {
     "symbol": "KERN",
     "Date": "2019-06-19",
     "percent_gain": 227.82,
     "Volume": 0,
     "High": 1006.4
+  },
+  {
+    "symbol": "GRYP",
+    "Date": "2019-06-19",
+    "percent_gain": 227.82,
+    "Volume": 0,
+    "High": 20128
   },
   {
     "symbol": "MGI",
@@ -104538,18 +104755,18 @@
     "High": 3.92
   },
   {
-    "symbol": "HEPA",
-    "Date": "2019-06-17",
-    "percent_gain": 85.49,
-    "Volume": 0,
-    "High": 329.8
-  },
-  {
     "symbol": "CTRV",
     "Date": "2019-06-17",
     "percent_gain": 85.49,
     "Volume": 5,
     "High": 16.49
+  },
+  {
+    "symbol": "HEPA",
+    "Date": "2019-06-17",
+    "percent_gain": 85.49,
+    "Volume": 0,
+    "High": 329.8
   },
   {
     "symbol": "BID",
@@ -104636,18 +104853,18 @@
     "High": 15.49
   },
   {
-    "symbol": "CTRV",
-    "Date": "2019-06-07",
-    "percent_gain": 55.58,
-    "Volume": 4,
-    "High": 11.015
-  },
-  {
     "symbol": "HEPA",
     "Date": "2019-06-07",
     "percent_gain": 55.58,
     "Volume": 0,
     "High": 220.3
+  },
+  {
+    "symbol": "CTRV",
+    "Date": "2019-06-07",
+    "percent_gain": 55.58,
+    "Volume": 4,
+    "High": 11.015
   },
   {
     "symbol": "BYND",
@@ -104685,14 +104902,14 @@
     "High": 11.28
   },
   {
-    "symbol": "LFWD",
+    "symbol": "RWLK",
     "Date": "2019-06-05",
     "percent_gain": 203.61,
     "Volume": 30,
     "High": 10.08
   },
   {
-    "symbol": "RWLK",
+    "symbol": "LFWD",
     "Date": "2019-06-05",
     "percent_gain": 203.61,
     "Volume": 30,
@@ -104741,18 +104958,18 @@
     "High": 96.7
   },
   {
-    "symbol": "KTRA",
-    "Date": "2019-05-31",
-    "percent_gain": 240.24,
-    "Volume": 0,
-    "High": 287.5
-  },
-  {
     "symbol": "DMPI",
     "Date": "2019-05-31",
     "percent_gain": 240.24,
     "Volume": 5,
     "High": 5.75
+  },
+  {
+    "symbol": "KTRA",
+    "Date": "2019-05-31",
+    "percent_gain": 240.24,
+    "Volume": 0,
+    "High": 287.5
   },
   {
     "symbol": "SBOT",
@@ -104776,18 +104993,18 @@
     "High": 21
   },
   {
-    "symbol": "OBLN",
-    "Date": "2019-05-30",
-    "percent_gain": 69.91,
-    "Volume": 20,
-    "High": 5.76
-  },
-  {
     "symbol": "RSLS",
     "Date": "2019-05-30",
     "percent_gain": 69.91,
     "Volume": 0,
     "High": 288
+  },
+  {
+    "symbol": "OBLN",
+    "Date": "2019-05-30",
+    "percent_gain": 69.91,
+    "Volume": 20,
+    "High": 5.76
   },
   {
     "symbol": "ELTK",
@@ -104804,18 +105021,18 @@
     "High": 8.367
   },
   {
-    "symbol": "OBLN",
-    "Date": "2019-05-29",
-    "percent_gain": 107.28,
-    "Volume": 16,
-    "High": 4.44
-  },
-  {
     "symbol": "RSLS",
     "Date": "2019-05-29",
     "percent_gain": 107.28,
     "Volume": 0,
     "High": 222
+  },
+  {
+    "symbol": "OBLN",
+    "Date": "2019-05-29",
+    "percent_gain": 107.28,
+    "Volume": 16,
+    "High": 4.44
   },
   {
     "symbol": "SOLY",
@@ -104986,18 +105203,18 @@
     "High": 2.78
   },
   {
-    "symbol": "BURG",
-    "Date": "2019-05-08",
-    "percent_gain": 94.08,
-    "Volume": 0,
-    "High": 76.7
-  },
-  {
     "symbol": "SONN",
     "Date": "2019-05-08",
     "percent_gain": 94.08,
     "Volume": 0,
     "High": 23623.6
+  },
+  {
+    "symbol": "BURG",
+    "Date": "2019-05-08",
+    "percent_gain": 94.08,
+    "Volume": 0,
+    "High": 76.7
   },
   {
     "symbol": "ATIS",
@@ -105273,14 +105490,14 @@
     "High": 1.05
   },
   {
-    "symbol": "IMUX",
+    "symbol": "VTL",
     "Date": "2019-04-12",
     "percent_gain": 51.95,
     "Volume": 2,
     "High": 46.8
   },
   {
-    "symbol": "VTL",
+    "symbol": "IMUX",
     "Date": "2019-04-12",
     "percent_gain": 51.95,
     "Volume": 2,
@@ -105301,14 +105518,14 @@
     "High": 14.25
   },
   {
-    "symbol": "GLG",
+    "symbol": "BYU",
     "Date": "2019-04-11",
     "percent_gain": 97.04,
     "Volume": 0,
     "High": 1000
   },
   {
-    "symbol": "BYU",
+    "symbol": "GLG",
     "Date": "2019-04-11",
     "percent_gain": 97.04,
     "Volume": 0,
@@ -105364,14 +105581,14 @@
     "High": 17.4
   },
   {
-    "symbol": "IMUX",
+    "symbol": "VTL",
     "Date": "2019-04-08",
     "percent_gain": 78.99,
     "Volume": 2,
     "High": 36.8
   },
   {
-    "symbol": "VTL",
+    "symbol": "IMUX",
     "Date": "2019-04-08",
     "percent_gain": 78.99,
     "Volume": 2,
@@ -105406,14 +105623,14 @@
     "High": 1.93
   },
   {
-    "symbol": "SISI",
+    "symbol": "TYHT",
     "Date": "2019-04-04",
     "percent_gain": 52.29,
     "Volume": 1,
     "High": 14.94
   },
   {
-    "symbol": "TYHT",
+    "symbol": "SISI",
     "Date": "2019-04-04",
     "percent_gain": 52.29,
     "Volume": 1,
@@ -105476,14 +105693,14 @@
     "High": 864
   },
   {
-    "symbol": "CRDF",
+    "symbol": "TROV",
     "Date": "2019-04-01",
     "percent_gain": 55.47,
     "Volume": 7,
     "High": 5.83
   },
   {
-    "symbol": "TROV",
+    "symbol": "CRDF",
     "Date": "2019-04-01",
     "percent_gain": 55.47,
     "Volume": 7,
@@ -105595,18 +105812,18 @@
     "High": 12.79
   },
   {
-    "symbol": "DCAR",
-    "Date": "2019-03-26",
-    "percent_gain": 52.52,
-    "Volume": 8,
-    "High": 6.3599
-  },
-  {
     "symbol": "AYRO",
     "Date": "2019-03-26",
     "percent_gain": 52.52,
     "Volume": 1,
     "High": 50.88
+  },
+  {
+    "symbol": "DCAR",
+    "Date": "2019-03-26",
+    "percent_gain": 52.52,
+    "Volume": 8,
+    "High": 6.3599
   },
   {
     "symbol": "CRIS",
@@ -105819,14 +106036,14 @@
     "High": 38
   },
   {
-    "symbol": "AXGT",
+    "symbol": "SIOX",
     "Date": "2019-03-11",
     "percent_gain": 65.54,
     "Volume": 4,
     "High": 19.6
   },
   {
-    "symbol": "SIOX",
+    "symbol": "AXGT",
     "Date": "2019-03-11",
     "percent_gain": 65.54,
     "Volume": 4,
@@ -105875,14 +106092,14 @@
     "High": 17.4
   },
   {
-    "symbol": "TROV",
+    "symbol": "CRDF",
     "Date": "2019-03-08",
     "percent_gain": 133.66,
     "Volume": 28,
     "High": 9.65
   },
   {
-    "symbol": "CRDF",
+    "symbol": "TROV",
     "Date": "2019-03-08",
     "percent_gain": 133.66,
     "Volume": 28,
@@ -106050,18 +106267,18 @@
     "High": 40.45
   },
   {
-    "symbol": "FRGT",
-    "Date": "2019-03-01",
-    "percent_gain": 45.09,
-    "Volume": 0,
-    "High": 3575
-  },
-  {
     "symbol": "CIFS",
     "Date": "2019-03-01",
     "percent_gain": 45.09,
     "Volume": 9,
     "High": 3.25
+  },
+  {
+    "symbol": "FRGT",
+    "Date": "2019-03-01",
+    "percent_gain": 45.09,
+    "Volume": 0,
+    "High": 3575
   },
   {
     "symbol": "RKDA",
@@ -106085,13 +106302,6 @@
     "High": 26900
   },
   {
-    "symbol": "BDRX",
-    "Date": "2019-02-27",
-    "percent_gain": 113.56,
-    "Volume": 0,
-    "High": 87200
-  },
-  {
     "symbol": "MTP",
     "Date": "2019-02-27",
     "percent_gain": 113.56,
@@ -106100,10 +106310,10 @@
   },
   {
     "symbol": "BDRX",
-    "Date": "2019-02-26",
-    "percent_gain": 583.33,
+    "Date": "2019-02-27",
+    "percent_gain": 113.56,
     "Volume": 0,
-    "High": 65600
+    "High": 87200
   },
   {
     "symbol": "MTP",
@@ -106111,6 +106321,13 @@
     "percent_gain": 583.33,
     "Volume": 0,
     "High": 820
+  },
+  {
+    "symbol": "BDRX",
+    "Date": "2019-02-26",
+    "percent_gain": 583.33,
+    "Volume": 0,
+    "High": 65600
   },
   {
     "symbol": "FTNW",
@@ -106645,18 +106862,18 @@
     "High": 2.44
   },
   {
-    "symbol": "CCCL",
-    "Date": "2019-01-02",
-    "percent_gain": 53.59,
-    "Volume": 5,
-    "High": 7.05
-  },
-  {
     "symbol": "AEHL",
     "Date": "2019-01-02",
     "percent_gain": 53.59,
     "Volume": 0,
     "High": 282
+  },
+  {
+    "symbol": "CCCL",
+    "Date": "2019-01-02",
+    "percent_gain": 53.59,
+    "Volume": 5,
+    "High": 7.05
   },
   {
     "symbol": "VTVT",
@@ -106715,18 +106932,18 @@
     "High": 36.44
   },
   {
-    "symbol": "RSLS",
-    "Date": "2018-12-21",
-    "percent_gain": 107.32,
-    "Volume": 0,
-    "High": 510
-  },
-  {
     "symbol": "OBLN",
     "Date": "2018-12-21",
     "percent_gain": 107.32,
     "Volume": 3,
     "High": 10.2
+  },
+  {
+    "symbol": "RSLS",
+    "Date": "2018-12-21",
+    "percent_gain": 107.32,
+    "Volume": 0,
+    "High": 510
   },
   {
     "symbol": "MRIN",
@@ -106848,18 +107065,18 @@
     "High": 89.9
   },
   {
-    "symbol": "MYOS",
-    "Date": "2018-12-11",
-    "percent_gain": 82.57,
-    "Volume": 1,
-    "High": 23.88
-  },
-  {
     "symbol": "MDVL",
     "Date": "2018-12-11",
     "percent_gain": 82.57,
     "Volume": 0,
     "High": 1194
+  },
+  {
+    "symbol": "MYOS",
+    "Date": "2018-12-11",
+    "percent_gain": 82.57,
+    "Volume": 1,
+    "High": 23.88
   },
   {
     "symbol": "XPER",
@@ -106911,14 +107128,14 @@
     "High": 1.64
   },
   {
-    "symbol": "AETI",
+    "symbol": "SLNG",
     "Date": "2018-12-04",
     "percent_gain": 59.26,
     "Volume": 3,
     "High": 13.76
   },
   {
-    "symbol": "SLNG",
+    "symbol": "AETI",
     "Date": "2018-12-04",
     "percent_gain": 59.26,
     "Volume": 3,

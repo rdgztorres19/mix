@@ -19,9 +19,14 @@ import pandas as pd
 
 warnings.filterwarnings("ignore")
 
-# Import build_dataframe from predict (same logic)
+# Import shared helpers from predict.py
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from predict import build_dataframe, DEFAULT_THRESHOLD, BEST_MODEL_DIR
+from predict import (
+    build_dataframe,
+    DEFAULT_THRESHOLD,
+    BEST_MODEL_DIR,
+    should_skip_prediction,
+)
 
 
 def run_batch(batch: list, threshold: float, model, scaler, meta, add_features_fn):
@@ -30,32 +35,65 @@ def run_batch(batch: list, threshold: float, model, scaler, meta, add_features_f
     inv_label_map = meta.get("inv_label_map", {})
 
     rows = []
+    skip_reasons = []
+
     for data in batch:
         if "candles" not in data or len(data.get("candles", [])) == 0:
             rows.append(None)
+            skip_reasons.append("invalid payload")
             continue
 
         target_idx = int(data.get("target_idx", len(data["candles"]) - 1))
         df = build_dataframe(data)
         df = add_features_fn(df)
 
+        # Fix cumulative_volume_ratio for partial day prediction
         if "cumulative_volume_ratio" in df.columns and len(df) < 500:
-            df["cumulative_volume_ratio"] = df["cumulative_volume_ratio"] * (len(df) / 539.0)
+            df["cumulative_volume_ratio"] = (
+                df["cumulative_volume_ratio"] * (len(df) / 539.0)
+            )
 
         if target_idx >= len(df):
             target_idx = len(df) - 1
 
         target_row = df.iloc[target_idx]
+
+        # ---------------------------------------------------------
+        # PRE-PREDICTION FILTER
+        #
+        # Examples of when a row may be ignored:
+        # - price below EMA9
+        # - price below VWAP
+        # - low volume / bad ATR / bad time window
+        # - any other hard filter defined in should_skip_prediction()
+        # ---------------------------------------------------------
+        should_skip, skip_reason = should_skip_prediction(target_row, data)
+        if should_skip:
+            rows.append(None)
+            skip_reasons.append(skip_reason or "ignored by filter")
+            continue
+
         row = []
         for col in feature_cols:
             val = target_row.get(col, 0)
             row.append(float(val) if pd.notna(val) else 0.0)
-        rows.append(row)
 
-    # Build X, handling any None (failed) rows
+        rows.append(row)
+        skip_reasons.append(None)
+
+    # Build X, handling skipped/invalid rows
     valid_indices = [i for i, r in enumerate(rows) if r is not None]
     if not valid_indices:
-        return [{"tradeable": False, "prob": 0.0, "threshold": threshold, "error": "no valid rows"}] * len(batch)
+        return [
+            {
+                "tradeable": False,
+                "prob": 0.0,
+                "threshold": threshold,
+                "ignored": True,
+                "ignore_reason": "no valid rows",
+            }
+            for _ in batch
+        ]
 
     X = np.array([rows[i] for i in valid_indices])
     if scaler is not None:
@@ -78,17 +116,29 @@ def run_batch(batch: list, threshold: float, model, scaler, meta, add_features_f
     # Map back to original order
     results = []
     valid_ix = 0
+
     for i in range(len(batch)):
         if rows[i] is None:
-            results.append({"tradeable": False, "prob": 0.0, "threshold": threshold, "error": "invalid payload"})
+            reason = skip_reasons[i] or "invalid payload"
+            results.append(
+                {
+                    "tradeable": False,
+                    "prob": 0.0,
+                    "threshold": threshold,
+                    "ignored": True,
+                    "ignore_reason": reason,
+                }
+            )
         else:
             prob = float(probs_arr[valid_ix])
             valid_ix += 1
-            results.append({
-                "tradeable": bool(prob >= threshold),
-                "prob": round(prob, 4),
-                "threshold": threshold,
-            })
+            results.append(
+                {
+                    "tradeable": bool(prob >= threshold),
+                    "prob": round(prob, 4),
+                    "threshold": threshold,
+                }
+            )
 
     return results
 

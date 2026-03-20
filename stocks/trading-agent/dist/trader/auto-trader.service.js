@@ -128,7 +128,9 @@ let AutoTraderService = class AutoTraderService {
     async shouldEnterTrade(result, row) {
         if (!result.tradeable || !this.tradeEnabled || !this.alpaca.isEnabled()) return false;
         // if (!this.isBeforeNoonET(row.candle_time_et)) return false;
-        return this.mysqlRepo.passesPrefilterForToday(row.symbol);
+        const prefilter = await this.mysqlRepo.passesPrefilterForToday(row.symbol);
+        console.log('prefilter', prefilter, row.symbol);
+        return prefilter;
     }
     /** Only allow new entries before 12:00 PM New York time. */ isBeforeNoonET(candleTimeEt) {
         const match = candleTimeEt.match(/^(\d{1,2}):(\d{2})$/);

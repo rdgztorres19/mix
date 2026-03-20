@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
+    "exec": "npm run download-gainers && npm run build-csv",
     "download-gainers": "tsx scripts/download-top-gainers.ts",
     "build-csv": "tsx scripts/build-training-csv.ts",
     "build-training": "tsx scripts/build-training-csv.ts",

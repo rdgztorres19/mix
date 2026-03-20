@@ -166,7 +166,9 @@ export class AutoTraderService {
   private async shouldEnterTrade(result: PredictResult, row: CandleRow): Promise<boolean> {
     if (!result.tradeable || !this.tradeEnabled || !this.alpaca.isEnabled()) return false;
     // if (!this.isBeforeNoonET(row.candle_time_et)) return false;
-    return this.mysqlRepo.passesPrefilterForToday(row.symbol);
+    const prefilter = await this.mysqlRepo.passesPrefilterForToday(row.symbol);
+    console.log('prefilter', prefilter, row.symbol);
+    return prefilter;
   }
 
   /** Only allow new entries before 12:00 PM New York time. */

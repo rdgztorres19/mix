@@ -40,6 +40,90 @@ DEFAULT_THRESHOLD = 0.6
 # Helpers for building a DataFrame from raw candle history (live mode)
 # ---------------------------------------------------------------------------
 
+def should_skip_prediction(target_row, raw_data=None):
+    """
+    Decide si NO vale la pena predecir esta fila.
+
+    Retorna:
+      (True, "motivo")  -> ignorar fila
+      (False, None)     -> sí predecir
+
+    Ejemplos típicos de cuándo ignorar:
+    - Muy pocas velas todavía (mercado recién abierto / contexto insuficiente)
+    - Volumen demasiado bajo
+    - ATR inválido o demasiado pequeño
+    - Precio fuera del rango que entrenaste
+    - Candle demasiado temprano o demasiado tarde
+    - Datos incompletos / NaN / infinitos
+    - La acción ya está demasiado extendida y no quieres perseguir
+    """
+
+    # ---------------------------
+    # 1) Muy pocas velas
+    # Ejemplo: ignorar si todavía no tienes suficiente contexto para EMA/VWAP/momentum
+    # ---------------------------
+    # candle_idx = target_row.get("candle_idx", 0)
+    # if pd.isna(candle_idx) or candle_idx < 10:
+    #     return True, "ignored: too few candles / insufficient context"
+
+    # # ---------------------------
+    # # 2) Volumen de la vela muy bajo
+    # # Ejemplo: ignorar velas con poco volumen porque las señales son menos confiables
+    # # ---------------------------
+    # volume = target_row.get("volume", 0)
+    # if pd.isna(volume) or volume < 5000:
+    #     return True, "ignored: candle volume too low"
+
+    # # ---------------------------
+    # # 3) Premarket volume demasiado bajo
+    # # Ejemplo: si tu estrategia solo quiere tickers con interés real en premarket
+    # # ---------------------------
+    # premarket_volume = target_row.get("premarket_volume", 0)
+    # if pd.notna(premarket_volume) and premarket_volume < 100000:
+    #     return True, "ignored: premarket volume too low"
+
+    # # ---------------------------
+    # # 4) ATR inválido o demasiado pequeño
+    # # Ejemplo: ignorar si el rango es demasiado chico y no hay expansión real
+    # # ---------------------------
+    # atr = target_row.get("atr", 0)
+    # if pd.isna(atr) or atr <= 0:
+    #     return True, "ignored: invalid ATR"
+    # if atr < 0.05:
+    #     return True, "ignored: ATR too small"
+
+    # # ---------------------------
+    # # 5) Precio demasiado bajo o demasiado alto
+    # # Ejemplo: si el modelo fue entrenado más para small caps entre ciertos precios
+    # # ---------------------------
+    # close_price = target_row.get("close", 0)
+    # if pd.isna(close_price) or close_price <= 0:
+    #     return True, "ignored: invalid close price"
+    # if close_price < 1:
+    #     return True, "ignored: price below strategy range"
+    # if close_price > 100:
+    #     return True, "ignored: price above strategy range"
+
+    close_price = target_row.get("close", 0)
+    ema20 = target_row.get("ema20", 0)
+    rowTime = target_row.get("candle_time_et", "")
+
+    if pd.notna(close_price) and pd.notna(ema20) and np.isfinite(close_price) and np.isfinite(ema20):
+        if close_price < ema20:
+            return True, f"ignored: price below EMA20 {close_price} < {ema20} at rowTime {rowTime}"
+
+    # ---------------------------
+    # Precio vs VWAP
+    # Ejemplo: ignorar si el precio está por debajo del VWAP
+    # ---------------------------
+    # vwap = target_row.get("vwap", 0)
+
+    # if pd.notna(close_price) and pd.notna(vwap) and np.isfinite(close_price) and np.isfinite(vwap):
+    #     if close_price < vwap:
+    #         return True, f"ignored: price below VWAP {close_price} < {vwap}"
+
+    return False, None
+
 def _ema(arr, span):
     return pd.Series(arr).ewm(span=span, adjust=False).mean().fillna(
         arr[0] if len(arr) else 0
@@ -187,6 +271,25 @@ def main():
             target_idx = len(df) - 1
 
         target_row = df.iloc[target_idx]
+
+        should_skip, skip_reason = should_skip_prediction(target_row, data)
+        if should_skip:
+            result = {
+                "tradeable": False,
+                "ignored": True,
+                "ignore_reason": skip_reason,
+                "threshold": threshold
+            }
+
+            if data.get("_debug"):
+                result["debug_target_row"] = {
+                    k: (None if pd.isna(v) else float(v) if isinstance(v, (int, float, np.integer, np.floating)) else str(v))
+                    for k, v in target_row.to_dict().items()
+                }
+
+            print(json.dumps(result))
+            return
+
         row = []
         for col in feature_cols:
             val = target_row.get(col, 0)

@@ -153,27 +153,31 @@ export class MysqlTrainingRepository {
   async ensureTrackerTable(): Promise<void> {
     const p = this.getPool();
     if (!p) return;
+  
     try {
       await p.query(`
         CREATE TABLE IF NOT EXISTS scanned_symbols (
-           symbol VARCHAR(16) NOT NULL PRIMARY KEY,
-           arrived_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-           passes_pre_filter TINYINT(1) DEFAULT 0,
-           float_shares BIGINT,
-           outstanding_shares BIGINT,
-           free_float DOUBLE,
-           catalyst_strength VARCHAR(32),
-           catalyst_type VARCHAR(128),
-           premarket_volume DOUBLE,
-           premarket_dollar_volume DOUBLE,
-           volume DOUBLE,
-           dollar_volume DOUBLE,
-           close DOUBLE,
-           ema9 DOUBLE,
-           gap_pct DOUBLE,
-           updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+          symbol VARCHAR(16) NOT NULL,
+          arrived_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          arrived_date DATE NOT NULL,
+          passes_pre_filter TINYINT(1) DEFAULT 0,
+          float_shares BIGINT,
+          outstanding_shares BIGINT,
+          free_float DOUBLE,
+          catalyst_strength VARCHAR(32),
+          catalyst_type VARCHAR(128),
+          premarket_volume DOUBLE,
+          premarket_dollar_volume DOUBLE,
+          volume DOUBLE,
+          dollar_volume DOUBLE,
+          close DOUBLE,
+          ema9 DOUBLE,
+          gap_pct DOUBLE,
+          updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (symbol, arrived_date)
         )
       `);
+  
       this.logger.log('scanned_symbols table ready');
     } catch (e) {
       this.logger.warn(`ensureTrackerTable failed: ${(e as Error).message}`);
@@ -198,17 +202,29 @@ export class MysqlTrainingRepository {
   }): Promise<void> {
     const p = this.getPool();
     if (!p) return;
-
+  
     try {
       await p.query(
-        `INSERT INTO scanned_symbols (
-          symbol, passes_pre_filter,
-          float_shares, outstanding_shares, free_float,
-          catalyst_strength, catalyst_type,
-          premarket_volume, premarket_dollar_volume,
-          volume, dollar_volume, close, ema9, gap_pct
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE 
+        `
+        INSERT INTO scanned_symbols (
+          symbol,
+          arrived_at,
+          arrived_date,
+          passes_pre_filter,
+          float_shares,
+          outstanding_shares,
+          free_float,
+          catalyst_strength,
+          catalyst_type,
+          premarket_volume,
+          premarket_dollar_volume,
+          volume,
+          dollar_volume,
+          close,
+          ema9,
+          gap_pct
+        ) VALUES (?, NOW(), CURDATE(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
           passes_pre_filter = VALUES(passes_pre_filter),
           float_shares = IFNULL(VALUES(float_shares), float_shares),
           outstanding_shares = IFNULL(VALUES(outstanding_shares), outstanding_shares),
@@ -221,19 +237,30 @@ export class MysqlTrainingRepository {
           dollar_volume = VALUES(dollar_volume),
           close = VALUES(close),
           ema9 = VALUES(ema9),
-          gap_pct = VALUES(gap_pct)`,
+          gap_pct = VALUES(gap_pct),
+          updated_at = CURRENT_TIMESTAMP
+        `,
         [
           data.symbol,
           data.passes_pre_filter ? 1 : 0,
-          data.float_shares, data.outstanding_shares, data.free_float,
-          data.catalyst_strength, data.catalyst_type,
-          data.premarket_volume, data.premarket_dollar_volume,
-          data.volume, data.dollar_volume,
-          data.close, data.ema9, data.gap_pct
+          data.float_shares,
+          data.outstanding_shares,
+          data.free_float,
+          data.catalyst_strength,
+          data.catalyst_type,
+          data.premarket_volume,
+          data.premarket_dollar_volume,
+          data.volume,
+          data.dollar_volume,
+          data.close,
+          data.ema9,
+          data.gap_pct,
         ],
       );
     } catch (e) {
-      this.logger.warn(`upsertScannedSymbol(${data.symbol}) failed: ${(e as Error).message}`);
+      this.logger.warn(
+        `upsertScannedSymbol(${data.symbol}) failed: ${(e as Error).message}`,
+      );
     }
   }
 
@@ -273,19 +300,19 @@ export class MysqlTrainingRepository {
       const premarketDollarVol = Number(r?.premarket_dollar_volume ?? Infinity);
 
 
-      console.log('close', (
-        close > 2 &&
-        close < 20 &&
-        floatShares >= 1_000_000 &&
-        floatShares <= 100_000_000 &&
-        premarketDollarVol <= 10_007_568.983475
-      ), floatShares, premarketDollarVol);
+      // console.log('close', (
+      //   close > 2 &&
+      //   close < 20 &&
+      //   floatShares >= 1_000_000 &&
+      //   floatShares <= 100_000_000 &&
+      //   premarketDollarVol <= 10_007_568.983475
+      // ), floatShares, premarketDollarVol);
       return (
         close > 2 &&
         close < 10 &&
         floatShares >= 1_000_000 &&
-        floatShares <= 100_000_000 &&
-        premarketDollarVol <= 10_007_568.983475
+        floatShares <= 100_000_000 
+        // && premarketDollarVol <= 10_007_568.983475
       );
     } catch (e) {
       this.logger.warn(`passesPrefilterForToday(${symbol}) failed: ${(e as Error).message}`);
