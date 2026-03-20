@@ -255,8 +255,6 @@ def main():
 
     from feature_engineer import add_features
 
-    ticket_details = None
-
     if "candles" in data and len(data.get("candles", [])) > 0:
         # ── Mode 2: Full candle history (live/today) ──
         target_idx = int(data.get("target_idx", len(data["candles"]) - 1))
@@ -273,13 +271,6 @@ def main():
             target_idx = len(df) - 1
 
         target_row = df.iloc[target_idx]
-        tr = target_row
-        ticket_details = {
-            "close": round(float(tr.get("close", 0)), 4) if pd.notna(tr.get("close")) else None,
-            "ema9": round(float(tr.get("ema9", 0)), 4) if pd.notna(tr.get("ema9")) else None,
-            "ema20": round(float(tr.get("ema20", 0)), 4) if pd.notna(tr.get("ema20")) else None,
-            "vwap": round(float(tr.get("vwap", 0)), 4) if pd.notna(tr.get("vwap")) else None,
-        }
 
         should_skip, skip_reason = should_skip_prediction(target_row, data)
         if should_skip:
@@ -287,8 +278,7 @@ def main():
                 "tradeable": False,
                 "ignored": True,
                 "ignore_reason": skip_reason,
-                "threshold": threshold,
-                **ticket_details,
+                "threshold": threshold
             }
 
             if data.get("_debug"):
@@ -340,7 +330,6 @@ def main():
         "tradeable": bool(tradeable),
         "prob": round(prob, 4),
         "threshold": threshold,
-        **(ticket_details if ticket_details else {}),
     }
 
     # Debug mode: return computed feature values for comparison

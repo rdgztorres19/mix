@@ -145,7 +145,6 @@ function callPredictBatch(batch, threshold) {
       }
 
       try {
-        // console.log(stdout);
         const out = JSON.parse(stdout);
         if (out.error) reject(new Error(out.error));
         else resolve(out.results || []);

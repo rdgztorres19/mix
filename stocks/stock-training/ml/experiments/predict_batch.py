@@ -36,11 +36,21 @@ def run_batch(batch: list, threshold: float, model, scaler, meta, add_features_f
 
     rows = []
     skip_reasons = []
+    ticket_details = []
+
+    def _extract_details(tr):
+        return {
+            "close": round(float(tr.get("close", 0)), 4) if pd.notna(tr.get("close")) else None,
+            "ema9": round(float(tr.get("ema9", 0)), 4) if pd.notna(tr.get("ema9")) else None,
+            "ema20": round(float(tr.get("ema20", 0)), 4) if pd.notna(tr.get("ema20")) else None,
+            "vwap": round(float(tr.get("vwap", 0)), 4) if pd.notna(tr.get("vwap")) else None,
+        }
 
     for data in batch:
         if "candles" not in data or len(data.get("candles", [])) == 0:
             rows.append(None)
             skip_reasons.append("invalid payload")
+            ticket_details.append(None)
             continue
 
         target_idx = int(data.get("target_idx", len(data["candles"]) - 1))
@@ -57,6 +67,7 @@ def run_batch(batch: list, threshold: float, model, scaler, meta, add_features_f
             target_idx = len(df) - 1
 
         target_row = df.iloc[target_idx]
+        details = _extract_details(target_row)
 
         # ---------------------------------------------------------
         # PRE-PREDICTION FILTER
@@ -71,6 +82,7 @@ def run_batch(batch: list, threshold: float, model, scaler, meta, add_features_f
         if should_skip:
             rows.append(None)
             skip_reasons.append(skip_reason or "ignored by filter")
+            ticket_details.append(details)
             continue
 
         row = []
@@ -80,6 +92,7 @@ def run_batch(batch: list, threshold: float, model, scaler, meta, add_features_f
 
         rows.append(row)
         skip_reasons.append(None)
+        ticket_details.append(details)
 
     # Build X, handling skipped/invalid rows
     valid_indices = [i for i, r in enumerate(rows) if r is not None]
@@ -91,8 +104,9 @@ def run_batch(batch: list, threshold: float, model, scaler, meta, add_features_f
                 "threshold": threshold,
                 "ignored": True,
                 "ignore_reason": "no valid rows",
+                **(ticket_details[i] or {}),
             }
-            for _ in batch
+            for i in range(len(batch))
         ]
 
     X = np.array([rows[i] for i in valid_indices])
@@ -118,6 +132,8 @@ def run_batch(batch: list, threshold: float, model, scaler, meta, add_features_f
     valid_ix = 0
 
     for i in range(len(batch)):
+        details = ticket_details[i] if i < len(ticket_details) else None
+        extra = details if details else {}
         if rows[i] is None:
             reason = skip_reasons[i] or "invalid payload"
             results.append(
@@ -127,6 +143,7 @@ def run_batch(batch: list, threshold: float, model, scaler, meta, add_features_f
                     "threshold": threshold,
                     "ignored": True,
                     "ignore_reason": reason,
+                    **extra,
                 }
             )
         else:
@@ -137,6 +154,7 @@ def run_batch(batch: list, threshold: float, model, scaler, meta, add_features_f
                     "tradeable": bool(prob >= threshold),
                     "prob": round(prob, 4),
                     "threshold": threshold,
+                    **extra,
                 }
             )
 
