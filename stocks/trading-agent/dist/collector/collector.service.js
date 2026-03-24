@@ -253,8 +253,9 @@ let CollectorService = class CollectorService {
    * Get list of actively traded symbols (for prediction/trading only).
    */ getActiveSymbolList() {
         return [
-            ...this.activeSymbols
+            ...this.symbols.keys()
         ];
+    //return [...this.activeSymbols];
     }
     /**
    * Debug: get status of symbols and activeSymbols.
