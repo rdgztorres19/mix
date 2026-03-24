@@ -30,6 +30,7 @@ venv
 **/ml/**/models/*.joblib
 **/ml/**/models/*.pkl
 *.joblib
+*.csv
 
 # OS & cache
 .DS_Store
