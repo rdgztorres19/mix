@@ -36,8 +36,9 @@ const PROCESS_LIMIT = (() => {
   const n = parseInt(v, 10);
   return n > 0 ? n : 999999;
 })();
+
 import { fetch1MinCandles } from '../src/data/historical-fetcher';
-import { fetchFundamentals } from '../src/data/fundamental-fetcher';
+import { fetchFundamentals, setFundamentals } from '../src/data/fundamental-fetcher';
 import { with429Retry } from '../src/data/rate-limit-429';
 import { getSessionFromTimestamp } from '../src/session/session-utils';
 import { calculateVwap } from '../src/indicators/vwap';
@@ -50,7 +51,13 @@ import { aggregateCandlesTo5mRows } from '../src/csv/aggregate-to-5m';
 import type { Candle, TopGainerEntry } from '../src/types';
 
 const DATA_DIR = path.join(__dirname, '../data');
-const TOP_GAINERS_PATH = path.join(DATA_DIR, 'top_gainers.json');
+const TOP_GAINERS_PATH = path.join(DATA_DIR, 'top_leaders.json');
+
+function getEtTotalMinutes(tsMsOrIso: number | string): number {
+  const d = new Date(tsMsOrIso);
+  const et = new Date(d.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+  return et.getHours() * 60 + et.getMinutes();
+}
 
 /** Previous trading day (skip weekends). */
 function prevTradingDay(dateStr: string): string {
@@ -62,13 +69,10 @@ function prevTradingDay(dateStr: string): string {
   return d.toISOString().slice(0, 10);
 }
 
-/** Solo guardar velas entre 6:00 AM y 3:00 PM ET (premarket desde 6 AM). */
+/** Solo guardar velas entre 6:00 AM y 5:00 PM ET (premarket desde 6 AM). */
 function isInTradingWindow(tsMs: number): boolean {
-  const d = new Date(tsMs);
-  const etStr = d.toLocaleString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', hour12: false });
-  const [h, m] = etStr.split(':').map(Number);
-  const totalMin = h * 60 + m;
-  return totalMin >= 6 * 60 && totalMin <= 17 * 60; // 6:00 - 17:00
+  const totalMin = getEtTotalMinutes(tsMs);
+  return totalMin >= 4 * 60 && totalMin <= 17 * 60; // 4:00 - 17:00
 }
 
 /** Resultado de procesar un ticker: líneas CSV para 1m y 5m. */
@@ -87,13 +91,19 @@ async function promisePool<T, R>(
 ): Promise<R[]> {
   const results: R[] = new Array(items.length);
   let idx = 0;
+
   async function worker(): Promise<void> {
     while (idx < items.length) {
       const i = idx++;
       results[i] = await fn(items[i]);
     }
   }
-  const workers = Array.from({ length: Math.min(concurrency, items.length) }, () => worker());
+
+  const workers = Array.from(
+    { length: Math.min(concurrency, items.length) },
+    () => worker()
+  );
+
   await Promise.all(workers);
   return results;
 }
@@ -113,6 +123,7 @@ async function processStock(entry: TopGainerEntry): Promise<ProcessResult | null
   const closes = candles.map((c: Candle) => c.c);
   const ema9Values: (number | null)[] = [];
   const ema20Values: (number | null)[] = [];
+
   for (let i = 0; i < candles.length; i++) {
     ema9Values.push(calculateEma(closes.slice(0, i + 1), 9));
     ema20Values.push(calculateEma(closes.slice(0, i + 1), 20));
@@ -120,40 +131,48 @@ async function processStock(entry: TopGainerEntry): Promise<ProcessResult | null
 
   let priorClose = fundamentals.previousClose;
   if (priorClose == null) {
-    const prevCandles = await with429Retry(() => fetch1MinCandles(symbol, prevTradingDay(date)));
-    priorClose = prevCandles?.length ? prevCandles[prevCandles.length - 1].c : candles[0]?.o ?? candles[0]?.c ?? 0;
+    const prevCandles = await with429Retry(() =>
+      fetch1MinCandles(symbol, prevTradingDay(date))
+    );
+    priorClose =
+      prevCandles?.length
+        ? prevCandles[prevCandles.length - 1].c
+        : candles[0]?.o ?? candles[0]?.c ?? 0;
   }
+
   priorClose = priorClose ?? candles[0]?.o ?? candles[0]?.c ?? 0;
+
+  // NOTE:
+  // This is the open of the first candle in the fetched dataset.
+  // If dataset includes premarket, this is NOT the 9:30 regular-session open.
   const openDay = candles[0].o;
-  const highOfDay = Math.max(...candles.map((c: Candle) => c.h));
-  const lowOfDay = Math.min(...candles.map((c: Candle) => c.l));
+
+  // Full-day premarket aggregates are okay to precompute here.
+  // The row builder will avoid using future-only values for premarket rows.
   const premarketVolume = computePremarketVolume(candles);
 
   const preMarketCandles = candles.filter((c: Candle) => {
-    const d = new Date(c.t);
-    const etHour = new Date(d.toLocaleString('en-US', { timeZone: 'America/New_York' })).getHours();
-    const etMin = new Date(d.toLocaleString('en-US', { timeZone: 'America/New_York' })).getMinutes();
-    const totalMin = etHour * 60 + etMin;
-    return totalMin < 9 * 60 + 30;
+    return getEtTotalMinutes(c.t) < 9 * 60 + 30;
   });
+
   const preMarketHigh = preMarketCandles.length
     ? Math.max(...preMarketCandles.map((c: Candle) => c.h))
     : null;
 
   // First regular session (9:30 ET) open for gap_pct
   const firstRegularCandle = candles.find((c: Candle) => {
-    const d = new Date(c.t);
-    const etHour = new Date(d.toLocaleString('en-US', { timeZone: 'America/New_York' })).getHours();
-    const etMin = new Date(d.toLocaleString('en-US', { timeZone: 'America/New_York' })).getMinutes();
-    return etHour * 60 + etMin >= 9 * 60 + 30;
+    return getEtTotalMinutes(c.t) >= 9 * 60 + 30;
   });
+
   const openFirst = firstRegularCandle?.o ?? openDay;
 
   const rows1m: string[] = [];
-  // Solo velas entre 6:00 AM y 3:00 PM ET
+
+  // Solo velas entre 6:00 AM y 5:00 PM ET
   for (let i = 0; i < candles.length; i++) {
     const c = candles[i];
     if (!isInTradingWindow(c.t)) continue;
+
     const candlesUpToNow = candles.slice(0, i + 1);
     const atr = calculateAtr(candlesUpToNow, 14);
     const vwap = calculateVwap(candlesUpToNow);
@@ -173,8 +192,6 @@ async function processStock(entry: TopGainerEntry): Promise<ProcessResult | null
       }),
       atr,
       vwap,
-      highOfDay,
-      lowOfDay,
       changePctAtCandle: changePct,
       ema9: ema9Values[i],
       ema20: ema20Values[i],
@@ -187,6 +204,7 @@ async function processStock(entry: TopGainerEntry): Promise<ProcessResult | null
       openFirst,
       premarketVolume,
     });
+
     rows1m.push(rowToCsv(row));
   }
 
@@ -202,6 +220,7 @@ async function processStock(entry: TopGainerEntry): Promise<ProcessResult | null
     preMarketHigh,
     isInWindow: isInTradingWindow,
   });
+
   const rows5m = rows5mObjs.map((r) => rowToCsv(r));
 
   return { rows1m, rows5m, symbol, date };
@@ -211,8 +230,8 @@ async function main() {
   const args = process.argv.slice(2);
   let limit = PROCESS_LIMIT;
   let outputPath = path.join(DATA_DIR, 'training.csv');
+  let concurrency = 10;
 
-  let concurrency = 1;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--limit' && args[i + 1]) {
       limit = parseInt(args[i + 1], 10);
@@ -227,8 +246,21 @@ async function main() {
   }
 
   if (!fs.existsSync(TOP_GAINERS_PATH)) {
-    console.error(`Missing ${TOP_GAINERS_PATH}. Run: curl -o data/top_gainers.json https://www.historicalpercentgainers.com/static/top_gainers.json`);
+    console.error(
+      `Missing ${TOP_GAINERS_PATH}. Run: curl -o data/top_gainers.json https://www.historicalpercentgainers.com/static/top_gainers.json`
+    );
     process.exit(1);
+  }
+
+  let stockProfilePath = path.join(DATA_DIR, 'stock_profile.csv');
+
+  if (fs.existsSync(stockProfilePath)) {
+    const raw = fs.readFileSync(stockProfilePath, 'utf-8');
+    const stockProfiles = raw.split('\n').map((line) => line.split(','));
+    for (const profile of stockProfiles) {
+      const [symbol, sharesOutstanding, marketCap] = profile;
+      setFundamentals(symbol, { symbol, sharesOutstanding: sharesOutstanding || null, marketCap: marketCap || null, previousClose: null });
+    }
   }
 
   const raw = fs.readFileSync(TOP_GAINERS_PATH, 'utf-8');
@@ -243,17 +275,27 @@ async function main() {
 
   let sortedDates = [...byDate.keys()].sort((a, b) => b.localeCompare(a));
   const dataToDate = DATA_TO_DATE || new Date().toISOString().slice(0, 10);
+
   if (DATA_FROM_DATE || DATA_TO_DATE) {
-    sortedDates = sortedDates.filter((d) => d >= (DATA_FROM_DATE || '') && d <= dataToDate);
-    // Oldest first so we reach DATA_FROM_DATE before hitting limit
+    sortedDates = sortedDates.filter(
+      (d) => d >= (DATA_FROM_DATE || '') && d <= dataToDate
+    );
     sortedDates.reverse();
-    console.log(`Filtering: dates ${DATA_FROM_DATE || '...'} to ${dataToDate} (${sortedDates.length} dates), oldest first`);
+    console.log(
+      `Filtering: dates ${DATA_FROM_DATE || '...'} to ${dataToDate} (${sortedDates.length} dates), oldest first`
+    );
   }
 
   const appendMode = !CSV_REWRITE;
-  const outputStream = fs.createWriteStream(outputPath, { flags: appendMode ? 'a' : 'w' });
+  const outputStream = fs.createWriteStream(outputPath, {
+    flags: appendMode ? 'a' : 'w',
+  });
+
   const outputPath5m = path.join(DATA_DIR, 'training-5m.csv');
-  const outputStream5m = fs.createWriteStream(outputPath5m, { flags: appendMode ? 'a' : 'w' });
+  const outputStream5m = fs.createWriteStream(outputPath5m, {
+    flags: appendMode ? 'a' : 'w',
+  });
+
   if (!appendMode) {
     outputStream.write(getCsvHeader() + '\n');
     outputStream5m.write(getCsvHeader() + '\n');
@@ -265,8 +307,9 @@ async function main() {
 
   for (const date of sortedDates) {
     if (processed >= limit) break;
+
     const list = byDate.get(date)!;
-    const entries = list.filter((e) => e.percent_gain >= 20);
+    const entries = list.filter((e) => e.percent_gain >= 10);
     const toProcess = entries.slice(0, limit - processed);
     if (toProcess.length === 0) continue;
 
@@ -275,8 +318,10 @@ async function main() {
 
     for (const r of results) {
       if (!r) continue;
+
       for (const line of r.rows1m) outputStream.write(line + '\n');
       for (const line of r.rows5m) outputStream5m.write(line + '\n');
+
       totalRows1m += r.rows1m.length;
       totalRows5m += r.rows5m.length;
       processed++;
@@ -285,6 +330,7 @@ async function main() {
 
   outputStream.end();
   outputStream5m.end();
+
   console.log(`\nDone. Wrote ${totalRows1m} rows to ${outputPath}`);
   console.log(`Done. Wrote ${totalRows5m} rows to ${outputPath5m}`);
 }

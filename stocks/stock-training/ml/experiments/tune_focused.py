@@ -42,12 +42,14 @@ EMBARGO = 30
 
 # Top configs to tune — chosen by composite score / practical usefulness
 CONFIGS = [
-    ("LightGBM", "D_all", "bin_mfr10m_1p5"),
-    ("XGBoost", "D_clean_ext", "mc_rr10m"),
-    ("LightGBM", "D_clean_ext", "bin_mfr10m_1atr"),
     ("LightGBM", "D_clean_ext", "bin_rr10m_ge_2"),
-    ("LightGBM", "D1_core_momentum", "mc_rr10m"),
-    ("LightGBM", "D_clean_ext", "mc_rr10m"),
+    ("XGBoost", "D_all", "bin_rr10m_ge_2"),
+    ("LightGBM", "D_all", "bin_mfr10m_1p5"),
+    ("XGBoost", "D_all", "bin_mfr10m_1p5"),
+    ("XGBoost", "D_clean", "bin_mfr10m_1p5"),
+    ("XGBoost", "D3_liquidity_context", "bin_mfr10m_1atr"),
+    ("LightGBM", "D3_liquidity_context", "bin_mfr10m_1p5atr"),
+    ("XGBoost", "D_all", "bin_first_touch_10m_2p5")
 ]
 
 

@@ -1,11 +1,11 @@
 {
-  "count": 2056,
-  "goods": 806,
-  "bads": 1075,
-  "neutrals": 175,
-  "goodRate": 0.39202334630350194,
-  "badRate": 0.5228599221789884,
-  "neutralRate": 0.08511673151750973,
-  "avgFutureMaxReturn": 0.055366407490688205,
-  "avgFutureMinReturn": -0.03738115176332102
+  "count": 4289,
+  "goods": 1597,
+  "bads": 2321,
+  "neutrals": 371,
+  "goodRate": 0.3723478666355794,
+  "badRate": 0.5411517836325483,
+  "neutralRate": 0.08650034973187223,
+  "avgFutureMaxReturn": 0.035104223770304775,
+  "avgFutureMinReturn": -0.029099869194299254
 }

@@ -40,9 +40,11 @@ def _load_completed() -> set:
     if not csv_path.exists():
         return set()
     try:
+        print(f"Loading completed combos from {csv_path}")
         df = pd.read_csv(csv_path)
         return set(zip(df["model"], df["feature_set"], df["target"]))
-    except Exception:
+    except Exception as e:
+        print(f"Error loading completed combos: {e}")
         return set()
 
 
@@ -99,6 +101,7 @@ def run_grid(
     print(f"  Loaded {len(df_base)} rows in {time.time() - t0:.1f}s")
 
     # 2. Feature engineering
+    print(f"Adding features to {len(df_base)} rows")
     t0 = time.time()
     df = add_features(df_base)
     print(f"  Feature engineering done ({df.shape[1]} cols) in {time.time() - t0:.1f}s")
@@ -322,6 +325,8 @@ def main():
     parser.add_argument("--targets", nargs="+", help="Filter targets (e.g. mc_2p5 bin_mfr10m_1p5)")
     parser.add_argument("--quick", action="store_true", help="Quick test with reduced grid")
     args = parser.parse_args()
+
+    # _load_completed()
 
     run_grid(
         models_filter=args.models,

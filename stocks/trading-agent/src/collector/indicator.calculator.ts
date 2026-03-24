@@ -106,15 +106,8 @@ export function computeCandleRow(
   // Candle index: count from 0 for today
   const candle_idx = n - 1;
 
-  // VWAP (cumulative)
-  let cumTPV = 0;
-  let cumV = 0;
-  for (const c of history) {
-    const tp = (c.h + c.l + c.c) / 3;
-    cumTPV += tp * c.v;
-    cumV += c.v;
-  }
-  const vwap = cumV > 0 ? cumTPV / cumV : candle.c;
+  // VWAP
+  const vwap = calculateVwap(history);
 
   // EMA9 & EMA20
   const ema9 = computeEma(history.map((c) => c.c), 9);
@@ -205,6 +198,19 @@ export function computeCandleRow(
     original_timestamp_ms: candle.t,
   };
 }
+
+function calculateVwap(candles: CollectorCandle[]): number | null {
+  if (!candles.length) return null;
+  let totalPV = 0;
+  let totalV = 0;
+  for (const c of candles) {
+    const typical = (c.h + c.l + c.c) / 3;
+    totalPV += typical * c.v;
+    totalV += c.v;
+  }
+  return totalV > 0 ? totalPV / totalV : null;
+}
+
 
 function computeEma(values: number[], period: number): number {
   if (!values.length) return 0;

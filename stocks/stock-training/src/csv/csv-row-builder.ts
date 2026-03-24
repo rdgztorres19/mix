@@ -39,6 +39,28 @@ export interface BuildRowInput {
   premarketVolume: number;
 }
 
+const etMinutesCache = new Map<string | number, number>();
+
+const etFormatter = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/New_York',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+});
+
+function getEtTotalMinutes(tsMsOrIso: number | string): number {
+  const cached = etMinutesCache.get(tsMsOrIso);
+  if (cached != null) return cached;
+
+  const parts = etFormatter.formatToParts(new Date(tsMsOrIso));
+  const hour = Number(parts.find((p) => p.type === 'hour')?.value ?? '0');
+  const minute = Number(parts.find((p) => p.type === 'minute')?.value ?? '0');
+  const total = hour * 60 + minute;
+
+  etMinutesCache.set(tsMsOrIso, total);
+  return total;
+}
+
 export function buildCsvRow(input: BuildRowInput): CsvRow {
   const {
     symbol,
@@ -63,9 +85,50 @@ export function buildCsvRow(input: BuildRowInput): CsvRow {
     premarketVolume,
   } = input;
 
-  const highOfDayUpToT = Math.max(...candles.slice(0, candleIdx + 1).map((c) => c.h));
+  const currentTotalMin = getEtTotalMinutes(candle.t);
+  const isPremarket = currentTotalMin < 9 * 60 + 30;
 
-  const gapPct = computeGapPct(priorClose, openFirst);
+  // Una sola pasada hasta candleIdx para evitar slice/map/filter repetidos
+  let highOfDayUpToT = Number.NEGATIVE_INFINITY;
+  let lowOfDayUpToT = Number.POSITIVE_INFINITY;
+
+  let preMarketHighUpToT: number | null = null;
+  let premarketVolumeUpToT = 0;
+
+  for (let i = 0; i <= candleIdx; i++) {
+    const c = candles[i];
+    if (!c) continue;
+
+    if (c.h > highOfDayUpToT) highOfDayUpToT = c.h;
+    if (c.l < lowOfDayUpToT) lowOfDayUpToT = c.l;
+
+    const totalMin = getEtTotalMinutes(c.t);
+    if (totalMin < 9 * 60 + 30) {
+      premarketVolumeUpToT += c.v;
+      if (preMarketHighUpToT == null || c.h > preMarketHighUpToT) {
+        preMarketHighUpToT = c.h;
+      }
+    }
+  }
+
+  if (highOfDayUpToT === Number.NEGATIVE_INFINITY) highOfDayUpToT = candle.h;
+  if (lowOfDayUpToT === Number.POSITIVE_INFINITY) lowOfDayUpToT = candle.l;
+
+  const preMarketHighSafe = isPremarket ? preMarketHighUpToT : preMarketHigh;
+  const premarketVolumeSafe = isPremarket ? premarketVolumeUpToT : premarketVolume;
+
+  // Si la fila es premarket, el open regular de 9:30 aún no debería conocerse
+  const gapPct = isPremarket ? null : computeGapPct(priorClose, openFirst);
+
+  // const preMarketHighSafe = isPremarket
+  //   ? (
+  //       premarketCandlesUpToNow.length
+  //         ? Math.max(...premarketCandlesUpToNow.map((c) => c.h))
+  //         : null
+  //     )
+  //   : preMarketHigh;
+
+  // const gapPct = computeGapPct(priorClose, openFirst);
   const change = computeChange(candles, candleIdx);
   const minutesSinceHod = computeMinutesSinceHod(candles, candleIdx, highOfDayUpToT);
   const momentumAcumulado = computeMomentumAcumulado(candle.c, openDay);
@@ -88,16 +151,16 @@ export function buildCsvRow(input: BuildRowInput): CsvRow {
     atr,
     vwap,
     high_of_day: highOfDayUpToT,
-    low_of_day: lowOfDay,
+    low_of_day: lowOfDayUpToT,
     change_pct_at_candle: changePctAtCandle,
     ema9,
     ema20,
-    pre_market_high: preMarketHigh,
+    pre_market_high: preMarketHighSafe,
     session,
     shares_outstanding: fundamentals.sharesOutstanding,
     market_cap: fundamentals.marketCap,
     gap_pct: gapPct,
-    premarket_volume: premarketVolume,
+    premarket_volume: premarketVolumeSafe,
     momentum_acumulado: momentumAcumulado,
     change_1m: change.change_1m,
     change_5m: change.change_5m,

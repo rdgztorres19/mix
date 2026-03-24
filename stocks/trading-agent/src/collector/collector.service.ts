@@ -338,7 +338,7 @@ export class CollectorService implements OnModuleInit {
    * Get list of actively traded symbols (for prediction/trading only).
    */
   getActiveSymbolList(): string[] {
-    return this.getSymbolsList() || [...this.activeSymbols];
+    return [...this.activeSymbols];
   }
 
   /**

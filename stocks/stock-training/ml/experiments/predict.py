@@ -26,12 +26,10 @@ import pandas as pd
 warnings.filterwarnings("ignore")
 
 # BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_model" 
-BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "LightGBM_D_clean_ext_bin_rr10m_ge_2"   # LightGBM, features D_clean_ext, target binario: probabilidad de que en 10 min el RR sea >= 2
-# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "LightGBM_D_clean_ext_bin_mfr10m_1atr"  # LightGBM, features D_clean_ext, target binario: probabilidad de que el movimiento favorable máximo en 10 min sea >= 1 ATR
-# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "LightGBM_D_clean_ext_mc_rr10m"          # LightGBM, features D_clean_ext, target multiclase: clasifica si en 10 min el resultado esperado es bearish / neutral / bullish según RR
-# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "LightGBM_D1_core_momentum_mc_rr10m"     # LightGBM, features D1_core_momentum, target multiclase RR a 10 min; usa solo el bloque core de momentum
-# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "XGBoost_D_clean_ext_mc_rr10m"           # XGBoost, features D_clean_ext, target multiclase RR a 10 min
-# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "LightGBM_D_all_bin_mfr10m_1p5"         # LightGBM, features D_all, target binario: probabilidad de que el movimiento favorable máximo en 10 min sea >= 1.5%
+# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "history_models" / "LightGBM_D_clean_ext_bin_rr10m_ge_2"   # LightGBM, features D_clean_ext, target binario: probabilidad de que en 10 min el RR sea >= 2
+BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "LightGBM_D_clean_ext_bin_rr10m_ge_2"   # LightGBM, features D_clean_ext, target binario: probabilidad de que en 10 min el RR sea >= 2 
+# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "XGBoost_D_all_bin_rr10m_ge_2"   # LightGBM, features D_clean_ext, target binario: probabilidad de que en 10 min el RR sea >= 2
+# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "LightGBM_D3_liquidity_context_bin_mfr10m_1p5atr"   # LightGBM, features D_clean_ext, target binario: probabilidad de que en 10 min el RR sea >= 2
 
 DEFAULT_THRESHOLD = 0.6
 

@@ -1,0 +1,12 @@
+{
+  "count": 4289,
+  "positive": 858,
+  "elite": 429,
+  "negative": 3431,
+  "positiveRate": 0.2000466309162975,
+  "eliteRate": 0.10002331545814876,
+  "negativeRate": 0.7999533690837025,
+  "avgBuyOpportunities": 3.9664257402657963,
+  "avgSellFailures": 11.410818372581021,
+  "avgMomentumQualityScore": -7.470758297787853
+}

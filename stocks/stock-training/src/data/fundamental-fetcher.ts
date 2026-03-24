@@ -31,6 +31,16 @@ async function fetchFromProfile2(ticker: string, token: string): Promise<Fundame
   return { ...EMPTY, sharesOutstanding, marketCap };
 }
 
+export async function setFundamentals(ticker: string, fundamentals: Fundamentals): Promise<void> {
+  const key = ticker.toUpperCase();
+  cache.set(key, fundamentals);
+}
+
+export async function getFundamentals(ticker: string): Promise<Fundamentals> {
+  const key = ticker.toUpperCase();
+  return cache.get(key) ?? EMPTY;
+}
+
 export async function fetchFundamentals(ticker: string): Promise<Fundamentals> {
   const key = ticker.toUpperCase();
   const cached = cache.get(key);
@@ -48,7 +58,10 @@ export async function fetchFundamentals(ticker: string): Promise<Fundamentals> {
     cache.set(key, result);
     return result;
   } catch (err) {
-    if (axios.isAxiosError(err) && err.response?.status === 429) throw err;
+    if (axios.isAxiosError(err) && err.response?.status === 429) {
+      console.log(`ticker ${key} is rate limited`);
+      throw err;
+    }
     console.warn(`[fundamentals] ${key}:`, err instanceof Error ? err.message : err);
     cache.set(key, EMPTY);
     return EMPTY;

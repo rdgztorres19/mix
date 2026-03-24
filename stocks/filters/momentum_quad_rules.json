@@ -1,0 +1,842 @@
+[
+  {
+    "name": null,
+    "rule": "pm_range_pct <= 0.172337 AND distance_to_pm_high_pct <= 0.143423 AND distance_to_hod_pct <= 0.134409 AND pm_close_vs_high_pct >= -0.125192",
+    "conditions": [
+      {
+        "feature": "pm_range_pct",
+        "type": "lte",
+        "value": 0.1723371648
+      },
+      {
+        "feature": "distance_to_pm_high_pct",
+        "type": "lte",
+        "value": 0.1434230295
+      },
+      {
+        "feature": "distance_to_hod_pct",
+        "type": "lte",
+        "value": 0.1344086022
+      },
+      {
+        "feature": "pm_close_vs_high_pct",
+        "type": "gte",
+        "value": -0.1251917404
+      }
+    ],
+    "stats": {
+      "count": 1201,
+      "positive": 471,
+      "elite": 249,
+      "negative": 730,
+      "positiveRate": 0.39217318900915904,
+      "eliteRate": 0.2073272273105745,
+      "negativeRate": 0.607826810990841,
+      "lift": 0.19212655809286153,
+      "avgBuyOpportunities": 5.6744379683597,
+      "avgSellFailures": 6.740216486261449,
+      "avgMomentumQualityScore": 5.099111968324169
+    },
+    "score": 9.451616680147527,
+    "lift": 0.19212655809286153,
+    "ok": true
+  },
+  {
+    "name": null,
+    "rule": "pm_range_pct <= 0.172337 AND distance_to_pm_high_pct <= 0.143423 AND volume_vs_premarket_volume >= 0.091719 AND pm_close_vs_high_pct >= -0.125192",
+    "conditions": [
+      {
+        "feature": "pm_range_pct",
+        "type": "lte",
+        "value": 0.1723371648
+      },
+      {
+        "feature": "distance_to_pm_high_pct",
+        "type": "lte",
+        "value": 0.1434230295
+      },
+      {
+        "feature": "volume_vs_premarket_volume",
+        "type": "gte",
+        "value": 0.0917185035
+      },
+      {
+        "feature": "pm_close_vs_high_pct",
+        "type": "gte",
+        "value": -0.1251917404
+      }
+    ],
+    "stats": {
+      "count": 1042,
+      "positive": 421,
+      "elite": 222,
+      "negative": 621,
+      "positiveRate": 0.4040307101727447,
+      "eliteRate": 0.21305182341650672,
+      "negativeRate": 0.5959692898272553,
+      "lift": 0.2039840792564472,
+      "avgBuyOpportunities": 5.739923224568138,
+      "avgSellFailures": 6.575815738963532,
+      "avgMomentumQualityScore": 5.501541390300064
+    },
+    "score": 9.403648294550408,
+    "lift": 0.2039840792564472,
+    "ok": true
+  },
+  {
+    "name": null,
+    "rule": "pm_range_pct <= 0.172337 AND distance_to_pm_high_pct <= 0.095557 AND volume_vs_premarket_volume >= 0.091719 AND pm_close_vs_high_pct >= -0.125192",
+    "conditions": [
+      {
+        "feature": "pm_range_pct",
+        "type": "lte",
+        "value": 0.1723371648
+      },
+      {
+        "feature": "distance_to_pm_high_pct",
+        "type": "lte",
+        "value": 0.0955566635
+      },
+      {
+        "feature": "volume_vs_premarket_volume",
+        "type": "gte",
+        "value": 0.0917185035
+      },
+      {
+        "feature": "pm_close_vs_high_pct",
+        "type": "gte",
+        "value": -0.1251917404
+      }
+    ],
+    "stats": {
+      "count": 966,
+      "positive": 396,
+      "elite": 211,
+      "negative": 570,
+      "positiveRate": 0.40993788819875776,
+      "eliteRate": 0.21842650103519667,
+      "negativeRate": 0.5900621118012422,
+      "lift": 0.20989125728246025,
+      "avgBuyOpportunities": 5.727743271221532,
+      "avgSellFailures": 6.364389233954451,
+      "avgMomentumQualityScore": 5.80399451714524
+    },
+    "score": 9.377250040549274,
+    "lift": 0.20989125728246025,
+    "ok": true
+  },
+  {
+    "name": null,
+    "rule": "pm_range_pct <= 0.172337 AND distance_to_pm_high_pct <= 0.143423 AND volume_vs_premarket_volume >= 0.091719 AND distance_to_hod_pct <= 0.134409",
+    "conditions": [
+      {
+        "feature": "pm_range_pct",
+        "type": "lte",
+        "value": 0.1723371648
+      },
+      {
+        "feature": "distance_to_pm_high_pct",
+        "type": "lte",
+        "value": 0.1434230295
+      },
+      {
+        "feature": "volume_vs_premarket_volume",
+        "type": "gte",
+        "value": 0.0917185035
+      },
+      {
+        "feature": "distance_to_hod_pct",
+        "type": "lte",
+        "value": 0.1344086022
+      }
+    ],
+    "stats": {
+      "count": 1038,
+      "positive": 419,
+      "elite": 221,
+      "negative": 619,
+      "positiveRate": 0.40366088631984587,
+      "eliteRate": 0.21290944123314065,
+      "negativeRate": 0.5963391136801541,
+      "lift": 0.20361425540354836,
+      "avgBuyOpportunities": 5.736994219653179,
+      "avgSellFailures": 6.556840077071291,
+      "avgMomentumQualityScore": 5.524138241407255
+    },
+    "score": 9.367432205634993,
+    "lift": 0.20361425540354836,
+    "ok": true
+  },
+  {
+    "name": null,
+    "rule": "pm_range_pct <= 0.172337 AND volume_vs_premarket_volume >= 0.091719 AND distance_to_hod_pct <= 0.134409 AND pm_close_vs_high_pct >= -0.125192",
+    "conditions": [
+      {
+        "feature": "pm_range_pct",
+        "type": "lte",
+        "value": 0.1723371648
+      },
+      {
+        "feature": "volume_vs_premarket_volume",
+        "type": "gte",
+        "value": 0.0917185035
+      },
+      {
+        "feature": "distance_to_hod_pct",
+        "type": "lte",
+        "value": 0.1344086022
+      },
+      {
+        "feature": "pm_close_vs_high_pct",
+        "type": "gte",
+        "value": -0.1251917404
+      }
+    ],
+    "stats": {
+      "count": 1036,
+      "positive": 418,
+      "elite": 221,
+      "negative": 618,
+      "positiveRate": 0.4034749034749035,
+      "eliteRate": 0.2133204633204633,
+      "negativeRate": 0.5965250965250966,
+      "lift": 0.203428272558606,
+      "avgBuyOpportunities": 5.7335907335907335,
+      "avgSellFailures": 6.557915057915058,
+      "avgMomentumQualityScore": 5.51406161835016
+    },
+    "score": 9.356275251563071,
+    "lift": 0.203428272558606,
+    "ok": true
+  },
+  {
+    "name": null,
+    "rule": "volume_vs_premarket_volume >= 0.162184 AND pm_range_pct <= 0.267983 AND distance_to_pm_high_pct <= 0.095557 AND distance_to_hod_pct <= 0.134409",
+    "conditions": [
+      {
+        "feature": "volume_vs_premarket_volume",
+        "type": "gte",
+        "value": 0.1621840231
+      },
+      {
+        "feature": "pm_range_pct",
+        "type": "lte",
+        "value": 0.2679825552
+      },
+      {
+        "feature": "distance_to_pm_high_pct",
+        "type": "lte",
+        "value": 0.0955566635
+      },
+      {
+        "feature": "distance_to_hod_pct",
+        "type": "lte",
+        "value": 0.1344086022
+      }
+    ],
+    "stats": {
+      "count": 957,
+      "positive": 392,
+      "elite": 211,
+      "negative": 565,
+      "positiveRate": 0.4096133751306165,
+      "eliteRate": 0.22048066875653083,
+      "negativeRate": 0.5903866248693835,
+      "lift": 0.209566744214319,
+      "avgBuyOpportunities": 5.7701149425287355,
+      "avgSellFailures": 6.475444096133751,
+      "avgMomentumQualityScore": 5.696647936553652
+    },
+    "score": 9.34850833825751,
+    "lift": 0.209566744214319,
+    "ok": true
+  },
+  {
+    "name": null,
+    "rule": "volume_vs_premarket_volume >= 0.162184 AND pm_range_pct <= 0.267983 AND distance_to_pm_high_pct <= 0.095557 AND pm_close_vs_high_pct >= -0.125192",
+    "conditions": [
+      {
+        "feature": "volume_vs_premarket_volume",
+        "type": "gte",
+        "value": 0.1621840231
+      },
+      {
+        "feature": "pm_range_pct",
+        "type": "lte",
+        "value": 0.2679825552
+      },
+      {
+        "feature": "distance_to_pm_high_pct",
+        "type": "lte",
+        "value": 0.0955566635
+      },
+      {
+        "feature": "pm_close_vs_high_pct",
+        "type": "gte",
+        "value": -0.1251917404
+      }
+    ],
+    "stats": {
+      "count": 953,
+      "positive": 391,
+      "elite": 209,
+      "negative": 562,
+      "positiveRate": 0.41028331584470096,
+      "eliteRate": 0.2193074501573977,
+      "negativeRate": 0.5897166841552991,
+      "lift": 0.21023668492840344,
+      "avgBuyOpportunities": 5.755508919202518,
+      "avgSellFailures": 6.478488982161595,
+      "avgMomentumQualityScore": 5.660498906708433
+    },
+    "score": 9.340572708937867,
+    "lift": 0.21023668492840344,
+    "ok": true
+  },
+  {
+    "name": null,
+    "rule": "pm_range_pct <= 0.172337 AND distance_to_pm_high_pct <= 0.095557 AND volume_vs_premarket_volume >= 0.091719 AND distance_to_hod_pct <= 0.134409",
+    "conditions": [
+      {
+        "feature": "pm_range_pct",
+        "type": "lte",
+        "value": 0.1723371648
+      },
+      {
+        "feature": "distance_to_pm_high_pct",
+        "type": "lte",
+        "value": 0.0955566635
+      },
+      {
+        "feature": "volume_vs_premarket_volume",
+        "type": "gte",
+        "value": 0.0917185035
+      },
+      {
+        "feature": "distance_to_hod_pct",
+        "type": "lte",
+        "value": 0.1344086022
+      }
+    ],
+    "stats": {
+      "count": 966,
+      "positive": 395,
+      "elite": 211,
+      "negative": 571,
+      "positiveRate": 0.40890269151138714,
+      "eliteRate": 0.21842650103519667,
+      "negativeRate": 0.5910973084886129,
+      "lift": 0.20885606059508963,
+      "avgBuyOpportunities": 5.72463768115942,
+      "avgSellFailures": 6.364389233954451,
+      "avgMomentumQualityScore": 5.795515293599722
+    },
+    "score": 9.333814502533349,
+    "lift": 0.20885606059508963,
+    "ok": true
+  },
+  {
+    "name": null,
+    "rule": "volume_vs_premarket_volume >= 0.162184 AND pm_range_pct <= 0.267983 AND distance_to_pm_high_pct <= 0.143423 AND distance_to_hod_pct <= 0.134409",
+    "conditions": [
+      {
+        "feature": "volume_vs_premarket_volume",
+        "type": "gte",
+        "value": 0.1621840231
+      },
+      {
+        "feature": "pm_range_pct",
+        "type": "lte",
+        "value": 0.2679825552
+      },
+      {
+        "feature": "distance_to_pm_high_pct",
+        "type": "lte",
+        "value": 0.1434230295
+      },
+      {
+        "feature": "distance_to_hod_pct",
+        "type": "lte",
+        "value": 0.1344086022
+      }
+    ],
+    "stats": {
+      "count": 1033,
+      "positive": 416,
+      "elite": 222,
+      "negative": 617,
+      "positiveRate": 0.4027105517909003,
+      "eliteRate": 0.2149080348499516,
+      "negativeRate": 0.5972894482090997,
+      "lift": 0.2026639208746028,
+      "avgBuyOpportunities": 5.771539206195547,
+      "avgSellFailures": 6.695062923523717,
+      "avgMomentumQualityScore": 5.336527781762616
+    },
+    "score": 9.332515190827609,
+    "lift": 0.2026639208746028,
+    "ok": true
+  },
+  {
+    "name": null,
+    "rule": "pm_range_pct <= 0.267983 AND distance_to_pm_high_pct <= 0.095557 AND volume_vs_premarket_volume >= 0.091719 AND pm_close_vs_high_pct >= -0.125192",
+    "conditions": [
+      {
+        "feature": "pm_range_pct",
+        "type": "lte",
+        "value": 0.2679825552
+      },
+      {
+        "feature": "distance_to_pm_high_pct",
+        "type": "lte",
+        "value": 0.0955566635
+      },
+      {
+        "feature": "volume_vs_premarket_volume",
+        "type": "gte",
+        "value": 0.0917185035
+      },
+      {
+        "feature": "pm_close_vs_high_pct",
+        "type": "gte",
+        "value": -0.1251917404
+      }
+    ],
+    "stats": {
+      "count": 1121,
+      "positive": 443,
+      "elite": 235,
+      "negative": 678,
+      "positiveRate": 0.3951828724353256,
+      "eliteRate": 0.2096342551293488,
+      "negativeRate": 0.6048171275646744,
+      "lift": 0.19513624151902811,
+      "avgBuyOpportunities": 5.785905441570026,
+      "avgSellFailures": 6.761819803746655,
+      "avgMomentumQualityScore": 5.195582434395818
+    },
+    "score": 9.302196919491221,
+    "lift": 0.19513624151902811,
+    "ok": true
+  },
+  {
+    "name": null,
+    "rule": "pm_range_pct <= 0.267983 AND distance_to_pm_high_pct <= 0.095557 AND volume_vs_premarket_volume >= 0.091719 AND distance_to_hod_pct <= 0.134409",
+    "conditions": [
+      {
+        "feature": "pm_range_pct",
+        "type": "lte",
+        "value": 0.2679825552
+      },
+      {
+        "feature": "distance_to_pm_high_pct",
+        "type": "lte",
+        "value": 0.0955566635
+      },
+      {
+        "feature": "volume_vs_premarket_volume",
+        "type": "gte",
+        "value": 0.0917185035
+      },
+      {
+        "feature": "distance_to_hod_pct",
+        "type": "lte",
+        "value": 0.1344086022
+      }
+    ],
+    "stats": {
+      "count": 1126,
+      "positive": 444,
+      "elite": 237,
+      "negative": 682,
+      "positiveRate": 0.39431616341030196,
+      "eliteRate": 0.21047957371225579,
+      "negativeRate": 0.605683836589698,
+      "lift": 0.19426953249400444,
+      "avgBuyOpportunities": 5.7948490230905865,
+      "avgSellFailures": 6.764653641207815,
+      "avgMomentumQualityScore": 5.206850870836652
+    },
+    "score": 9.296421249393832,
+    "lift": 0.19426953249400444,
+    "ok": true
+  },
+  {
+    "name": null,
+    "rule": "pm_range_pct <= 0.172337 AND distance_to_pm_high_pct <= 0.095557 AND pm_close_vs_high_pct >= -0.085259 AND volume_vs_premarket_volume >= 0.091719",
+    "conditions": [
+      {
+        "feature": "pm_range_pct",
+        "type": "lte",
+        "value": 0.1723371648
+      },
+      {
+        "feature": "distance_to_pm_high_pct",
+        "type": "lte",
+        "value": 0.0955566635
+      },
+      {
+        "feature": "pm_close_vs_high_pct",
+        "type": "gte",
+        "value": -0.0852594079
+      },
+      {
+        "feature": "volume_vs_premarket_volume",
+        "type": "gte",
+        "value": 0.0917185035
+      }
+    ],
+    "stats": {
+      "count": 936,
+      "positive": 384,
+      "elite": 207,
+      "negative": 552,
+      "positiveRate": 0.41025641025641024,
+      "eliteRate": 0.22115384615384615,
+      "negativeRate": 0.5897435897435898,
+      "lift": 0.21020977934011273,
+      "avgBuyOpportunities": 5.715811965811966,
+      "avgSellFailures": 6.340811965811966,
+      "avgMomentumQualityScore": 5.827761437043358
+    },
+    "score": 9.28119609541456,
+    "lift": 0.21020977934011273,
+    "ok": true
+  },
+  {
+    "name": null,
+    "rule": "pm_range_pct <= 0.172337 AND distance_to_pm_high_pct <= 0.095557 AND distance_to_hod_pct <= 0.134409 AND pm_close_vs_high_pct >= -0.125192",
+    "conditions": [
+      {
+        "feature": "pm_range_pct",
+        "type": "lte",
+        "value": 0.1723371648
+      },
+      {
+        "feature": "distance_to_pm_high_pct",
+        "type": "lte",
+        "value": 0.0955566635
+      },
+      {
+        "feature": "distance_to_hod_pct",
+        "type": "lte",
+        "value": 0.1344086022
+      },
+      {
+        "feature": "pm_close_vs_high_pct",
+        "type": "gte",
+        "value": -0.1251917404
+      }
+    ],
+    "stats": {
+      "count": 1108,
+      "positive": 438,
+      "elite": 233,
+      "negative": 670,
+      "positiveRate": 0.3953068592057762,
+      "eliteRate": 0.21028880866425992,
+      "negativeRate": 0.6046931407942239,
+      "lift": 0.19526022828947867,
+      "avgBuyOpportunities": 5.61913357400722,
+      "avgSellFailures": 6.5640794223826715,
+      "avgMomentumQualityScore": 5.24543281784778
+    },
+    "score": 9.263477960084296,
+    "lift": 0.19526022828947867,
+    "ok": true
+  },
+  {
+    "name": null,
+    "rule": "pm_range_pct <= 0.172337 AND pm_close_vs_high_pct >= -0.085259 AND volume_vs_premarket_volume >= 0.091719 AND distance_to_hod_pct <= 0.134409",
+    "conditions": [
+      {
+        "feature": "pm_range_pct",
+        "type": "lte",
+        "value": 0.1723371648
+      },
+      {
+        "feature": "pm_close_vs_high_pct",
+        "type": "gte",
+        "value": -0.0852594079
+      },
+      {
+        "feature": "volume_vs_premarket_volume",
+        "type": "gte",
+        "value": 0.0917185035
+      },
+      {
+        "feature": "distance_to_hod_pct",
+        "type": "lte",
+        "value": 0.1344086022
+      }
+    ],
+    "stats": {
+      "count": 982,
+      "positive": 397,
+      "elite": 214,
+      "negative": 585,
+      "positiveRate": 0.40427698574338083,
+      "eliteRate": 0.21792260692464357,
+      "negativeRate": 0.5957230142566191,
+      "lift": 0.20423035482708332,
+      "avgBuyOpportunities": 5.721995926680244,
+      "avgSellFailures": 6.502036659877801,
+      "avgMomentumQualityScore": 5.591135483746204
+    },
+    "score": 9.208000511597977,
+    "lift": 0.20423035482708332,
+    "ok": true
+  },
+  {
+    "name": null,
+    "rule": "volume_vs_premarket_volume >= 0.162184 AND pm_range_pct <= 0.267983 AND distance_to_pm_high_pct <= 0.095557 AND distance_to_hod_pct <= 0.087511",
+    "conditions": [
+      {
+        "feature": "volume_vs_premarket_volume",
+        "type": "gte",
+        "value": 0.1621840231
+      },
+      {
+        "feature": "pm_range_pct",
+        "type": "lte",
+        "value": 0.2679825552
+      },
+      {
+        "feature": "distance_to_pm_high_pct",
+        "type": "lte",
+        "value": 0.0955566635
+      },
+      {
+        "feature": "distance_to_hod_pct",
+        "type": "lte",
+        "value": 0.0875109857
+      }
+    ],
+    "stats": {
+      "count": 937,
+      "positive": 383,
+      "elite": 206,
+      "negative": 554,
+      "positiveRate": 0.4087513340448239,
+      "eliteRate": 0.2198505869797225,
+      "negativeRate": 0.5912486659551761,
+      "lift": 0.20870470312852638,
+      "avgBuyOpportunities": 5.745997865528282,
+      "avgSellFailures": 6.44076840981857,
+      "avgMomentumQualityScore": 5.684151114091798
+    },
+    "score": 9.206004722221847,
+    "lift": 0.20870470312852638,
+    "ok": true
+  },
+  {
+    "name": null,
+    "rule": "volume_vs_premarket_volume >= 0.162184 AND pm_range_pct <= 0.267983 AND distance_to_hod_pct <= 0.087511 AND distance_to_pm_high_pct <= 0.143423",
+    "conditions": [
+      {
+        "feature": "volume_vs_premarket_volume",
+        "type": "gte",
+        "value": 0.1621840231
+      },
+      {
+        "feature": "pm_range_pct",
+        "type": "lte",
+        "value": 0.2679825552
+      },
+      {
+        "feature": "distance_to_hod_pct",
+        "type": "lte",
+        "value": 0.0875109857
+      },
+      {
+        "feature": "distance_to_pm_high_pct",
+        "type": "lte",
+        "value": 0.1434230295
+      }
+    ],
+    "stats": {
+      "count": 937,
+      "positive": 383,
+      "elite": 206,
+      "negative": 554,
+      "positiveRate": 0.4087513340448239,
+      "eliteRate": 0.2198505869797225,
+      "negativeRate": 0.5912486659551761,
+      "lift": 0.20870470312852638,
+      "avgBuyOpportunities": 5.745997865528282,
+      "avgSellFailures": 6.44076840981857,
+      "avgMomentumQualityScore": 5.684151114091798
+    },
+    "score": 9.206004722221847,
+    "lift": 0.20870470312852638,
+    "ok": true
+  },
+  {
+    "name": null,
+    "rule": "pm_range_pct <= 0.172337 AND distance_to_pm_high_pct <= 0.143423 AND pm_close_vs_high_pct >= -0.085259 AND volume_vs_premarket_volume >= 0.091719",
+    "conditions": [
+      {
+        "feature": "pm_range_pct",
+        "type": "lte",
+        "value": 0.1723371648
+      },
+      {
+        "feature": "distance_to_pm_high_pct",
+        "type": "lte",
+        "value": 0.1434230295
+      },
+      {
+        "feature": "pm_close_vs_high_pct",
+        "type": "gte",
+        "value": -0.0852594079
+      },
+      {
+        "feature": "volume_vs_premarket_volume",
+        "type": "gte",
+        "value": 0.0917185035
+      }
+    ],
+    "stats": {
+      "count": 985,
+      "positive": 398,
+      "elite": 214,
+      "negative": 587,
+      "positiveRate": 0.4040609137055838,
+      "eliteRate": 0.21725888324873097,
+      "negativeRate": 0.5959390862944163,
+      "lift": 0.20401428278928627,
+      "avgBuyOpportunities": 5.7187817258883245,
+      "avgSellFailures": 6.522842639593908,
+      "avgMomentumQualityScore": 5.548936796825592
+    },
+    "score": 9.203526277415971,
+    "lift": 0.20401428278928627,
+    "ok": true
+  },
+  {
+    "name": null,
+    "rule": "volume_vs_premarket_volume >= 0.162184 AND pm_range_pct <= 0.267983 AND distance_to_hod_pct <= 0.134409 AND pm_close_vs_high_pct >= -0.125192",
+    "conditions": [
+      {
+        "feature": "volume_vs_premarket_volume",
+        "type": "gte",
+        "value": 0.1621840231
+      },
+      {
+        "feature": "pm_range_pct",
+        "type": "lte",
+        "value": 0.2679825552
+      },
+      {
+        "feature": "distance_to_hod_pct",
+        "type": "lte",
+        "value": 0.1344086022
+      },
+      {
+        "feature": "pm_close_vs_high_pct",
+        "type": "gte",
+        "value": -0.1251917404
+      }
+    ],
+    "stats": {
+      "count": 1025,
+      "positive": 411,
+      "elite": 219,
+      "negative": 614,
+      "positiveRate": 0.4009756097560976,
+      "eliteRate": 0.21365853658536585,
+      "negativeRate": 0.5990243902439024,
+      "lift": 0.20092897883980007,
+      "avgBuyOpportunities": 5.744390243902439,
+      "avgSellFailures": 6.710243902439024,
+      "avgMomentumQualityScore": 5.248030774969934
+    },
+    "score": 9.203319788095556,
+    "lift": 0.20092897883980007,
+    "ok": true
+  },
+  {
+    "name": null,
+    "rule": "pm_range_pct <= 0.267983 AND distance_to_pm_high_pct <= 0.095557 AND distance_to_hod_pct <= 0.087511 AND volume_vs_premarket_volume >= 0.091719",
+    "conditions": [
+      {
+        "feature": "pm_range_pct",
+        "type": "lte",
+        "value": 0.2679825552
+      },
+      {
+        "feature": "distance_to_pm_high_pct",
+        "type": "lte",
+        "value": 0.0955566635
+      },
+      {
+        "feature": "distance_to_hod_pct",
+        "type": "lte",
+        "value": 0.0875109857
+      },
+      {
+        "feature": "volume_vs_premarket_volume",
+        "type": "gte",
+        "value": 0.0917185035
+      }
+    ],
+    "stats": {
+      "count": 1092,
+      "positive": 431,
+      "elite": 230,
+      "negative": 661,
+      "positiveRate": 0.3946886446886447,
+      "eliteRate": 0.21062271062271062,
+      "negativeRate": 0.6053113553113553,
+      "lift": 0.19464201377234716,
+      "avgBuyOpportunities": 5.7756410256410255,
+      "avgSellFailures": 6.708791208791209,
+      "avgMomentumQualityScore": 5.246767337564419
+    },
+    "score": 9.173736326427372,
+    "lift": 0.19464201377234716,
+    "ok": true
+  },
+  {
+    "name": null,
+    "rule": "pm_range_pct <= 0.267983 AND distance_to_hod_pct <= 0.087511 AND distance_to_pm_high_pct <= 0.143423 AND volume_vs_premarket_volume >= 0.091719",
+    "conditions": [
+      {
+        "feature": "pm_range_pct",
+        "type": "lte",
+        "value": 0.2679825552
+      },
+      {
+        "feature": "distance_to_hod_pct",
+        "type": "lte",
+        "value": 0.0875109857
+      },
+      {
+        "feature": "distance_to_pm_high_pct",
+        "type": "lte",
+        "value": 0.1434230295
+      },
+      {
+        "feature": "volume_vs_premarket_volume",
+        "type": "gte",
+        "value": 0.0917185035
+      }
+    ],
+    "stats": {
+      "count": 1092,
+      "positive": 431,
+      "elite": 230,
+      "negative": 661,
+      "positiveRate": 0.3946886446886447,
+      "eliteRate": 0.21062271062271062,
+      "negativeRate": 0.6053113553113553,
+      "lift": 0.19464201377234716,
+      "avgBuyOpportunities": 5.7756410256410255,
+      "avgSellFailures": 6.708791208791209,
+      "avgMomentumQualityScore": 5.246767337564419
+    },
+    "score": 9.173736326427372,
+    "lift": 0.19464201377234716,
+    "ok": true
+  }
+]

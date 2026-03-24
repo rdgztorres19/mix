@@ -71,6 +71,9 @@ async function fetchAlpaca1Min(
       };
       if (pageToken) params.page_token = pageToken;
 
+      const fullUrl = `${url}?${new URLSearchParams(params).toString()}`;
+      console.log(fullUrl);
+
       const res = await axios.get(url, {
         timeout: 15000,
         params,

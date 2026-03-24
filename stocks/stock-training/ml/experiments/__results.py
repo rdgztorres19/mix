@@ -5,8 +5,8 @@ import csv
 # =========================
 # CONFIG
 # =========================
-CSV_FILE = "experiments/results/grid_results.csv"  # cambia esto por tu archivo
-TOP_N = 10
+CSV_FILE = "results/grid_results.csv"  # cambia esto por tu archivo
+TOP_N = 30
 EXPECTED_COLUMNS = [
     "model","feature_set","target","is_multiclass","n_test","accuracy",
     "precision_macro","recall_macro","f1_macro",

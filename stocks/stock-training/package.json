@@ -7,6 +7,7 @@
   "scripts": {
     "build": "tsc",
     "exec": "npm run download-gainers && npm run build-csv",
+    "download-gainers-v1": "NODE_OPTIONS=--max-old-space-size=16384 tsx scripts/download-gainers.ts",
     "download-gainers": "tsx scripts/download-top-gainers.ts",
     "build-csv": "tsx scripts/build-training-csv.ts",
     "build-training": "tsx scripts/build-training-csv.ts",

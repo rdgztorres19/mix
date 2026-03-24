@@ -2,14 +2,15 @@
 
 const fs = require("fs");
 const path = require("path");
+const readline = require("readline");
 
 const CONFIG = {
   inputFile: process.argv[2] || "../stock-training/data/backups/training.csv",
   outputDir: ".",
 
   // TARGET calculado por el script
-  tpPct: 0.08, // +8%
-  slPct: 0.04, // -4%
+  tpPct: 0.04, // +8%
+  slPct: 0.02, // -4%
   targetCutoffMinutes: 720, // 12:00 PM ET
 
   quantiles: [0.25, 0.5, 0.75],
@@ -154,141 +155,172 @@ function formatMinutes(mins) {
   return `${hh}:${String(mm).padStart(2, "0")}`;
 }
 
-function parseCsv(filePath) {
-  log(`Leyendo CSV: ${filePath}`);
-  const raw = fs.readFileSync(filePath, "utf8");
-  const lines = raw
-    .split(/\r?\n/)
-    .map(x => x.trimEnd())
-    .filter(x => x.length > 0);
+function parseRowFromParts(parts) {
+  if (parts.length < 15) return null;
 
-  if (!lines.length) throw new Error("CSV vacío");
+  const row = {};
+  for (let c = 0; c < LEADING_COLUMNS.length; c++) {
+    row[LEADING_COLUMNS[c]] = parts[c] ?? "";
+  }
 
-  const delimiter = detectDelimiter(lines[0]);
-  log(`Delimitador detectado: ${delimiter === "\t" ? "TAB" : "COMMA"}`);
+  const numericFields = [
+    "candle_idx",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "atr",
+    "vwap",
+    "high_of_day",
+    "low_of_day",
+    "change_pct_at_candle",
+    "ema9",
+    "ema20",
+    "pre_market_high",
+    "shares_outstanding",
+    "market_cap",
+    "gap_pct",
+    "premarket_volume",
+    "momentum_acumulado",
+    "change_1m",
+    "change_5m",
+    "change_10m",
+    "minutes_since_hod",
+  ];
 
-  const firstParts = lines[0].split(delimiter).map(x => x.trim());
-  const hasHeader =
-    firstParts[0]?.toLowerCase() === "symbol" ||
-    firstParts.includes("close");
+  for (const f of numericFields) row[f] = toNum(row[f]);
 
-  log(`Header detectado: ${hasHeader ? "sí" : "no"}`);
+  row.symbol = String(row.symbol || "").trim();
+  row.date = String(row.date || "").trim();
+  row.candle_time_et = String(row.candle_time_et || "").trim();
+  row.session = String(row.session || "").trim();
+  row.time_minutes = parseTimeToMinutes(row.candle_time_et);
 
-  const startIndex = hasHeader ? 1 : 0;
+  if (CONFIG.dropBadRows) {
+    if (!Number.isFinite(row.close) || row.close <= 0) return null;
+    if (!Number.isFinite(row.high) || !Number.isFinite(row.low)) return null;
+  }
+
+  row.dollar_volume =
+    Number.isFinite(row.close) && Number.isFinite(row.volume)
+      ? row.close * row.volume
+      : NaN;
+
+  row.premarket_dollar_volume =
+    Number.isFinite(row.close) && Number.isFinite(row.premarket_volume)
+      ? row.close * row.premarket_volume
+      : NaN;
+
+  row.distance_to_hod_pct =
+    Number.isFinite(row.high_of_day) && Number.isFinite(row.close) && row.close !== 0
+      ? (row.high_of_day - row.close) / row.close
+      : NaN;
+
+  row.distance_to_pm_high_pct =
+    Number.isFinite(row.pre_market_high) && Number.isFinite(row.close) && row.close !== 0
+      ? (row.pre_market_high - row.close) / row.close
+      : NaN;
+
+  row.distance_to_vwap_pct =
+    Number.isFinite(row.vwap) && row.vwap !== 0 && Number.isFinite(row.close)
+      ? (row.close - row.vwap) / row.vwap
+      : NaN;
+
+  row.ema_spread_pct =
+    Number.isFinite(row.ema9) && Number.isFinite(row.ema20) && row.ema20 !== 0
+      ? (row.ema9 - row.ema20) / row.ema20
+      : NaN;
+
+  row.extension_vs_atr =
+    Number.isFinite(row.close) &&
+    Number.isFinite(row.ema9) &&
+    Number.isFinite(row.atr) &&
+    row.atr !== 0
+      ? (row.close - row.ema9) / row.atr
+      : NaN;
+
+  row.close_gt_vwap =
+    Number.isFinite(row.close) && Number.isFinite(row.vwap)
+      ? (row.close > row.vwap ? "1" : "0")
+      : "NA";
+
+  row.ema9_gt_ema20 =
+    Number.isFinite(row.ema9) && Number.isFinite(row.ema20)
+      ? (row.ema9 > row.ema20 ? "1" : "0")
+      : "NA";
+
+  row.close_gt_ema9 =
+    Number.isFinite(row.close) && Number.isFinite(row.ema9)
+      ? (row.close > row.ema9 ? "1" : "0")
+      : "NA";
+
+  row.close_gt_ema20 =
+    Number.isFinite(row.close) && Number.isFinite(row.ema20)
+      ? (row.close > row.ema20 ? "1" : "0")
+      : "NA";
+
+  return row;
+}
+
+async function parseCsv(filePath) {
+  log(`Leyendo CSV por streaming: ${filePath}`);
+
+  const stream = fs.createReadStream(filePath, { encoding: "utf8" });
+  const rl = readline.createInterface({
+    input: stream,
+    crlfDelay: Infinity,
+  });
+
+  let delimiter = ",";
+  let hasHeader = false;
+  let firstNonEmptySeen = false;
+  let lineNumber = 0;
+  let parsedCount = 0;
+  let skippedCount = 0;
   const rows = [];
 
-  for (let i = startIndex; i < lines.length; i++) {
-    if (i % 50000 === 0 && i > startIndex) log(`Parseando fila ${i}...`);
+  for await (const rawLine of rl) {
+    lineNumber++;
+    const line = String(rawLine).trimEnd();
+    if (!line) continue;
 
-    const parts = lines[i].split(delimiter);
-    if (parts.length < 15) continue;
+    if (!firstNonEmptySeen) {
+      firstNonEmptySeen = true;
+      delimiter = detectDelimiter(line);
 
-    const row = {};
-    for (let c = 0; c < LEADING_COLUMNS.length; c++) {
-      row[LEADING_COLUMNS[c]] = parts[c] ?? "";
+      const firstParts = line.split(delimiter).map(x => x.trim());
+      hasHeader =
+        firstParts[0]?.toLowerCase() === "symbol" ||
+        firstParts.includes("close");
+
+      log(`Delimitador detectado: ${delimiter === "\t" ? "TAB" : "COMMA"}`);
+      log(`Header detectado: ${hasHeader ? "sí" : "no"}`);
+
+      if (hasHeader) {
+        continue;
+      }
     }
 
-    const numericFields = [
-      "candle_idx",
-      "open",
-      "high",
-      "low",
-      "close",
-      "volume",
-      "atr",
-      "vwap",
-      "high_of_day",
-      "low_of_day",
-      "change_pct_at_candle",
-      "ema9",
-      "ema20",
-      "pre_market_high",
-      "shares_outstanding",
-      "market_cap",
-      "gap_pct",
-      "premarket_volume",
-      "momentum_acumulado",
-      "change_1m",
-      "change_5m",
-      "change_10m",
-      "minutes_since_hod",
-    ];
-
-    for (const f of numericFields) row[f] = toNum(row[f]);
-
-    row.symbol = String(row.symbol || "").trim();
-    row.date = String(row.date || "").trim();
-    row.candle_time_et = String(row.candle_time_et || "").trim();
-    row.session = String(row.session || "").trim();
-    row.time_minutes = parseTimeToMinutes(row.candle_time_et);
-
-    if (CONFIG.dropBadRows) {
-      if (!Number.isFinite(row.close) || row.close <= 0) continue;
-      if (!Number.isFinite(row.high) || !Number.isFinite(row.low)) continue;
+    if (lineNumber % 50000 === 0) {
+      log(`Procesando línea ${lineNumber}... válidas=${parsedCount}, descartadas=${skippedCount}`);
     }
 
-    row.dollar_volume =
-      Number.isFinite(row.close) && Number.isFinite(row.volume)
-        ? row.close * row.volume
-        : NaN;
+    const parts = line.split(delimiter);
+    const row = parseRowFromParts(parts);
 
-    row.premarket_dollar_volume =
-      Number.isFinite(row.close) && Number.isFinite(row.premarket_volume)
-        ? row.close * row.premarket_volume
-        : NaN;
-
-    row.distance_to_hod_pct =
-      Number.isFinite(row.high_of_day) && Number.isFinite(row.close) && row.close !== 0
-        ? (row.high_of_day - row.close) / row.close
-        : NaN;
-
-    row.distance_to_pm_high_pct =
-      Number.isFinite(row.pre_market_high) && Number.isFinite(row.close) && row.close !== 0
-        ? (row.pre_market_high - row.close) / row.close
-        : NaN;
-
-    row.distance_to_vwap_pct =
-      Number.isFinite(row.vwap) && row.vwap !== 0 && Number.isFinite(row.close)
-        ? (row.close - row.vwap) / row.vwap
-        : NaN;
-
-    row.ema_spread_pct =
-      Number.isFinite(row.ema9) && Number.isFinite(row.ema20) && row.ema20 !== 0
-        ? (row.ema9 - row.ema20) / row.ema20
-        : NaN;
-
-    row.extension_vs_atr =
-      Number.isFinite(row.close) &&
-      Number.isFinite(row.ema9) &&
-      Number.isFinite(row.atr) &&
-      row.atr !== 0
-        ? (row.close - row.ema9) / row.atr
-        : NaN;
-
-    row.close_gt_vwap =
-      Number.isFinite(row.close) && Number.isFinite(row.vwap)
-        ? (row.close > row.vwap ? "1" : "0")
-        : "NA";
-
-    row.ema9_gt_ema20 =
-      Number.isFinite(row.ema9) && Number.isFinite(row.ema20)
-        ? (row.ema9 > row.ema20 ? "1" : "0")
-        : "NA";
-
-    row.close_gt_ema9 =
-      Number.isFinite(row.close) && Number.isFinite(row.ema9)
-        ? (row.close > row.ema9 ? "1" : "0")
-        : "NA";
-
-    row.close_gt_ema20 =
-      Number.isFinite(row.close) && Number.isFinite(row.ema20)
-        ? (row.close > row.ema20 ? "1" : "0")
-        : "NA";
+    if (!row) {
+      skippedCount++;
+      continue;
+    }
 
     rows.push(row);
+    parsedCount++;
   }
 
   log(`Filas parseadas válidas: ${rows.length}`);
+  log(`Filas descartadas: ${skippedCount}`);
+
   return rows;
 }
 
@@ -608,14 +640,14 @@ function printRules(title, rules, n = 10) {
   }
 }
 
-function main() {
+async function main() {
   const inputPath = path.resolve(CONFIG.inputFile);
   if (!fs.existsSync(inputPath)) {
     console.error(`No existe archivo: ${inputPath}`);
     process.exit(1);
   }
 
-  const allRows = parseCsv(inputPath);
+  const allRows = await parseCsv(inputPath);
   const rows = buildStockDayDataset(allRows);
   const baseline = computeStats(rows);
 
@@ -659,4 +691,7 @@ function main() {
   log("- generated-prefilter-stockday.js");
 }
 
-main();
+main().catch(err => {
+  console.error("Fatal error:", err);
+  process.exit(1);
+});

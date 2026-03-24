@@ -127,6 +127,7 @@ let AutoTraderService = class AutoTraderService {
     }
     async shouldEnterTrade(result, row) {
         if (!result.tradeable || !this.tradeEnabled || !this.alpaca.isEnabled()) return false;
+        return true;
         // if (!this.isBeforeNoonET(row.candle_time_et)) return false;
         const prefilter = await this.mysqlRepo.passesPrefilterForToday(row.symbol);
         console.log('prefilter', prefilter, row.symbol);
