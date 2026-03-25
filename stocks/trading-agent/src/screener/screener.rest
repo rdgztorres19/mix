@@ -1,0 +1,15 @@
+### Obtener top gappers
+GET http://localhost:3033/screener/gappers
+Accept: application/json
+
+### Obtener top gainers
+GET http://localhost:3033/screener/gainers
+Accept: application/json
+
+### Obtener symbols combinados
+GET http://localhost:3033/screener/combined
+Accept: application/json
+
+### Forzar sincronización de rankings
+POST http://localhost:3033/screener/force-sync
+Accept: application/json

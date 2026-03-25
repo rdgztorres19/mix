@@ -10,6 +10,7 @@ import { PredictorModule } from './predictor/predictor.module';
 import { CollectorModule } from './collector/collector.module';
 import { TraderModule } from './trader/trader.module';
 import { WebSocketModule } from './websocket/websocket.module';
+import { ScreenerModule } from './screener/screener.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { WebSocketModule } from './websocket/websocket.module';
     PredictorModule,
     CollectorModule,
     TraderModule,
+    ScreenerModule,
   ],
 })
 export class AppModule {}

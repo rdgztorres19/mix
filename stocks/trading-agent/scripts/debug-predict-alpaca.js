@@ -20,6 +20,7 @@
  *   fromTime=09:30, toTime=11:00, threshold=0.7, TP=4, SL=2
  */
 
+const fs = require('fs');
 const axios = require('axios');
 const { spawn } = require('child_process');
 const path = require('path');
@@ -496,6 +497,9 @@ function buildRowsFromBars(symbol, nyDate, bars) {
       priorHod > 0 && future5.some(r => r.high > priorHod) ? 1 : 0;
   }
 
+  //save rows to file
+  fs.writeFileSync(path.resolve(barsPath), JSON.stringify(rows, null, 2));
+
   return rows;
 }
 
@@ -538,6 +542,7 @@ function hitTpBeforeSl(futureCandles, refClose, tpPct, slPct) {
 // Python predict_batch
 // ──────────────────────────────────────────────────────────────────────────────
 const stockTraining = path.resolve(__dirname, '..', '..', 'stock-training');
+const barsPath = path.resolve(__dirname, '..', '..', 'stock-training', 'data', 'bars.json');
 const predictBatchScript = path.join(stockTraining, 'ml', 'experiments', 'predict_batch.py');
 
 function callPredictBatch(batch, threshold) {

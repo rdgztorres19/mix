@@ -12,6 +12,7 @@
     "debug-metrics": "node scripts/debug-stock-metrics.js --",
     "debug-predict": "node scripts/debug-predict.js --",
     "debug-predict-csv": "node scripts/debug-predict-csv.js --",
+    "debug-predict-csv-day-summary": "node scripts/debug-predict-csv-day-summary.js --",
     "verify-sync": "node scripts/verify-data-sync.js",
     "quick-test": "node scripts/quick-sync-test.js",
     "historical-test": "node scripts/historical-sync-test.js",
