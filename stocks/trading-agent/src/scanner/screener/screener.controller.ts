@@ -12,12 +12,32 @@ export class ScreenerController {
 
   @Get('gainers')
   getGainers() {
+    return this.screenerService.getGainersDetailed();
+  }
+
+  @Get('gainers/session')
+  getGainersSession() {
     return this.screenerService.getTopGainers();
   }
 
   @Get('combined')
   getCombined() {
     return this.screenerService.getCombinedSymbols();
+  }
+
+  @Get(['active', 'active-symbols'])
+  getActive() {
+    return this.screenerService.getActiveDetailed();
+  }
+
+  @Get('highs')
+  getHighs() {
+    return this.screenerService.getTopHighs();
+  }
+
+  @Get('status')
+  getStatus() {
+    return this.screenerService.getStatus();
   }
 
   @Post('force-sync')

@@ -11,9 +11,12 @@ Object.defineProperty(exports, "ScreenerModule", {
 const _common = require("@nestjs/common");
 const _screenerservice = require("./screener.service");
 const _screenercontroller = require("./screener.controller");
-const _alpacabatchservice = require("./batch/alpaca-batch.service");
 const _rankingservice = require("./ranking/ranking.service");
 const _assetsservice = require("./assets/assets.service");
+const _screenerrepository = require("./persistence/screener.repository");
+const _alpacascreenerclient = require("./alpaca/alpaca-screener.client");
+const _activesymbolsservice = require("./active/active-symbols.service");
+const _screenercron = require("./schedule/screener.cron");
 function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -25,17 +28,21 @@ let ScreenerModule = class ScreenerModule {
 ScreenerModule = _ts_decorate([
     (0, _common.Module)({
         providers: [
-            _screenerservice.ScreenerService,
-            _alpacabatchservice.AlpacaBatchService,
+            _screenerrepository.ScreenerRepository,
+            _alpacascreenerclient.AlpacaScreenerClient,
+            _assetsservice.AssetsService,
+            _activesymbolsservice.ActiveSymbolsService,
             _rankingservice.RankingService,
-            _assetsservice.AssetsService
+            _screenerservice.ScreenerService,
+            _screenercron.ScreenerCron
         ],
         controllers: [
             _screenercontroller.ScreenerController
         ],
         exports: [
             _screenerservice.ScreenerService,
-            _rankingservice.RankingService
+            _rankingservice.RankingService,
+            _screenerrepository.ScreenerRepository
         ]
     })
 ], ScreenerModule);

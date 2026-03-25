@@ -1,1 +1,0 @@
-Este módulo fue movido desde stocks/screener/ a src/screener/ para que funcione correctamente con NestJS y las rutas relativas en producción.

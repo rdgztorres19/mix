@@ -1,17 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AlpacaBatchService } from './batch/alpaca-batch.service';
 import { RankingService } from './ranking/ranking.service';
-import { AssetsService } from './assets/assets.service';
 
 @Injectable()
 export class ScreenerService {
   private readonly logger = new Logger(ScreenerService.name);
 
-  constructor(
-    private readonly alpacaBatch: AlpacaBatchService,
-    private readonly ranking: RankingService,
-    private readonly assets: AssetsService,
-  ) {}
+  constructor(private readonly ranking: RankingService) {}
 
   async getTopGappers() {
     return this.ranking.getTopGappers();
@@ -19,6 +13,30 @@ export class ScreenerService {
 
   async getTopGainers() {
     return this.ranking.getTopGainers();
+  }
+
+  async getGainersDetailed() {
+    const [session, intraday] = await Promise.all([
+      this.ranking.getTopGainersSession(),
+      this.ranking.getTopGainersIntraday(),
+    ]);
+    return { session, intraday };
+  }
+
+  async getTopHighs() {
+    return this.ranking.getTopHighs();
+  }
+
+  async getActiveSymbols() {
+    return this.ranking.getCombinedSymbols();
+  }
+
+  async getActiveDetailed() {
+    return this.ranking.getActiveRows();
+  }
+
+  async getStatus() {
+    return this.ranking.getStatus();
   }
 
   async getCombinedSymbols() {

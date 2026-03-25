@@ -1,0 +1,33 @@
+@baseUrl = http://localhost:3033
+
+### Top gappers (último ranking persistido)
+GET {{baseUrl}}/screener/gappers
+Accept: application/json
+
+### Top gainers — session + intraday
+GET {{baseUrl}}/screener/gainers
+Accept: application/json
+
+### Top gainers — solo sesión (lista plana)
+GET {{baseUrl}}/screener/gainers/session
+Accept: application/json
+
+### Symbols activos (dedupe global top 40)
+GET {{baseUrl}}/screener/combined
+Accept: application/json
+
+### Active symbols — con score y rank
+GET {{baseUrl}}/screener/active
+Accept: application/json
+
+### Highs — session vs current
+GET {{baseUrl}}/screener/highs
+Accept: application/json
+
+### Status — última corrida screener
+GET {{baseUrl}}/screener/status
+Accept: application/json
+
+### Forzar pipeline completo (mismo que cron de mercado)
+POST {{baseUrl}}/screener/force-sync
+Accept: application/json

@@ -10,7 +10,7 @@ import { PredictorModule } from './predictor/predictor.module';
 import { CollectorModule } from './collector/collector.module';
 import { TraderModule } from './trader/trader.module';
 import { WebSocketModule } from './websocket/websocket.module';
-import { ScreenerModule } from './screener/screener.module';
+import { ScreenerModule } from './scanner/screener/screener.module';
 
 @Module({
   imports: [

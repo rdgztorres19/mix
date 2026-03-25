@@ -24,10 +24,22 @@ let ScreenerController = class ScreenerController {
         return this.screenerService.getTopGappers();
     }
     getGainers() {
+        return this.screenerService.getGainersDetailed();
+    }
+    getGainersSession() {
         return this.screenerService.getTopGainers();
     }
     getCombined() {
         return this.screenerService.getCombinedSymbols();
+    }
+    getActive() {
+        return this.screenerService.getActiveDetailed();
+    }
+    getHighs() {
+        return this.screenerService.getTopHighs();
+    }
+    getStatus() {
+        return this.screenerService.getStatus();
     }
     async forceSync() {
         return this.screenerService.forceSync();
@@ -49,11 +61,38 @@ _ts_decorate([
     _ts_metadata("design:returntype", void 0)
 ], ScreenerController.prototype, "getGainers", null);
 _ts_decorate([
+    (0, _common.Get)('gainers/session'),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", []),
+    _ts_metadata("design:returntype", void 0)
+], ScreenerController.prototype, "getGainersSession", null);
+_ts_decorate([
     (0, _common.Get)('combined'),
     _ts_metadata("design:type", Function),
     _ts_metadata("design:paramtypes", []),
     _ts_metadata("design:returntype", void 0)
 ], ScreenerController.prototype, "getCombined", null);
+_ts_decorate([
+    (0, _common.Get)([
+        'active',
+        'active-symbols'
+    ]),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", []),
+    _ts_metadata("design:returntype", void 0)
+], ScreenerController.prototype, "getActive", null);
+_ts_decorate([
+    (0, _common.Get)('highs'),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", []),
+    _ts_metadata("design:returntype", void 0)
+], ScreenerController.prototype, "getHighs", null);
+_ts_decorate([
+    (0, _common.Get)('status'),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", []),
+    _ts_metadata("design:returntype", void 0)
+], ScreenerController.prototype, "getStatus", null);
 _ts_decorate([
     (0, _common.Post)('force-sync'),
     (0, _common.HttpCode)(200),

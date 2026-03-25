@@ -448,6 +448,8 @@ async function buildRowsFromBars(symbol, nyDate, bars, fromTime = null, toTime =
                 ? (openFirst - openDay) / openDay
                 : 0;
 
+        const changePct = priorClose > 0 ? (c.c - priorClose) / priorClose : 0;
+
         allRows.push({
             symbol,
             date: row.date,

@@ -9,9 +9,7 @@ Object.defineProperty(exports, "ScreenerService", {
     }
 });
 const _common = require("@nestjs/common");
-const _alpacabatchservice = require("./batch/alpaca-batch.service");
 const _rankingservice = require("./ranking/ranking.service");
-const _assetsservice = require("./assets/assets.service");
 function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -28,6 +26,28 @@ let ScreenerService = class ScreenerService {
     async getTopGainers() {
         return this.ranking.getTopGainers();
     }
+    async getGainersDetailed() {
+        const [session, intraday] = await Promise.all([
+            this.ranking.getTopGainersSession(),
+            this.ranking.getTopGainersIntraday()
+        ]);
+        return {
+            session,
+            intraday
+        };
+    }
+    async getTopHighs() {
+        return this.ranking.getTopHighs();
+    }
+    async getActiveSymbols() {
+        return this.ranking.getCombinedSymbols();
+    }
+    async getActiveDetailed() {
+        return this.ranking.getActiveRows();
+    }
+    async getStatus() {
+        return this.ranking.getStatus();
+    }
     async getCombinedSymbols() {
         return this.ranking.getCombinedSymbols();
     }
@@ -35,10 +55,8 @@ let ScreenerService = class ScreenerService {
         this.logger.log('Manual force sync triggered');
         return this.ranking.syncAllRankings();
     }
-    constructor(alpacaBatch, ranking, assets){
-        this.alpacaBatch = alpacaBatch;
+    constructor(ranking){
         this.ranking = ranking;
-        this.assets = assets;
         this.logger = new _common.Logger(ScreenerService.name);
     }
 };
@@ -46,9 +64,7 @@ ScreenerService = _ts_decorate([
     (0, _common.Injectable)(),
     _ts_metadata("design:type", Function),
     _ts_metadata("design:paramtypes", [
-        typeof _alpacabatchservice.AlpacaBatchService === "undefined" ? Object : _alpacabatchservice.AlpacaBatchService,
-        typeof _rankingservice.RankingService === "undefined" ? Object : _rankingservice.RankingService,
-        typeof _assetsservice.AssetsService === "undefined" ? Object : _assetsservice.AssetsService
+        typeof _rankingservice.RankingService === "undefined" ? Object : _rankingservice.RankingService
     ])
 ], ScreenerService);
 
