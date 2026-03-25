@@ -1,0 +1,29 @@
+@baseUrl = http://localhost:3033
+
+### Features (hoy ET por defecto) para un simbolo
+POST {{baseUrl}}/collector/features/today-candles
+Content-Type: application/json
+
+{
+  "symbols": ["ANNA", "ASRT"]
+}
+
+### Features para multiples simbolos + fecha explicita
+POST {{baseUrl}}/collector/features/today-candles
+Content-Type: application/json
+
+{
+  "symbols": ["AAPL", "TSLA", "NVDA"],
+  "date": "2026-03-25"
+}
+
+### Features via symbolsCsv + includeCandles
+POST {{baseUrl}}/collector/features/today-candles
+Content-Type: application/json
+
+{
+  "symbolsCsv": "AAPL, TSLA, NVDA",
+  "date": "2026-03-25",
+  "includeCandles": true
+}
+

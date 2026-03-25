@@ -21,6 +21,7 @@ const _topgainerssourceservice = require("./top-gainers-source.service");
 const _scannedtrackerservice = require("./tracker/scanned-tracker.service");
 const _scannedtrackercron = require("./tracker/scanned-tracker.cron");
 const _scannedtrackercontroller = require("./tracker/scanned-tracker.controller");
+const _collectorfeaturepreviewservice = require("./collector-feature-preview.service");
 function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -43,6 +44,7 @@ CollectorModule = _ts_decorate([
         providers: [
             _topgainerssourceservice.TopGainersSourceService,
             _collectorservice.CollectorService,
+            _collectorfeaturepreviewservice.CollectorFeaturePreviewService,
             _collectorcron.CollectorCron,
             _momostreamservice.MomoStreamService,
             _collectorgateway.CollectorGateway,

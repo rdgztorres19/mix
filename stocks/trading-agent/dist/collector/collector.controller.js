@@ -10,6 +10,8 @@ Object.defineProperty(exports, "CollectorController", {
 });
 const _common = require("@nestjs/common");
 const _collectorservice = require("./collector.service");
+const _collectorfeaturepreviewservice = require("./collector-feature-preview.service");
+const _collectorfeaturestodaydto = require("./dto/collector-features-today.dto");
 function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -25,6 +27,13 @@ function _ts_param(paramIndex, decorator) {
     };
 }
 let CollectorController = class CollectorController {
+    /**
+   * POST /collector/features/today-candles
+   * Read-only feature extraction (no MySQL writes/deletes).
+   * Body: { symbols?: string[], symbolsCsv?: string, date?: YYYY-MM-DD, includeCandles?: boolean }
+   */ async getTodayCandleFeatures(body) {
+        return this.featurePreview.buildFeaturesForSymbolsByDate(body);
+    }
     /**
    * POST /collector/sync-symbol-date
    * Fetches 1m bars from Alpaca for symbol+date, deletes existing rows,
@@ -132,12 +141,22 @@ let CollectorController = class CollectorController {
             lastBarTimes
         };
     }
-    constructor(collector, webSocketInit, positionTracker){
+    constructor(collector, featurePreview, webSocketInit, positionTracker){
         this.collector = collector;
+        this.featurePreview = featurePreview;
         this.webSocketInit = webSocketInit;
         this.positionTracker = positionTracker;
     }
 };
+_ts_decorate([
+    (0, _common.Post)('features/today-candles'),
+    _ts_param(0, (0, _common.Body)()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof _collectorfeaturestodaydto.CollectorFeaturesTodayDto === "undefined" ? Object : _collectorfeaturestodaydto.CollectorFeaturesTodayDto
+    ]),
+    _ts_metadata("design:returntype", Promise)
+], CollectorController.prototype, "getTodayCandleFeatures", null);
 _ts_decorate([
     (0, _common.Post)('sync-symbol-date'),
     _ts_param(0, (0, _common.Body)()),
@@ -197,11 +216,12 @@ _ts_decorate([
 ], CollectorController.prototype, "getStreamStatus", null);
 CollectorController = _ts_decorate([
     (0, _common.Controller)('collector'),
-    _ts_param(1, (0, _common.Optional)()),
     _ts_param(2, (0, _common.Optional)()),
+    _ts_param(3, (0, _common.Optional)()),
     _ts_metadata("design:type", Function),
     _ts_metadata("design:paramtypes", [
         typeof _collectorservice.CollectorService === "undefined" ? Object : _collectorservice.CollectorService,
+        typeof _collectorfeaturepreviewservice.CollectorFeaturePreviewService === "undefined" ? Object : _collectorfeaturepreviewservice.CollectorFeaturePreviewService,
         Object,
         Object
     ])

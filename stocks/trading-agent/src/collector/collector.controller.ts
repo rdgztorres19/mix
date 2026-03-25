@@ -2,14 +2,41 @@ import { Controller, Post, Get, Optional, Body } from '@nestjs/common';
 import { CollectorService } from './collector.service';
 import { WebSocketInitService } from '../websocket/websocket-init.service';
 import { PositionTrackerService } from '../trader/position-tracker.service';
+import { CollectorFeaturePreviewService } from './collector-feature-preview.service';
+import { CollectorFeaturesTodayDto } from './dto/collector-features-today.dto';
 
 @Controller('collector')
 export class CollectorController {
   constructor(
     private readonly collector: CollectorService,
+    private readonly featurePreview: CollectorFeaturePreviewService,
     @Optional() private readonly webSocketInit: WebSocketInitService | null,
     @Optional() private readonly positionTracker: PositionTrackerService | null,
   ) {}
+
+  /**
+   * POST /collector/features/today-candles
+   * Read-only feature extraction (no MySQL writes/deletes).
+   * Body: { symbols?: string[], symbolsCsv?: string, date?: YYYY-MM-DD, includeCandles?: boolean }
+   */
+  @Post('features/today-candles')
+  async getTodayCandleFeatures(
+    @Body() body: CollectorFeaturesTodayDto,
+  ): Promise<{
+    ok: boolean;
+    date: string;
+    results: Array<{
+      symbol: string;
+      candlesCount: number;
+      metadata: unknown | null;
+      rows: unknown[];
+      candles?: unknown[];
+      error?: string;
+    }>;
+    error?: string;
+  }> {
+    return this.featurePreview.buildFeaturesForSymbolsByDate(body);
+  }
 
   /**
    * POST /collector/sync-symbol-date

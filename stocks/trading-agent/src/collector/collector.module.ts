@@ -11,6 +11,7 @@ import { TopGainersSourceService } from './top-gainers-source.service';
 import { ScannedTrackerService } from './tracker/scanned-tracker.service';
 import { ScannedTrackerCron } from './tracker/scanned-tracker.cron';
 import { ScannedTrackerController } from './tracker/scanned-tracker.controller';
+import { CollectorFeaturePreviewService } from './collector-feature-preview.service';
 
 @Module({
   imports: [ScannerModule, TraderModule, forwardRef(() => WebSocketModule)],
@@ -18,6 +19,7 @@ import { ScannedTrackerController } from './tracker/scanned-tracker.controller';
   providers: [
     TopGainersSourceService,
     CollectorService,
+    CollectorFeaturePreviewService,
     CollectorCron,
     MomoStreamService,
     CollectorGateway,
