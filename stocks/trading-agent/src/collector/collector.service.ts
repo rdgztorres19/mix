@@ -20,7 +20,7 @@ import { AutoTraderService } from '../trader/auto-trader.service';
 import type { WebSocketInitService } from '../websocket/websocket-init.service';
 import { buildTrainingRow } from '../training/training-row-builder';
 import { computePremarketVolume } from '../training/premarket-volume.feature';
-import { getFundamentals } from '../training/fundamental-cache';
+import { FundamentalCacheService } from '../training/fundamental-cache.service';
 import type { TrainingCandle } from '../training/types';
 import {
   CollectorCandle,
@@ -61,6 +61,7 @@ export class CollectorService implements OnModuleInit {
     private readonly gateway: CollectorGateway,
     private readonly topGainersSource: TopGainersSourceService,
     private readonly scannedTracker: ScannedTrackerService,
+    private readonly fundamentalCache: FundamentalCacheService,
     @Optional() @Inject(AutoTraderService) private readonly autoTrader?: AutoTraderService,
   ) {
     this.momoBase = process.env.MOMO_BASE_URL ?? 'https://momoscreener.com/api/p';
@@ -490,7 +491,7 @@ export class CollectorService implements OnModuleInit {
       ? Math.max(...preMarketCandles.map((c) => c.h))
       : null;
 
-    const fundamentals = await getFundamentals(symbol);
+    const fundamentals = await this.fundamentalCache.getFundamentals(symbol);
     const metadata: SymbolMetadata = {
       priorClose,
       preMarketHigh: preMarketHigh ?? 0,

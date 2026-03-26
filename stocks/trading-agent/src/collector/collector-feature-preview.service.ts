@@ -6,7 +6,7 @@ import { parse as parseDotenv } from 'dotenv';
 import { buildTrainingRow, type TrainingRowOutput } from '../training/training-row-builder';
 import type { TrainingCandle } from '../training/types';
 import { computePremarketVolume } from '../training/premarket-volume.feature';
-import { getFundamentals } from '../training/fundamental-cache';
+import { FundamentalCacheService } from '../training/fundamental-cache.service';
 import { timestampToET, type SymbolMetadata } from './indicator.calculator';
 import type { CollectorFeaturesTodayDto } from './dto/collector-features-today.dto';
 
@@ -35,7 +35,7 @@ export class CollectorFeaturePreviewService {
   private readonly logger = new Logger(CollectorFeaturePreviewService.name);
   private readonly fallbackEnv = this.loadFallbackEnv();
 
-  constructor() {}
+  constructor(private readonly fundamentalCache: FundamentalCacheService) {}
 
   private loadFallbackEnv(): Record<string, string> {
     try {
@@ -227,7 +227,7 @@ export class CollectorFeaturePreviewService {
       const preMarketCandles = trainingCandles.filter((c) => timestampToET(c.t).minuteOfDay < 9 * 60 + 30);
       const preMarketHigh = preMarketCandles.length ? Math.max(...preMarketCandles.map((c) => c.h)) : null;
 
-      const fundamentals = await getFundamentals(symbol);
+      const fundamentals = await this.fundamentalCache.getFundamentals(symbol);
       const metadata: FeaturePreviewMetadata = {
         priorClose,
         preMarketHigh: preMarketHigh ?? 0,

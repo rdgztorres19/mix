@@ -521,4 +521,99 @@ export class MysqlTrainingRepository {
       return 0;
     }
   }
+
+  // ─── Stock profile (fundamentals cache) ───────────────────────────────────
+
+  async ensureStockProfileTable(): Promise<void> {
+    const p = this.getPool();
+    if (!p) return;
+    try {
+      await p.query(`
+        CREATE TABLE IF NOT EXISTS stock_profile (
+          symbol VARCHAR(16) NOT NULL PRIMARY KEY,
+          shares_outstanding DOUBLE NULL,
+          market_cap DOUBLE NULL,
+          updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )
+      `);
+      this.logger.log('stock_profile table ready');
+    } catch (e) {
+      this.logger.warn(`ensureStockProfileTable failed: ${(e as Error).message}`);
+    }
+  }
+
+  async countStockProfileRows(): Promise<number> {
+    const p = this.getPool();
+    if (!p) return 0;
+    try {
+      const [rows] = await p.query<mysql.RowDataPacket[]>('SELECT COUNT(*) AS c FROM stock_profile');
+      return Number(rows[0]?.c ?? 0);
+    } catch (e) {
+      this.logger.warn(`countStockProfileRows failed: ${(e as Error).message}`);
+      return 0;
+    }
+  }
+
+  async loadAllStockProfiles(): Promise<Map<string, { sharesOutstanding: number | null; marketCap: number | null }>> {
+    const map = new Map<string, { sharesOutstanding: number | null; marketCap: number | null }>();
+    const p = this.getPool();
+    if (!p) return map;
+    try {
+      const [rows] = await p.query<mysql.RowDataPacket[]>(
+        'SELECT symbol, shares_outstanding, market_cap FROM stock_profile',
+      );
+      for (const r of rows) {
+        const sym = String(r.symbol ?? '').toUpperCase();
+        if (!sym) continue;
+        map.set(sym, {
+          sharesOutstanding: r.shares_outstanding != null ? Number(r.shares_outstanding) : null,
+          marketCap: r.market_cap != null ? Number(r.market_cap) : null,
+        });
+      }
+    } catch (e) {
+      this.logger.warn(`loadAllStockProfiles failed: ${(e as Error).message}`);
+    }
+    return map;
+  }
+
+  async bulkReplaceStockProfiles(
+    rows: Array<{ symbol: string; sharesOutstanding: number | null; marketCap: number | null }>,
+  ): Promise<void> {
+    const p = this.getPool();
+    if (!p || !rows.length) return;
+    const cols = ['symbol', 'shares_outstanding', 'market_cap'];
+    const CHUNK = 500;
+    for (let i = 0; i < rows.length; i += CHUNK) {
+      const chunk = rows.slice(i, i + CHUNK);
+      const placeholderRow = `(${cols.map(() => '?').join(',')})`;
+      const placeholders = chunk.map(() => placeholderRow).join(',');
+      const values = chunk.flatMap((row) => [
+        row.symbol.toUpperCase(),
+        row.sharesOutstanding,
+        row.marketCap,
+      ]);
+      try {
+        await p.query(`REPLACE INTO stock_profile (${cols.join(',')}) VALUES ${placeholders}`, values);
+      } catch (e) {
+        this.logger.warn(`bulkReplaceStockProfiles chunk failed: ${(e as Error).message}`);
+      }
+    }
+  }
+
+  async upsertStockProfile(
+    symbol: string,
+    sharesOutstanding: number | null,
+    marketCap: number | null,
+  ): Promise<void> {
+    const p = this.getPool();
+    if (!p) return;
+    try {
+      await p.query(
+        `REPLACE INTO stock_profile (symbol, shares_outstanding, market_cap) VALUES (?, ?, ?)`,
+        [symbol.toUpperCase(), sharesOutstanding, marketCap],
+      );
+    } catch (e) {
+      this.logger.warn(`upsertStockProfile failed: ${(e as Error).message}`);
+    }
+  }
 }

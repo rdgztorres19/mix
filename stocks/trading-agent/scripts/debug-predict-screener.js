@@ -4,20 +4,40 @@ const axios = require('axios');
 const { spawn } = require('child_process');
 const path = require('path');
 
-//node debug-predict-screener 2026-03-25 09:30 11:30 0.65 4 2
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3033';
 const MARKET_OPEN = '09:30';
 const INVESTMENT = 200;
 const DEFAULT_BATCH_SIZE = 50;
+const DEFAULT_LOOKAHEAD_CANDLES = 30;
 
 const args = process.argv.slice(2).filter((a) => a !== '--');
-const dateStr = args[0] || new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+
+/**
+ * Usage:
+ *   npm rum debug-predict-screener 2026-03-25 09:30 11:00 0.65 4 2
+ *   node scripts/debug-predict-api.js -- 2026-03-25 09:30 11:00 0.65 4 2
+ *   node scripts/debug-predict-api.js -- 2026-03-25 09:30 11:00 0.65 4 2 50 30
+ *
+ * Args:
+ *   0: date (YYYY-MM-DD)
+ *   1: fromTime (HH:mm)
+ *   2: toTime (HH:mm)
+ *   3: threshold
+ *   4: TP %
+ *   5: SL %
+ *   6: batch size para /collector/features/today-candles
+ *   7: lookahead candles (cuántas velas mirar hacia adelante)
+ */
+
+const dateStr =
+  args[0] || new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
 const fromTime = args[1] || MARKET_OPEN;
 const toTime = args[2] || '11:00';
 const THRESHOLD = parseFloat(args[3]) || 0.7;
 const TP_PCT = parseFloat(args[4]) || 4;
 const SL_PCT = parseFloat(args[5]) || 2;
 const BATCH_SIZE = parseInt(args[6], 10) || DEFAULT_BATCH_SIZE;
+const LOOKAHEAD_CANDLES = parseInt(args[7], 10) || DEFAULT_LOOKAHEAD_CANDLES;
 
 const http = axios.create({
   baseURL: BASE_URL,
@@ -32,12 +52,6 @@ function toNum(v) {
   if (v === '' || v == null) return 0;
   const n = Number(v);
   return Number.isNaN(n) ? 0 : n;
-}
-
-function toNullableNum(v) {
-  if (v === '' || v == null) return null;
-  const n = Number(v);
-  return Number.isNaN(n) ? null : n;
 }
 
 function timeToMin(t) {
@@ -110,20 +124,18 @@ function chunkArray(arr, size) {
 function pickTimeEt(row) {
   return String(
     row.candle_time_et ??
-    row.time ??
-    row.candleTimeEt ??
-    row.time_et ??
-    row.timeET ??
-    ''
+      row.time ??
+      row.candleTimeEt ??
+      row.time_et ??
+      row.timeET ??
+      ''
   ).trim();
 }
 
 function pickSymbol(row) {
-  return String(
-    row.symbol ??
-    row.ticker ??
-    ''
-  ).trim().toUpperCase();
+  return String(row.symbol ?? row.ticker ?? '')
+    .trim()
+    .toUpperCase();
 }
 
 function sortRows(rows) {
@@ -186,25 +198,29 @@ function groupRowsBySymbol(rows) {
   return map;
 }
 
-function hitTpBeforeSl(futureCandles, refClose, tpPct, slPct) {
+function hitTpBeforeSl(futureCandles, refClose, tpPct, slPct, lookaheadCandles) {
   if (!futureCandles.length || refClose <= 0) return 'neutral';
 
   const levelUp = refClose * (1 + tpPct);
   const levelDown = refClose * (1 - slPct);
   let prevClose = refClose;
 
-  for (let j = 0; j < Math.min(10, futureCandles.length); j++) {
+  for (let j = 0; j < Math.min(lookaheadCandles, futureCandles.length); j++) {
     const { o: openJ, h: highJ, l: lowJ, c: closeJ } = futureCandles[j];
 
+    // gap up por encima del TP
     if (prevClose < openJ) {
       if (prevClose < levelUp && levelUp < openJ) return 'win';
-    } else if (prevClose > openJ) {
+    }
+    // gap down por debajo del SL
+    else if (prevClose > openJ) {
       if (openJ < levelDown && levelDown < prevClose) return 'loss';
     }
 
     const touchUp = highJ >= levelUp;
     const touchDown = lowJ <= levelDown;
 
+    // si toca ambos en la misma vela
     if (touchUp && touchDown) {
       if (closeJ >= openJ) return 'loss';
       return 'win';
@@ -232,8 +248,12 @@ function callPredictBatch(batch, threshold) {
     let stdout = '';
     let stderr = '';
 
-    proc.stdout.on('data', (c) => { stdout += c; });
-    proc.stderr.on('data', (c) => { stderr += c; });
+    proc.stdout.on('data', (c) => {
+      stdout += c;
+    });
+    proc.stderr.on('data', (c) => {
+      stderr += c;
+    });
 
     proc.on('close', (code) => {
       if (code !== 0 || !stdout.trim()) {
@@ -266,7 +286,30 @@ async function fetchCombinedSymbols() {
   const symbols = [];
 
   for (const item of data) {
-    const sym = String(item || '').trim().toUpperCase();
+    const sym = String(item || '')
+      .trim()
+      .toUpperCase();
+    if (!sym || seen.has(sym)) continue;
+    seen.add(sym);
+    symbols.push(sym);
+  }
+
+  return symbols;
+}
+
+async function fromGappers() {
+  const res = await http.get('/screener/gappers');
+  const data = res.data;
+
+  if (!Array.isArray(data)) {
+    throw new Error(`Respuesta inválida de /screener/combined: esperaba array`);
+  }
+
+  const seen = new Set();
+  const symbols = [];
+
+  for (const item of data) {
+    const sym = String(item.symbol || '').trim().toUpperCase();
     if (!sym || seen.has(sym)) continue;
     seen.add(sym);
     symbols.push(sym);
@@ -362,7 +405,15 @@ function buildPayloadsForSymbol(rows, fromMin, toMin) {
   return { targetRows, payloads };
 }
 
-function summarizeTicker(symbol, rows, targetRows, results, tpDec, slDec) {
+function summarizeTicker(
+  symbol,
+  rows,
+  targetRows,
+  results,
+  tpDec,
+  slDec,
+  lookaheadCandles
+) {
   let tp = 0;
   let fp = 0;
   let tn = 0;
@@ -393,14 +444,22 @@ function summarizeTicker(symbol, rows, targetRows, results, tpDec, slDec) {
     if (tradeable) {
       tradeSignals++;
 
-      const futureCandles = rows.slice(idx + 1, idx + 11).map((rr) => ({
-        o: toNum(rr.open),
-        h: toNum(rr.high),
-        l: toNum(rr.low),
-        c: toNum(rr.close),
-      }));
+      const futureCandles = rows
+        .slice(idx + 1, idx + 1 + lookaheadCandles)
+        .map((rr) => ({
+          o: toNum(rr.open),
+          h: toNum(rr.high),
+          l: toNum(rr.low),
+          c: toNum(rr.close),
+        }));
 
-      const result = hitTpBeforeSl(futureCandles, toNum(row.close), tpDec, slDec);
+      const result = hitTpBeforeSl(
+        futureCandles,
+        toNum(row.close),
+        tpDec,
+        slDec,
+        lookaheadCandles
+      );
 
       if (result === 'win') {
         wins++;
@@ -436,15 +495,15 @@ function summarizeTicker(symbol, rows, targetRows, results, tpDec, slDec) {
   };
 }
 
-function printHeader(dateStr, fromTime, toTime, threshold, tpPct, slPct, baseUrl) {
+function printHeader(dateStr, fromTime, toTime, threshold, tpPct, slPct, baseUrl, lookaheadCandles) {
   console.log('');
-  console.log('═'.repeat(170));
+  console.log('═'.repeat(180));
   console.log(
     `📅 Fecha: ${normalizeDateStr(dateStr)} | ⏰ Ventana: ${fromTime}-${toTime} | ` +
-    `🎯 Threshold: ${threshold} | TP: ${tpPct}% | SL: ${slPct}% | ` +
-    `$${INVESTMENT}/trade | 🌐 ${baseUrl}`
+      `🎯 Threshold: ${threshold} | TP: ${tpPct}% | SL: ${slPct}% | ` +
+      `🔭 Lookahead: ${lookaheadCandles} velas | $${INVESTMENT}/trade | 🌐 ${baseUrl}`
   );
-  console.log('═'.repeat(170));
+  console.log('═'.repeat(180));
 }
 
 function printCompactHeader() {
@@ -475,51 +534,55 @@ function printCompactHeader() {
 }
 
 function printOkLine(s) {
-  console.log([
-    padRight(s.symbol, 8),
-    '|',
-    padLeft('OK', 18),
-    '|',
-    padLeft(s.totalCandlesInWindow, 5),
-    '|',
-    padLeft(s.tradeSignals, 7),
-    '|',
-    padLeft(s.wins, 4),
-    '|',
-    padLeft(s.losses, 4),
-    '|',
-    padLeft(s.neutrals, 7),
-    '|',
-    padLeft(fmtPct(s.winRate), 8),
-    '|',
-    padLeft(fmtMoney(s.pnl), 10),
-    '|',
-    `${s.firstTime}-${s.lastTime}`,
-  ].join(' '));
+  console.log(
+    [
+      padRight(s.symbol, 8),
+      '|',
+      padLeft('OK', 18),
+      '|',
+      padLeft(s.totalCandlesInWindow, 5),
+      '|',
+      padLeft(s.tradeSignals, 7),
+      '|',
+      padLeft(s.wins, 4),
+      '|',
+      padLeft(s.losses, 4),
+      '|',
+      padLeft(s.neutrals, 7),
+      '|',
+      padLeft(fmtPct(s.winRate), 8),
+      '|',
+      padLeft(fmtMoney(s.pnl), 10),
+      '|',
+      `${s.firstTime}-${s.lastTime}`,
+    ].join(' ')
+  );
 }
 
 function printSkipLine(symbol, reason, detail = '') {
-  console.log([
-    padRight(symbol, 8),
-    '|',
-    padLeft(reason, 18),
-    '|',
-    padLeft('-', 5),
-    '|',
-    padLeft('-', 7),
-    '|',
-    padLeft('-', 4),
-    '|',
-    padLeft('-', 4),
-    '|',
-    padLeft('-', 7),
-    '|',
-    padLeft('-', 8),
-    '|',
-    padLeft('-', 10),
-    '|',
-    detail,
-  ].join(' '));
+  console.log(
+    [
+      padRight(symbol, 8),
+      '|',
+      padLeft(reason, 18),
+      '|',
+      padLeft('-', 5),
+      '|',
+      padLeft('-', 7),
+      '|',
+      padLeft('-', 4),
+      '|',
+      padLeft('-', 4),
+      '|',
+      padLeft('-', 7),
+      '|',
+      padLeft('-', 8),
+      '|',
+      padLeft('-', 10),
+      '|',
+      detail,
+    ].join(' ')
+  );
 }
 
 function printGlobalSummary(dateStr, summaries, skipped) {
@@ -557,12 +620,18 @@ function printGlobalSummary(dateStr, summaries, skipped) {
   }, {});
 
   console.log('');
-  console.log('═'.repeat(170));
+  console.log('═'.repeat(180));
   console.log(`🌎 RESUMEN GLOBAL | Fecha: ${normalizeDateStr(dateStr)}`);
-  console.log('═'.repeat(170));
+  console.log('═'.repeat(180));
   console.log(`Tickers OK: ${g.tickersOk}`);
   console.log(`Tickers omitidos: ${g.tickersSkipped}`);
-  console.log(`Motivos omitidos: ${Object.entries(skipByReason).map(([k, v]) => `${k}=${v}`).join(' | ') || 'ninguno'}`);
+  console.log(
+    `Motivos omitidos: ${
+      Object.entries(skipByReason)
+        .map(([k, v]) => `${k}=${v}`)
+        .join(' | ') || 'ninguno'
+    }`
+  );
   console.log(`Velas en ventana: ${g.totalCandlesInWindow}`);
   console.log(`Señales: ${g.tradeSignals}`);
   console.log(`Wins: ${g.wins} | Losses: ${g.losses} | Neutrals: ${g.neutrals}`);
@@ -571,7 +640,7 @@ function printGlobalSummary(dateStr, summaries, skipped) {
   console.log(`Recall global: ${fmtPct(safeDiv(g.tp, g.tp + g.fn))}`);
   console.log(`Accuracy global: ${fmtPct(safeDiv(g.tp + g.tn, g.tp + g.fp + g.tn + g.fn))}`);
   console.log(`💰 P/L total global: ${fmtMoney(g.pnl)}`);
-  console.log('═'.repeat(170));
+  console.log('═'.repeat(180));
 }
 
 async function main() {
@@ -581,9 +650,18 @@ async function main() {
   const tpDec = TP_PCT / 100;
   const slDec = SL_PCT / 100;
 
-  printHeader(normalizedDate, fromTime, toTime, THRESHOLD, TP_PCT, SL_PCT, BASE_URL);
+  printHeader(
+    normalizedDate,
+    fromTime,
+    toTime,
+    THRESHOLD,
+    TP_PCT,
+    SL_PCT,
+    BASE_URL,
+    LOOKAHEAD_CANDLES
+  );
 
-  const symbols = await fetchCombinedSymbols();
+  const symbols =  await fetchCombinedSymbols();
   if (!symbols.length) {
     throw new Error('No llegaron símbolos de /screener/combined');
   }
@@ -613,8 +691,7 @@ async function main() {
 
     if (!symRows.length) {
       console.log(
-        `⚠️ IGNORADO ${symbol} en ${normalizedDate} -> ` +
-        `motivo=NO_ROWS | endpoint no devolvió rows para ese símbolo`
+        `⚠️ IGNORADO ${symbol} en ${normalizedDate} -> motivo=NO_ROWS | endpoint no devolvió rows para ese símbolo`
       );
       skipped.push({ symbol, reason: 'SKIP_NO_ROWS' });
       printSkipLine(symbol, 'SKIP_NO_ROWS', 'sin rows');
@@ -629,9 +706,9 @@ async function main() {
 
       console.log(
         `⚠️ IGNORADO ${symbol} en ${normalizedDate} -> ` +
-        `motivo=NO_WINDOW | total_velas_dia=${symRows.length} | ` +
-        `primer_time=${firstRowTime} | ultimo_time=${lastRowTime} | ` +
-        `rango_buscado=${fromTime}-${toTime}`
+          `motivo=NO_WINDOW | total_velas_dia=${symRows.length} | ` +
+          `primer_time=${firstRowTime} | ultimo_time=${lastRowTime} | ` +
+          `rango_buscado=${fromTime}-${toTime}`
       );
 
       skipped.push({ symbol, reason: 'SKIP_NO_WINDOW' });
@@ -645,8 +722,8 @@ async function main() {
     } catch (e) {
       console.log(
         `⚠️ IGNORADO ${symbol} en ${normalizedDate} -> ` +
-        `motivo=PREDICT_ERROR | velas_en_ventana=${targetRows.length} | ` +
-        `error=${String(e.message || e).slice(0, 220)}`
+          `motivo=PREDICT_ERROR | velas_en_ventana=${targetRows.length} | ` +
+          `error=${String(e.message || e).slice(0, 220)}`
       );
 
       skipped.push({ symbol, reason: 'SKIP_PREDICT_ERR' });
@@ -654,7 +731,16 @@ async function main() {
       continue;
     }
 
-    const summary = summarizeTicker(symbol, symRows, targetRows, results, tpDec, slDec);
+    const summary = summarizeTicker(
+      symbol,
+      symRows,
+      targetRows,
+      results,
+      tpDec,
+      slDec,
+      LOOKAHEAD_CANDLES
+    );
+
     summaries.push(summary);
     printOkLine(summary);
   }

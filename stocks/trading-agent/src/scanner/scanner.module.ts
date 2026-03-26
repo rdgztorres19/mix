@@ -8,6 +8,7 @@ import { AlpacaDataSource } from './datasource/alpaca-datasource';
 import { MomoDataSource } from './datasource/momo-datasource';
 import { MysqlDataSource } from './datasource/mysql-datasource';
 import { StockDataSourceFactory } from './datasource/datasource.factory';
+import { FundamentalCacheService } from '../training/fundamental-cache.service';
 
 @Module({
   imports: [ScheduleModule.forRoot()],
@@ -22,10 +23,12 @@ import { StockDataSourceFactory } from './datasource/datasource.factory';
     MysqlDataSource,
     StockDataSourceFactory,
     MysqlTrainingRepository,
+    FundamentalCacheService,
   ],
   exports: [
     ScannerService, 
     MysqlTrainingRepository,
+    FundamentalCacheService,
     AlpacaDataSource,   // Export for WebSocket module
     MomoDataSource,     // Export for WebSocket module (disabled but kept for DI)
   ],

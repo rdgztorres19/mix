@@ -7,6 +7,8 @@ const fs = require('fs');
 const MARKET_OPEN = '09:30';
 const INVESTMENT = 200;
 
+//npm run debug-predict-csv-day-summary 2026-03-25 09:30 11:30 0.65 4 2
+
 const CSV_COLUMNS = [
   'symbol', 'date', 'candle_time_et', 'candle_idx', 'open', 'high', 'low', 'close', 'volume',
   'atr', 'vwap', 'high_of_day', 'low_of_day', 'change_pct_at_candle', 'ema9', 'ema20',
