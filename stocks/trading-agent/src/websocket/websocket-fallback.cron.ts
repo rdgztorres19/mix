@@ -1,5 +1,5 @@
 import { Injectable, Logger, Inject, Optional } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { AlpacaWebSocketService } from './alpaca-websocket.service';
 import { AlpacaDataSource } from '../scanner/datasource/alpaca-datasource';
@@ -7,8 +7,9 @@ import type { CollectorService } from '../collector/collector.service';
 
 /**
  * WebSocket Fallback Cron - monitors WebSocket health and triggers API fallback.
- * Runs every 61 seconds to check if WebSocket received data in the last minute.
- * If not, fetches missing bars via Alpaca REST API.
+ * Schedule: seconds 1 and 5 of each minute (ET), hours 04:00–23:59 only — runs through
+ * end of day until midnight Eastern; no ticks from 00:00–03:59 ET.
+ * If WebSocket data is missing, fetches bars via Alpaca REST API.
  */
 @Injectable()
 export class WebSocketFallbackCron {
@@ -32,11 +33,14 @@ export class WebSocketFallbackCron {
   }
 
   /**
-   * Runs every 61 seconds (1 second after each minute ends).
+   * Twice per minute (at :01 and :05) in Eastern Time, hours 04–23 only (through end of session day).
    * When WebSocket connected: check if bars received; if missing, fetch via REST.
    * When WebSocket disconnected: fetch bars for all active symbols via REST (historical fallback).
    */
-  @Cron('1,5 * * * * *', { name: 'websocket-fallback-check' })
+  @Cron('1,5 * 4-14 * * *', {
+    name: 'websocket-fallback-check',
+    timeZone: 'America/New_York',
+  })
   async checkWebSocketHealth(): Promise<void> {
     if (!this.enabled || !this.collector) return;
 

@@ -27,7 +27,7 @@ export class ActiveSymbolsService {
     return toPositiveInt(process.env.SCREENER_TOP_N, 40);
   }
 
-  async rebuildFromStoredRanks(): Promise<{ count: number }> {
+  async rebuildFromStoredRanks(sessionDate: string): Promise<{ count: number }> {
     const n = this.topN();
     const bySymbol = new Map<string, number>();
 
@@ -52,12 +52,12 @@ export class ActiveSymbolsService {
       score,
     }));
 
-    await this.repo.replaceActiveSymbols(entries);
+    await this.repo.replaceActiveSymbols(entries, sessionDate);
     this.logger.log(`active symbols updated: ${entries.length}`);
     return { count: entries.length };
   }
 
-  async getActive(): Promise<{ rank_order: number; symbol: string; score: number }[]> {
-    return this.repo.getActiveSymbols();
+  async getActive(sessionDate: string): Promise<{ rank_order: number; symbol: string; score: number }[]> {
+    return this.repo.getActiveSymbols(sessionDate);
   }
 }

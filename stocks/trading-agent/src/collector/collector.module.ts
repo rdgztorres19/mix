@@ -1,5 +1,6 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { ScannerModule } from '../scanner/scanner.module';
+import { ScreenerModule } from '../scanner/screener/screener.module';
 import { TraderModule } from '../trader/trader.module';
 import { WebSocketModule } from '../websocket/websocket.module';
 import { CollectorService } from './collector.service';
@@ -14,7 +15,7 @@ import { ScannedTrackerController } from './tracker/scanned-tracker.controller';
 import { CollectorFeaturePreviewService } from './collector-feature-preview.service';
 
 @Module({
-  imports: [ScannerModule, TraderModule, forwardRef(() => WebSocketModule)],
+  imports: [ScannerModule, ScreenerModule, TraderModule, forwardRef(() => WebSocketModule)],
   controllers: [CollectorController, ScannedTrackerController],
   providers: [
     TopGainersSourceService,

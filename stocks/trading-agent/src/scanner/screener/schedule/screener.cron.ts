@@ -24,7 +24,7 @@ export class ScreenerCron {
     const now = new Date();
     if (!isEtWeekday(now) || !isEtMarketRankingWindow(now)) return;
     try {
-      //await this.ranking.syncAllRankings();
+      await this.ranking.syncAllRankings();
     } catch (e) {
       this.logger.error(`market screener sync failed: ${(e as Error).message}`);
     }

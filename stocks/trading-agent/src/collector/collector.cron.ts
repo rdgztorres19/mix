@@ -2,7 +2,7 @@
  * CollectorCron: scheduled jobs for the collector pipeline.
  *
  * - Every 1 minute during market hours (9:30–16:00 ET ≈ 14:30–21:00 UTC):
- *   Fetch top gainers from TOP_GAINERS_SOURCE (HPG or Alpaca), replace activeSymbols,
+ *   Fetch top gainers from TOP_GAINERS_SOURCE (internal screener, HPG, or Alpaca), replace activeSymbols,
  *   add new symbols to collection, refresh Alpaca WebSocket subscriptions.
  */
 

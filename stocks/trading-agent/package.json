@@ -11,6 +11,7 @@
     "embed": "ts-node -r tsconfig-paths/register scripts/embed-knowledge.ts",
     "debug-metrics": "node scripts/debug-stock-metrics.js --",
     "debug-predict": "node scripts/debug-predict.js --",
+    "debug-predict-range": "node scripts/debug-predict-range.js --",
     "debug-predict-csv": "node scripts/debug-predict-csv.js --",
     "debug-predict-screener": "node scripts/debug-predict-screener.js --",
     "debug-predict-csv-day-summary": "node scripts/debug-predict-csv-day-summary.js --",

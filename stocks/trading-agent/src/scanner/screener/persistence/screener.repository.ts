@@ -152,6 +152,20 @@ export class ScreenerRepository {
           updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
       `);
+      try {
+        const [cols] = await p.query<mysql.RowDataPacket[]>(
+          "SHOW COLUMNS FROM screener_active_symbols LIKE 'session_date'",
+        );
+        if (!cols.length) {
+          await p.query(`ALTER TABLE screener_active_symbols ADD COLUMN session_date DATE NULL AFTER score`);
+          await p.query(`UPDATE screener_active_symbols SET session_date = UTC_DATE() WHERE session_date IS NULL`);
+          await p.query(
+            `CREATE INDEX idx_screener_active_symbols_session_date ON screener_active_symbols (session_date)`,
+          );
+        }
+      } catch (e) {
+        this.logger.warn(`screener_active_symbols migration failed: ${(e as Error).message}`);
+      }
       await p.query(`
         CREATE TABLE IF NOT EXISTS screener_run_meta (
           id TINYINT NOT NULL PRIMARY KEY DEFAULT 1,
@@ -458,7 +472,10 @@ export class ScreenerRepository {
     }
   }
 
-  async replaceActiveSymbols(entries: { rank_order: number; symbol: string; score: number }[]): Promise<void> {
+  async replaceActiveSymbols(
+    entries: { rank_order: number; symbol: string; score: number }[],
+    sessionDate: string,
+  ): Promise<void> {
     const p = this.getPool();
     if (!p) return;
     const conn = await p.getConnection();
@@ -466,14 +483,14 @@ export class ScreenerRepository {
       await conn.beginTransaction();
       await conn.query('DELETE FROM screener_active_symbols');
       const batchSize = this.dbBatchSize();
-      const sqlPrefix = 'INSERT INTO screener_active_symbols (rank_order, symbol, score) VALUES ';
-      const rowPlaceholder = '(?, ?, ?)';
+      const sqlPrefix = 'INSERT INTO screener_active_symbols (rank_order, symbol, score, session_date) VALUES ';
+      const rowPlaceholder = '(?, ?, ?, ?)';
 
       for (const batch of chunkArray(entries, batchSize)) {
         const placeholders = batch.map(() => rowPlaceholder).join(', ');
         const params: unknown[] = [];
         for (const e of batch) {
-          params.push(e.rank_order, e.symbol.toUpperCase(), e.score);
+          params.push(e.rank_order, e.symbol.toUpperCase(), e.score, sessionDate);
         }
         await conn.query(sqlPrefix + placeholders, params);
       }
@@ -486,12 +503,13 @@ export class ScreenerRepository {
     }
   }
 
-  async getActiveSymbols(): Promise<{ symbol: string; score: number; rank_order: number }[]> {
+  async getActiveSymbols(sessionDate: string): Promise<{ symbol: string; score: number; rank_order: number }[]> {
     const p = this.getPool();
     if (!p) return [];
     try {
       const [rows] = await p.query<mysql.RowDataPacket[]>(
-        'SELECT rank_order, symbol, score FROM screener_active_symbols ORDER BY rank_order ASC',
+        'SELECT rank_order, symbol, score FROM screener_active_symbols WHERE session_date = ? ORDER BY rank_order ASC',
+        [sessionDate],
       );
       return rows.map((r) => ({
         rank_order: Number(r.rank_order),

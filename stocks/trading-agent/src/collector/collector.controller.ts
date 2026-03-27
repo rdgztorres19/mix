@@ -79,7 +79,7 @@ export class CollectorController {
    */
   @Post('sync-today')
   async syncToday(
-    @Body() body: { source?: 'hpg' | 'alpaca_screener' },
+    @Body() body: { source?: 'hpg' | 'alpaca_screener' | 'internal' },
   ): Promise<{
     ok: boolean;
     symbols?: number;

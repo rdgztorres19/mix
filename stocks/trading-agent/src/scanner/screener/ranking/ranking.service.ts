@@ -96,12 +96,12 @@ export class RankingService {
   }
 
   async getCombinedSymbols(): Promise<string[]> {
-    const rows = await this.activeSymbols.getActive();
+    const rows = await this.activeSymbols.getActive(getEtYYYYMMDD());
     return rows.map((r) => r.symbol);
   }
 
   async getActiveRows(): Promise<{ rank_order: number; symbol: string; score: number }[]> {
-    return this.activeSymbols.getActive();
+    return this.activeSymbols.getActive(getEtYYYYMMDD());
   }
 
   async getStatus(): Promise<{
@@ -290,7 +290,7 @@ export class RankingService {
         await this.repo.replaceRankRows(type, rows);
       }
 
-      await this.activeSymbols.rebuildFromStoredRanks();
+      await this.activeSymbols.rebuildFromStoredRanks(sessionDate);
     }
 
     await this.persistQuotesBatch(snapshots);

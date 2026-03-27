@@ -15,6 +15,7 @@ import { PositionTrackerService, AutoPosition } from './position-tracker.service
 import { MysqlTrainingRepository } from '../scanner/mysql/mysql-training.repository';
 import type { CollectorGateway } from '../collector/collector.gateway';
 import type { CandleRow } from '../collector/indicator.calculator';
+import { RedisClientService } from '../cache/redis-client.service';
 
 @Injectable()
 export class AutoTraderService {
@@ -34,6 +35,7 @@ export class AutoTraderService {
     private readonly alpaca: AlpacaTraderService,
     private readonly positions: PositionTrackerService,
     private readonly mysqlRepo: MysqlTrainingRepository,
+    private readonly redisClient: RedisClientService,
   ) {
     this.predictEnabled = process.env.AUTO_PREDICT_ENABLED === 'true';
     this.tradeEnabled = process.env.AUTO_TRADE_ENABLED === 'true';
@@ -200,10 +202,32 @@ export class AutoTraderService {
       const qty = this.parseFillQty(order, dollarAmount, row.close);
 
       await this.positions.openPosition(row.symbol, fillPrice, qty, row.candle_idx, order.id);
+      await this.storeTradeRowByDay(row);
       this.notifyEntry(row, fillPrice, qty, dollarAmount, order.id);
     } catch (err) {
       console.log(err);
       this.logger.error(`Failed to enter ${row.symbol}: ${(err as Error).message}`);
+    }
+  }
+
+  /**
+   * Persist traded rows in Redis as an append-only daily list.
+   * Key format: autotrader:entries:rows:YYYY-MM-DD
+   */
+  private async storeTradeRowByDay(row: CandleRow): Promise<void> {
+    const redis = this.redisClient.getClient();
+    if (!redis) return;
+    try {
+      const day = String(row.date ?? '').slice(0, 10);
+      if (!day) return;
+      const key = `autotrader:entries:rows:${day}`;
+      const payload = JSON.stringify({
+        ...row,
+        inserted_at_utc: new Date().toISOString(),
+      });
+      await redis.rpush(key, payload);
+    } catch (err) {
+      this.logger.warn(`Failed to persist traded row in Redis (${row.symbol}): ${(err as Error).message}`);
     }
   }
 

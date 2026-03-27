@@ -552,7 +552,7 @@ export class CollectorService implements OnModuleInit {
   }
 
   /**
-   * Sync today: fetch top gainers from HPG or Alpaca screener, then sync each from Alpaca.
+   * Sync today: fetch top gainers from env source (internal screener, HPG, or Alpaca), then sync each from Alpaca.
    * Replaces refreshAllFromMomo for the sync-today flow.
    */
   async syncTodayFromSource(source: TopGainerSource): Promise<{
