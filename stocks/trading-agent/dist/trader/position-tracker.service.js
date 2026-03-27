@@ -44,10 +44,10 @@ let PositionTrackerService = class PositionTrackerService {
     // ═══════════════════════════════════════════════════════════════════════
     // Commands (mutations)
     // ═══════════════════════════════════════════════════════════════════════
-    async openPosition(symbol, entryPrice, qty, candleIdx, alpacaOrderId) {
+    async openPosition(symbol, entryPrice, qty, candleIdx, alpacaOrderId, metadata = null) {
         symbol = symbol.toUpperCase();
-        const id = await this.insertPositionRow(symbol, entryPrice, qty, candleIdx, alpacaOrderId);
-        const pos = this.buildNewPosition(id, symbol, entryPrice, qty, candleIdx, alpacaOrderId);
+        const id = await this.insertPositionRow(symbol, entryPrice, qty, candleIdx, alpacaOrderId, metadata);
+        const pos = this.buildNewPosition(id, symbol, entryPrice, qty, candleIdx, alpacaOrderId, metadata);
         this.openPositions.set(symbol, pos);
         this.logger.log(`Opened position: ${symbol} qty=${qty} @ $${entryPrice.toFixed(2)}`);
         return pos;
@@ -91,10 +91,21 @@ let PositionTrackerService = class PositionTrackerService {
         pnl DECIMAL(12,4) DEFAULT NULL,
         status ENUM('open','closed') NOT NULL DEFAULT 'open',
         alpaca_order_id VARCHAR(64) NOT NULL DEFAULT '',
+        metadata JSON DEFAULT NULL,
         INDEX idx_status (status),
         INDEX idx_symbol_status (symbol, status)
       )
     `);
+        // Add metadata column if missing (for existing tables)
+        await pool.query(`
+      SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'auto_positions' AND COLUMN_NAME = 'metadata'
+    `).then(async ([rows])=>{
+            if (rows.length === 0) {
+                await pool.query(`ALTER TABLE auto_positions ADD COLUMN metadata JSON DEFAULT NULL`);
+                this.logger.log('Added metadata column to auto_positions');
+            }
+        });
         this.logger.log('auto_positions table ready');
     }
     async loadOpenPositions() {
@@ -114,17 +125,18 @@ let PositionTrackerService = class PositionTrackerService {
     // ═══════════════════════════════════════════════════════════════════════
     // Persistence helpers
     // ═══════════════════════════════════════════════════════════════════════
-    async insertPositionRow(symbol, entryPrice, qty, candleIdx, orderId) {
+    async insertPositionRow(symbol, entryPrice, qty, candleIdx, orderId, metadata = null) {
         const pool = this.getPool();
         const [result] = await pool.query(`INSERT INTO auto_positions
-       (symbol, entry_time, entry_price, qty, entry_candle_idx, candles_elapsed, status, alpaca_order_id)
-       VALUES (?, ?, ?, ?, ?, 0, 'open', ?)`, [
+       (symbol, entry_time, entry_price, qty, entry_candle_idx, candles_elapsed, status, alpaca_order_id, metadata)
+       VALUES (?, ?, ?, ?, ?, 0, 'open', ?, ?)`, [
             symbol,
             this.nowMysql(),
             entryPrice,
             qty,
             candleIdx,
-            orderId
+            orderId,
+            metadata ? JSON.stringify(metadata) : null
         ]);
         return result.insertId;
     }
@@ -162,7 +174,7 @@ let PositionTrackerService = class PositionTrackerService {
         pos.pnl = pnl;
         pos.status = 'closed';
     }
-    buildNewPosition(id, symbol, entryPrice, qty, candleIdx, orderId) {
+    buildNewPosition(id, symbol, entryPrice, qty, candleIdx, orderId, metadata = null) {
         return {
             id,
             symbol,
@@ -175,10 +187,15 @@ let PositionTrackerService = class PositionTrackerService {
             exit_price: null,
             pnl: null,
             status: 'open',
-            alpaca_order_id: orderId
+            alpaca_order_id: orderId,
+            metadata
         };
     }
     rowToPosition(r) {
+        let metadata = null;
+        if (r.metadata) {
+            metadata = typeof r.metadata === 'string' ? JSON.parse(r.metadata) : r.metadata;
+        }
         return {
             id: r.id,
             symbol: r.symbol,
@@ -191,7 +208,8 @@ let PositionTrackerService = class PositionTrackerService {
             exit_price: r.exit_price ? parseFloat(r.exit_price) : null,
             pnl: r.pnl ? parseFloat(r.pnl) : null,
             status: r.status,
-            alpaca_order_id: r.alpaca_order_id ?? ''
+            alpaca_order_id: r.alpaca_order_id ?? '',
+            metadata
         };
     }
     constructor(mysqlRepo){

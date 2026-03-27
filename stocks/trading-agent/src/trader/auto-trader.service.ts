@@ -201,7 +201,7 @@ export class AutoTraderService {
       const fillPrice = this.parseFillPrice(order, row.close);
       const qty = this.parseFillQty(order, dollarAmount, row.close);
 
-      await this.positions.openPosition(row.symbol, fillPrice, qty, row.candle_idx, order.id);
+      await this.positions.openPosition(row.symbol, fillPrice, qty, row.candle_idx, order.id, row as unknown as Record<string, unknown>);
       await this.storeTradeRowByDay(row);
       this.notifyEntry(row, fillPrice, qty, dollarAmount, order.id);
     } catch (err) {

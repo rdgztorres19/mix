@@ -19,6 +19,7 @@ export interface AutoPosition {
   pnl: number | null;
   status: 'open' | 'closed';
   alpaca_order_id: string;
+  metadata: Record<string, unknown> | null;
 }
 
 @Injectable()
@@ -59,11 +60,12 @@ export class PositionTrackerService implements OnModuleInit {
     qty: number,
     candleIdx: number,
     alpacaOrderId: string,
+    metadata: Record<string, unknown> | null = null,
   ): Promise<AutoPosition> {
     symbol = symbol.toUpperCase();
 
-    const id = await this.insertPositionRow(symbol, entryPrice, qty, candleIdx, alpacaOrderId);
-    const pos = this.buildNewPosition(id, symbol, entryPrice, qty, candleIdx, alpacaOrderId);
+    const id = await this.insertPositionRow(symbol, entryPrice, qty, candleIdx, alpacaOrderId, metadata);
+    const pos = this.buildNewPosition(id, symbol, entryPrice, qty, candleIdx, alpacaOrderId, metadata);
 
     this.openPositions.set(symbol, pos);
     this.logger.log(`Opened position: ${symbol} qty=${qty} @ $${entryPrice.toFixed(2)}`);
@@ -117,10 +119,21 @@ export class PositionTrackerService implements OnModuleInit {
         pnl DECIMAL(12,4) DEFAULT NULL,
         status ENUM('open','closed') NOT NULL DEFAULT 'open',
         alpaca_order_id VARCHAR(64) NOT NULL DEFAULT '',
+        metadata JSON DEFAULT NULL,
         INDEX idx_status (status),
         INDEX idx_symbol_status (symbol, status)
       )
     `);
+    // Add metadata column if missing (for existing tables)
+    await pool.query(`
+      SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'auto_positions' AND COLUMN_NAME = 'metadata'
+    `).then(async ([rows]: any) => {
+      if ((rows as any[]).length === 0) {
+        await pool.query(`ALTER TABLE auto_positions ADD COLUMN metadata JSON DEFAULT NULL`);
+        this.logger.log('Added metadata column to auto_positions');
+      }
+    });
     this.logger.log('auto_positions table ready');
   }
 
@@ -147,13 +160,14 @@ export class PositionTrackerService implements OnModuleInit {
 
   private async insertPositionRow(
     symbol: string, entryPrice: number, qty: number, candleIdx: number, orderId: string,
+    metadata: Record<string, unknown> | null = null,
   ): Promise<number> {
     const pool = this.getPool();
     const [result] = await pool.query(
       `INSERT INTO auto_positions
-       (symbol, entry_time, entry_price, qty, entry_candle_idx, candles_elapsed, status, alpaca_order_id)
-       VALUES (?, ?, ?, ?, ?, 0, 'open', ?)`,
-      [symbol, this.nowMysql(), entryPrice, qty, candleIdx, orderId],
+       (symbol, entry_time, entry_price, qty, entry_candle_idx, candles_elapsed, status, alpaca_order_id, metadata)
+       VALUES (?, ?, ?, ?, ?, 0, 'open', ?, ?)`,
+      [symbol, this.nowMysql(), entryPrice, qty, candleIdx, orderId, metadata ? JSON.stringify(metadata) : null],
     );
     return (result as any).insertId;
   }
@@ -196,6 +210,7 @@ export class PositionTrackerService implements OnModuleInit {
 
   private buildNewPosition(
     id: number, symbol: string, entryPrice: number, qty: number, candleIdx: number, orderId: string,
+    metadata: Record<string, unknown> | null = null,
   ): AutoPosition {
     return {
       id,
@@ -210,10 +225,15 @@ export class PositionTrackerService implements OnModuleInit {
       pnl: null,
       status: 'open',
       alpaca_order_id: orderId,
+      metadata,
     };
   }
 
   private rowToPosition(r: any): AutoPosition {
+    let metadata: Record<string, unknown> | null = null;
+    if (r.metadata) {
+      metadata = typeof r.metadata === 'string' ? JSON.parse(r.metadata) : r.metadata;
+    }
     return {
       id: r.id,
       symbol: r.symbol,
@@ -227,6 +247,7 @@ export class PositionTrackerService implements OnModuleInit {
       pnl: r.pnl ? parseFloat(r.pnl) : null,
       status: r.status,
       alpaca_order_id: r.alpaca_order_id ?? '',
+      metadata,
     };
   }
 }

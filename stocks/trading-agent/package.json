@@ -14,6 +14,8 @@
     "debug-predict-range": "node scripts/debug-predict-range.js --",
     "debug-predict-csv": "node scripts/debug-predict-csv.js --",
     "debug-predict-screener": "node scripts/debug-predict-screener.js --",
+    "debug-predict-alpaca": "node scripts/debug-predict-alpaca.js --",
+    "backtest-sim": "ts-node -r tsconfig-paths/register src/scripts/backtest-simulator/main.ts",
     "debug-predict-csv-day-summary": "node scripts/debug-predict-csv-day-summary.js --",
     "verify-sync": "node scripts/verify-data-sync.js",
     "quick-test": "node scripts/quick-sync-test.js",
