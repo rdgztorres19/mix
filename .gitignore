@@ -33,6 +33,7 @@ stocks/stock-training/data/2023-2026/
 **/ml/**/models/*.pkl
 *.joblib
 *.csv
+*.gz
 
 # OS & cache
 .DS_Store

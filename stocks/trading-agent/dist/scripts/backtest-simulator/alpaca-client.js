@@ -69,13 +69,19 @@ let AlpacaClient = class AlpacaClient {
         return result;
     }
     async fetchDailyBars(symbols, date) {
+        return this.fetchDailyBarsRange(symbols, date, date);
+    }
+    async fetchDailyBarsRange(symbols, startDate, endDate) {
         const result = new Map();
         const chunks = this.chunk(symbols, 1000);
         for(let i = 0; i < chunks.length; i++){
             console.log(`  [Alpaca] Fetching daily bars chunk ${i + 1}/${chunks.length} (${chunks[i].length} symbols)...`);
-            const chunkResult = await this.fetchBarsChunk(chunks[i], date, date, '1Day');
+            const chunkResult = await this.fetchBarsChunk(chunks[i], startDate, endDate, '1Day');
             for (const [sym, bars] of Object.entries(chunkResult)){
-                result.set(sym.toUpperCase(), bars);
+                const key = sym.toUpperCase();
+                const existing = result.get(key);
+                if (existing) existing.push(...bars);
+                else result.set(key, bars);
             }
         }
         return result;

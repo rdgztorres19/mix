@@ -76,14 +76,25 @@ export class AlpacaClient {
   }
 
   async fetchDailyBars(symbols: string[], date: string): Promise<Map<string, AlpacaBar[]>> {
+    return this.fetchDailyBarsRange(symbols, date, date);
+  }
+
+  async fetchDailyBarsRange(
+    symbols: string[],
+    startDate: string,
+    endDate: string,
+  ): Promise<Map<string, AlpacaBar[]>> {
     const result = new Map<string, AlpacaBar[]>();
     const chunks = this.chunk(symbols, 1000);
 
     for (let i = 0; i < chunks.length; i++) {
       console.log(`  [Alpaca] Fetching daily bars chunk ${i + 1}/${chunks.length} (${chunks[i].length} symbols)...`);
-      const chunkResult = await this.fetchBarsChunk(chunks[i], date, date, '1Day');
+      const chunkResult = await this.fetchBarsChunk(chunks[i], startDate, endDate, '1Day');
       for (const [sym, bars] of Object.entries(chunkResult)) {
-        result.set(sym.toUpperCase(), bars);
+        const key = sym.toUpperCase();
+        const existing = result.get(key);
+        if (existing) existing.push(...bars);
+        else result.set(key, bars);
       }
     }
 

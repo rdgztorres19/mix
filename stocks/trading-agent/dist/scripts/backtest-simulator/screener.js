@@ -109,7 +109,8 @@ let BacktestScreener = class BacktestScreener {
         }
         const symbols = [
             ...bySymbol.entries()
-        ].sort((a, b)=>b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, n).map(([sym])=>sym);
+        ].sort((a, b)=>b[1] - a[1] || a[0].localeCompare(b[0]))// .slice(0, n)
+        .slice(0, 30).map(([sym])=>sym);
         // Only keep reasons for symbols that made it into the final list
         const filteredReasons = new Map();
         for (const sym of symbols){

@@ -16,6 +16,7 @@
     "debug-predict-screener": "node scripts/debug-predict-screener.js --",
     "debug-predict-alpaca": "ts-node -r tsconfig-paths/register src/scripts/debug-predict/main.ts",
     "backtest-sim": "ts-node -r tsconfig-paths/register src/scripts/backtest-simulator/main.ts",
+    "download-data": "ts-node -r tsconfig-paths/register src/scripts/data-downloader/main.ts",
     "debug-predict-csv-day-summary": "node scripts/debug-predict-csv-day-summary.js --",
     "verify-sync": "node scripts/verify-data-sync.js",
     "quick-test": "node scripts/quick-sync-test.js",

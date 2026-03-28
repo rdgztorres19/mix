@@ -6,7 +6,11 @@
       "Bash(npx ts-node:*)",
       "WebSearch",
       "Bash(npm info:*)",
-      "Bash(npm search:*)"
+      "Bash(npm search:*)",
+      "Bash(grep -E \"\\\\.\\(ts|sql\\)$\")",
+      "Read(//tmp/**)",
+      "Read(//private/tmp/**)",
+      "Bash(ls -la /Users/rdgztorres19/Documents/Projects/node copy/stocks/stock-training/ml/experiments/*.py)"
     ]
   }
 }

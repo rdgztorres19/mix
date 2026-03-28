@@ -5,10 +5,12 @@ import path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 import { parseArgs } from './config';
-import { createPool, getUniverseSymbols, getPrevCloseMap, getStockProfiles } from './db';
+import { createPool, getUniverseSymbols, getStockProfiles } from './db';
 import { AlpacaClient } from './alpaca-client';
 import { CandleCache } from './candle-cache';
 import { connectRedis, getCachedBars, setCachedBars } from './bars-cache';
+import { hasLocalData, readLocalBars, readLocalPrevClose } from '../data-downloader/file-cache';
+import { barsPrevCloseBeforeSession } from '../../scanner/screener/ranking/rankers/screener-rankers';
 import { BacktestScreener } from './screener';
 import { IndicatorEngine } from './indicator-engine';
 import { PredictorClient } from './predictor-client';
@@ -17,6 +19,12 @@ import { SimLogger } from './logger';
 import chalk from 'chalk';
 
 const MARKET_OPEN_MINUTE = 9 * 60 + 30; // 09:30
+
+function addDays(dateStr: string, n: number): string {
+  const d = new Date(dateStr + 'T12:00:00Z');
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
 
 /**
  * Convert a date string + HH:MM time in ET to unix ms.
@@ -103,39 +111,55 @@ async function main() {
   let redis: Awaited<ReturnType<typeof connectRedis>> | null = null;
 
   try {
-    // 2. Load data from DB
+    // 2. Load universe + stock profiles from DB
     console.log('[Init] Loading universe from screener_assets...');
     const universe = await getUniverseSymbols(pool);
     console.log(`  Universe: ${universe.length} symbols`);
-
-    console.log('[Init] Loading prev_close map...');
-    const prevCloseMap = await getPrevCloseMap(pool, config.date);
-    console.log(`  Prev close entries: ${prevCloseMap.size}`);
 
     console.log('[Init] Loading stock profiles...');
     const profiles = await getStockProfiles(pool);
     console.log(`  Stock profiles: ${profiles.size}`);
 
-    // 3. Load 1m bars from Redis cache or fetch from Alpaca
-    const symbolsWithPrev = universe.filter((s) => prevCloseMap.has(s));
+    // 3. Load 1m bars + prev_close (local data → Redis → Alpaca)
     let allBars: Map<string, import('../../scanner/screener/alpaca/alpaca-screener.client').AlpacaBar[]>;
+    let prevCloseMap: Map<string, number>;
 
-    try {
-      redis = await connectRedis();
-      console.log(chalk.green('[Redis] Connected'));
-      const cached = await getCachedBars(redis, config.date);
-      if (cached) {
-        allBars = cached;
-        console.log(chalk.green(`[Redis] Cache hit for ${config.date}: ${allBars.size} symbols`));
-      } else {
-        console.log(chalk.yellow(`[Redis] Cache miss for ${config.date}, fetching from Alpaca...`));
-        allBars = await alpacaClient.fetchUniverse1mBars(symbolsWithPrev, config.date);
-        await setCachedBars(redis, config.date, allBars);
-        console.log(chalk.green(`[Redis] Cached ${allBars.size} symbols for ${config.date}`));
+    if (await hasLocalData(config.date)) {
+      // Priority 1: Local compressed files
+      console.log(chalk.green(`[Data] Loading from local file data/${config.date}/...`));
+      allBars = await readLocalBars(config.date);
+      prevCloseMap = await readLocalPrevClose(config.date);
+      console.log(chalk.green(`  Local: ${allBars.size} symbols, ${prevCloseMap.size} prev_close entries`));
+    } else {
+      // Priority 2/3: Redis → Alpaca for 1m bars
+      try {
+        redis = await connectRedis();
+        console.log(chalk.green('[Redis] Connected'));
+        const cached = await getCachedBars(redis, config.date);
+        if (cached) {
+          allBars = cached;
+          console.log(chalk.green(`[Redis] Cache hit for ${config.date}: ${allBars.size} symbols`));
+        } else {
+          console.log(chalk.yellow(`[Redis] Cache miss for ${config.date}, fetching from Alpaca...`));
+          allBars = await alpacaClient.fetchUniverse1mBars(universe, config.date);
+          await setCachedBars(redis, config.date, allBars);
+          console.log(chalk.green(`[Redis] Cached ${allBars.size} symbols for ${config.date}`));
+        }
+      } catch (err) {
+        console.warn(chalk.yellow(`[Redis] Unavailable (${(err as Error).message}), fetching from Alpaca...`));
+        allBars = await alpacaClient.fetchUniverse1mBars(universe, config.date);
       }
-    } catch (err) {
-      console.warn(chalk.yellow(`[Redis] Unavailable (${(err as Error).message}), fetching from Alpaca...`));
-      allBars = await alpacaClient.fetchUniverse1mBars(symbolsWithPrev, config.date);
+
+      // prev_close: always from Alpaca daily bars
+      console.log(chalk.cyan('[Init] Fetching daily bars for prev_close from Alpaca...'));
+      const rangeStart = addDays(config.date, -10);
+      const dailyBars = await alpacaClient.fetchDailyBarsRange(universe, rangeStart, config.date);
+      prevCloseMap = new Map<string, number>();
+      dailyBars.forEach((bars, sym) => {
+        const pc = barsPrevCloseBeforeSession(bars, config.date);
+        if (pc != null) prevCloseMap.set(sym, pc);
+      });
+      console.log(chalk.green(`  prev_close: ${prevCloseMap.size} entries (from Alpaca)`));
     }
 
     // 4. Load all bars into candle cache

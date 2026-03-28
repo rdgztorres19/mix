@@ -30,6 +30,8 @@ warnings.filterwarnings("ignore")
 BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "LightGBM_D_clean_ext_bin_rr10m_ge_2"   # LightGBM, features D_clean_ext, target binario: probabilidad de que en 10 min el RR sea >= 2 
 # BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "XGBoost_D_all_bin_rr10m_ge_2"   # LightGBM, features D_clean_ext, target binario: probabilidad de que en 10 min el RR sea >= 2
 # BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "LightGBM_D3_liquidity_context_bin_mfr10m_1p5atr"   # LightGBM, features D_clean_ext, target binario: probabilidad de que en 10 min el RR sea >= 2
+# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "LightGBM_D_all_bin_mfr10m_1p5"   # LightGBM, features D_clean_ext, target binario: probabilidad de que en 10 min el RR sea >= 2
+# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "XGBoost_D3_liquidity_context_bin_mfr10m_1atr"   # LightGBM, features D_clean_ext, target binario: probabilidad de que en 10 min el RR sea >= 2
 
 DEFAULT_THRESHOLD = 0.6
 
