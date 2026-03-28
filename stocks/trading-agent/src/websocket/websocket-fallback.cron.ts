@@ -82,7 +82,7 @@ export class WebSocketFallbackCron {
     const isDataMissing = lastBarTimeSec == null || Math.abs(lastBarTimeSec - expectedBarTime) > 30;
 
     if (isDataMissing) {
-      this.logger.warn(`⚠️ Missing WebSocket data for ${symbol} at ${new Date(expectedBarTime * 1000).toISOString()}`);
+      //this.logger.warn(`⚠️ Missing WebSocket data for ${symbol} at ${new Date(expectedBarTime * 1000).toISOString()}`);
       await this.fetchFallbackData(symbol, expectedBarTime);
     } else {
       //this.logger.debug(`✅ WebSocket data OK for ${symbol}`);
@@ -142,9 +142,9 @@ export class WebSocketFallbackCron {
           this.logger.warn('⚠️ CollectorService not available - cannot forward fallback bar');
         }
       } else {
-        this.logger.warn(`⚠️ No fallback data available for ${symbol} at ${startTime}`);
-        const fallbackUrl = `https://data.alpaca.markets/v2/stocks/${symbol}/bars?feed=sip&timeframe=1Min&start=${startTime}&end=${endTime}&limit=1`;
-        this.logger.warn(`   URL: ${fallbackUrl}`);
+        // this.logger.warn(`⚠️ No fallback data available for ${symbol} at ${startTime}`);
+        // const fallbackUrl = `https://data.alpaca.markets/v2/stocks/${symbol}/bars?feed=sip&timeframe=1Min&start=${startTime}&end=${endTime}&limit=1`;
+        // this.logger.warn(`   URL: ${fallbackUrl}`);
       }
 
     } catch (error) {

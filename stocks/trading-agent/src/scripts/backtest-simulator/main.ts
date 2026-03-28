@@ -8,13 +8,15 @@ import { parseArgs } from './config';
 import { createPool, getUniverseSymbols, getPrevCloseMap, getStockProfiles } from './db';
 import { AlpacaClient } from './alpaca-client';
 import { CandleCache } from './candle-cache';
+import { connectRedis, getCachedBars, setCachedBars } from './bars-cache';
 import { BacktestScreener } from './screener';
 import { IndicatorEngine } from './indicator-engine';
 import { PredictorClient } from './predictor-client';
 import { TradeSimulator } from './trade-simulator';
 import { SimLogger } from './logger';
+import chalk from 'chalk';
 
-const MARKET_OPEN_MINUTE = 9 * 60 + 30;
+const MARKET_OPEN_MINUTE = 9 * 60 + 30; // 09:30
 
 /**
  * Convert a date string + HH:MM time in ET to unix ms.
@@ -79,19 +81,26 @@ function minutesToTime(mins: number): string {
 
 async function main() {
   const config = parseArgs(process.argv);
-  console.log(`\nBacktest Simulator`);
-  console.log(`Date: ${config.date} | Time: ${config.startTime}-${config.endTime}`);
-  console.log(`Threshold: ${config.threshold} | TP: ${config.targetPct}% | SL: ${config.stopLossPct}%\n`);
+  console.log(chalk.bgBlue.white.bold('\n  Backtest Simulator  '));
+  console.log(
+    chalk.dim('  Date: ') + chalk.white.bold(config.date) +
+    chalk.dim(' | Time: ') + chalk.white.bold(`${config.startTime}-${config.endTime}`) +
+    chalk.dim(' | Thr: ') + chalk.yellow.bold(String(config.threshold)) +
+    chalk.dim(' | TP: ') + chalk.green.bold(`${config.targetPct}%`) +
+    chalk.dim(' | SL: ') + chalk.red.bold(`${config.stopLossPct}%`) + '\n',
+  );
 
   // 1. Initialize services
   const pool = createPool();
   const alpacaClient = new AlpacaClient();
   const candleCache = new CandleCache();
-  const screener = new BacktestScreener(40, 1_000_000);
+  const screener = new BacktestScreener(40, 500_000);
   const indicatorEngine = new IndicatorEngine();
   const predictorClient = new PredictorClient();
-  const tradeSimulator = new TradeSimulator(config.targetPct, config.stopLossPct, 60);
+  const tradeSimulator = new TradeSimulator(config.targetPct, config.stopLossPct, 120);
   const logger = new SimLogger();
+  logger.setThreshold(config.threshold);
+  let redis: Awaited<ReturnType<typeof connectRedis>> | null = null;
 
   try {
     // 2. Load data from DB
@@ -107,34 +116,46 @@ async function main() {
     const profiles = await getStockProfiles(pool);
     console.log(`  Stock profiles: ${profiles.size}`);
 
-    // 3. Fetch daily bars for the full universe (for screener rankings)
-    // Only fetch symbols that have prev_close data (meaningful for gap calculation)
+    // 3. Load 1m bars from Redis cache or fetch from Alpaca
     const symbolsWithPrev = universe.filter((s) => prevCloseMap.has(s));
-    console.log(`\n[Init] Fetching daily bars for ${symbolsWithPrev.length} symbols with prev_close...`);
-    const dailyBars = await alpacaClient.fetchDailyBars(symbolsWithPrev, config.date);
-    console.log(`  Daily bars received for ${dailyBars.size} symbols`);
+    let allBars: Map<string, import('../../scanner/screener/alpaca/alpaca-screener.client').AlpacaBar[]>;
 
-    // 4. Build initial daily snapshots for screener
-    const dailySnapshots = screener.buildSnapshotsFromDailyBars(dailyBars, prevCloseMap);
+    try {
+      redis = await connectRedis();
+      console.log(chalk.green('[Redis] Connected'));
+      const cached = await getCachedBars(redis, config.date);
+      if (cached) {
+        allBars = cached;
+        console.log(chalk.green(`[Redis] Cache hit for ${config.date}: ${allBars.size} symbols`));
+      } else {
+        console.log(chalk.yellow(`[Redis] Cache miss for ${config.date}, fetching from Alpaca...`));
+        allBars = await alpacaClient.fetchUniverse1mBars(symbolsWithPrev, config.date);
+        await setCachedBars(redis, config.date, allBars);
+        console.log(chalk.green(`[Redis] Cached ${allBars.size} symbols for ${config.date}`));
+      }
+    } catch (err) {
+      console.warn(chalk.yellow(`[Redis] Unavailable (${(err as Error).message}), fetching from Alpaca...`));
+      allBars = await alpacaClient.fetchUniverse1mBars(symbolsWithPrev, config.date);
+    }
+
+    // 4. Load all bars into candle cache
+    candleCache.loadFromBars(allBars);
+    console.log(chalk.green(`  Cache loaded: ${candleCache.symbolCount} symbols with 1m data\n`));
 
     // 5. Run minute-by-minute simulation
     const startMin = timeToMinutes(config.startTime);
     const endMin = timeToMinutes(config.endTime);
 
-    console.log(`\n[Sim] Starting simulation from ${config.startTime} to ${config.endTime}...`);
+    console.log(chalk.cyan(`[Sim] Starting simulation from ${config.startTime} to ${config.endTime}...`));
 
     for (let min = startMin; min <= endMin; min++) {
       const currentTime = minutesToTime(min);
       const currentTimeMs = etToUnixMs(config.date, currentTime);
       const isAfterOpen = min > MARKET_OPEN_MINUTE;
 
-      // 5a. Build synthetic snapshots (merge daily + 1m where available)
-      const synthSnapshots = screener.buildSyntheticSnapshots(
-        new Map(candleCache.symbols.map((s) => [s, candleCache.getCandlesUpTo(s, currentTimeMs)])),
-        currentTimeMs,
-        prevCloseMap,
-        dailySnapshots,
-      );
+      // 5a. Build synthetic snapshots from ALL cached 1m bars up to current minute
+      const allCandlesUpTo = candleCache.getAllSymbolCandles(currentTimeMs);
+      const synthSnapshots = screener.buildSyntheticSnapshots(allCandlesUpTo, prevCloseMap);
 
       // 5b. Compute combined list + reasons
       const { symbols: combinedList, reasons } = screener.computeCombinedList(
@@ -144,8 +165,8 @@ async function main() {
         isAfterOpen,
       );
 
-      // 5c. Ensure 1m bars cached for combined list symbols
-      await candleCache.ensureSymbols(combinedList, config.date, alpacaClient);
+      // 5c. Feed snapshot data to logger for summary table
+      logger.updateMarketData(synthSnapshots, combinedList);
 
       // 5d. Build indicators + predict payloads for each symbol
       const payloads: { symbol: string; payload: import('./types').PredictPayload }[] = [];
@@ -205,6 +226,7 @@ async function main() {
     // 6. Final summary
     logger.printSummary(config);
   } finally {
+    redis?.disconnect();
     await pool.end();
   }
 }

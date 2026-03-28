@@ -90,30 +90,12 @@ let CollectorController = class CollectorController {
         return this.collector.forceResubscribeAll();
     }
     /**
-   * POST /collector/test-scan
-   * Manually trigger a MoMo scan.
-   */ async testScan() {
-        const newSymbols = await this.collector.scanMomo();
-        return {
-            ok: true,
-            newSymbols
-        };
-    }
-    /**
-   * GET /collector/websocket-stats
-   * Debug endpoint: WebSocket data flow statistics.
-   */ async getWebSocketStats() {
-        return this.collector.getWebSocketStats();
-    }
-    /**
    * GET /collector/debug-streams
    * Debug endpoint: show status of both Alpaca and MoMo streams, positions, last bar times.
    */ async getStreamStatus() {
         const alpacaConnected = this.webSocketInit?.isAlpacaConnected() ?? false;
         const alpacaSubscriptions = this.webSocketInit?.getAlpacaSubscriptions() ?? [];
         const lastBarTimes = this.webSocketInit?.getLastBarTimesMap() ?? {};
-        const momoConnected = this.collector['momoStream']?.isConnected() ?? false;
-        const momoSubscriptions = this.collector['momoStream']?.getSubscribedSymbols() ?? [];
         const positions = this.positionTracker?.getAllOpen() ?? [];
         return {
             alpaca: {
@@ -121,13 +103,7 @@ let CollectorController = class CollectorController {
                 subscriptions: alpacaSubscriptions,
                 source: 'Premium SIP Feed'
             },
-            momo: {
-                connected: momoConnected,
-                subscriptions: momoSubscriptions,
-                source: 'MoMo Fallback'
-            },
             activeSymbols: this.collector.getActiveSymbolList(),
-            primaryStream: alpacaConnected ? 'Alpaca Premium' : 'MoMo Fallback',
             positions: positions.map((p)=>({
                     id: p.id,
                     symbol: p.symbol,
@@ -196,18 +172,6 @@ _ts_decorate([
     _ts_metadata("design:paramtypes", []),
     _ts_metadata("design:returntype", Promise)
 ], CollectorController.prototype, "forceResync", null);
-_ts_decorate([
-    (0, _common.Post)('test-scan'),
-    _ts_metadata("design:type", Function),
-    _ts_metadata("design:paramtypes", []),
-    _ts_metadata("design:returntype", Promise)
-], CollectorController.prototype, "testScan", null);
-_ts_decorate([
-    (0, _common.Get)('websocket-stats'),
-    _ts_metadata("design:type", Function),
-    _ts_metadata("design:paramtypes", []),
-    _ts_metadata("design:returntype", Promise)
-], CollectorController.prototype, "getWebSocketStats", null);
 _ts_decorate([
     (0, _common.Get)('debug-streams'),
     _ts_metadata("design:type", Function),

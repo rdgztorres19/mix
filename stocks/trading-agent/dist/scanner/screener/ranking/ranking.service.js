@@ -10,6 +10,7 @@ Object.defineProperty(exports, "RankingService", {
 });
 const _common = require("@nestjs/common");
 const _promisepool = require("@supercharge/promise-pool");
+const _redisclientservice = require("../../../cache/redis-client.service");
 const _alpacascreenerclient = require("../alpaca/alpaca-screener.client");
 const _screenerrepository = require("../persistence/screener.repository");
 const _assetsservice = require("../assets/assets.service");
@@ -24,6 +25,11 @@ function _ts_decorate(decorators, target, key, desc) {
 }
 function _ts_metadata(k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+}
+function _ts_param(paramIndex, decorator) {
+    return function(target, key) {
+        decorator(target, key, paramIndex);
+    };
 }
 function toPositiveInt(value, fallback) {
     const n = Number(value);
@@ -236,6 +242,7 @@ let RankingService = class RankingService {
                 await this.repo.replaceRankRows(type, rows);
             }
             await this.activeSymbols.rebuildFromStoredRanks(sessionDate);
+            await this.cacheRankingsToRedis(sessionDate, lists);
         }
         await this.persistQuotesBatch(snapshots);
         await this.repo.updateRunMeta(sessionDate, universe.length, opts.full ? 'full_rank+quotes' : 'quotes_only');
@@ -245,11 +252,47 @@ let RankingService = class RankingService {
             ranks: opts.full
         };
     }
-    constructor(alpaca, assets, repo, activeSymbols){
+    /**
+   * Cache each ranking list + the combined list to Redis.
+   * Keys: screener:{type}:{date}, screener:combined:{date}
+   * TTL: 7 days
+   */ async cacheRankingsToRedis(sessionDate, lists) {
+        const redis = this.redisClient?.getClient();
+        if (!redis) return;
+        const TTL = 7 * 24 * 60 * 60;
+        const ts = new Date().toISOString();
+        try {
+            // Store each ranking category
+            for (const { type, rows } of lists){
+                const key = `screener:${type}:${sessionDate}`;
+                const payload = JSON.stringify({
+                    type,
+                    sessionDate,
+                    updated_at: ts,
+                    rows
+                });
+                await redis.set(key, payload, 'EX', TTL);
+            }
+            // Store combined list
+            const combined = await this.activeSymbols.getActive(sessionDate);
+            const combinedKey = `screener:combined:${sessionDate}`;
+            const combinedPayload = JSON.stringify({
+                sessionDate,
+                updated_at: ts,
+                symbols: combined
+            });
+            await redis.set(combinedKey, combinedPayload, 'EX', TTL);
+            this.logger.log(`Cached ${lists.length} rankings + combined to Redis (${sessionDate})`);
+        } catch (err) {
+            this.logger.warn(`Failed to cache rankings to Redis: ${err.message}`);
+        }
+    }
+    constructor(alpaca, assets, repo, activeSymbols, redisClient){
         this.alpaca = alpaca;
         this.assets = assets;
         this.repo = repo;
         this.activeSymbols = activeSymbols;
+        this.redisClient = redisClient;
         this.logger = new _common.Logger(RankingService.name);
         // Cache in-memory por `sessionDate` para evitar leer prev_close desde MySQL
         // en cada tick (cron cada 1 minuto).
@@ -261,12 +304,14 @@ let RankingService = class RankingService {
 };
 RankingService = _ts_decorate([
     (0, _common.Injectable)(),
+    _ts_param(4, (0, _common.Optional)()),
     _ts_metadata("design:type", Function),
     _ts_metadata("design:paramtypes", [
         typeof _alpacascreenerclient.AlpacaScreenerClient === "undefined" ? Object : _alpacascreenerclient.AlpacaScreenerClient,
         typeof _assetsservice.AssetsService === "undefined" ? Object : _assetsservice.AssetsService,
         typeof _screenerrepository.ScreenerRepository === "undefined" ? Object : _screenerrepository.ScreenerRepository,
-        typeof _activesymbolsservice.ActiveSymbolsService === "undefined" ? Object : _activesymbolsservice.ActiveSymbolsService
+        typeof _activesymbolsservice.ActiveSymbolsService === "undefined" ? Object : _activesymbolsservice.ActiveSymbolsService,
+        typeof _redisclientservice.RedisClientService === "undefined" ? Object : _redisclientservice.RedisClientService
     ])
 ], RankingService);
 

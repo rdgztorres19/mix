@@ -29,7 +29,7 @@ export class AlpacaClient {
   private readonly maxRetries: number;
 
   constructor() {
-    this.chunkSize = parseInt(process.env.SCREENER_CHUNK_SIZE ?? '200', 10);
+    this.chunkSize = parseInt(process.env.SCREENER_CHUNK_SIZE ?? '500', 10);
     this.maxRetries = parseInt(process.env.SCREENER_MAX_RETRIES ?? '20', 10);
   }
 
@@ -45,6 +45,33 @@ export class AlpacaClient {
       }
     }
 
+    return result;
+  }
+
+  async fetchUniverse1mBars(symbols: string[], date: string): Promise<Map<string, AlpacaBar[]>> {
+    const result = new Map<string, AlpacaBar[]>();
+    const chunks = this.chunk(symbols, this.chunkSize);
+    let totalBars = 0;
+    const t0 = Date.now();
+
+    for (let i = 0; i < chunks.length; i++) {
+      const ct = Date.now();
+      const chunkResult = await this.fetchBarsChunk(chunks[i], date, date, '1Min');
+      let chunkBars = 0;
+      for (const [sym, bars] of Object.entries(chunkResult)) {
+        result.set(sym.toUpperCase(), bars);
+        chunkBars += bars.length;
+      }
+      totalBars += chunkBars;
+      const elapsed = ((Date.now() - ct) / 1000).toFixed(1);
+      console.log(
+        `  [Alpaca] Chunk ${i + 1}/${chunks.length}: ` +
+        `${Object.keys(chunkResult).length} symbols, ${chunkBars} bars (${elapsed}s)`,
+      );
+    }
+
+    const totalElapsed = ((Date.now() - t0) / 1000).toFixed(1);
+    console.log(`  [Alpaca] Universe fetch done: ${result.size} symbols, ${totalBars} bars in ${totalElapsed}s`);
     return result;
   }
 

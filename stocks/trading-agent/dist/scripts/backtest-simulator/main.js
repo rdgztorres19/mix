@@ -8,11 +8,13 @@ const _config = require("./config");
 const _db = require("./db");
 const _alpacaclient = require("./alpaca-client");
 const _candlecache = require("./candle-cache");
+const _barscache = require("./bars-cache");
 const _screener = require("./screener");
 const _indicatorengine = require("./indicator-engine");
 const _predictorclient = require("./predictor-client");
 const _tradesimulator = require("./trade-simulator");
 const _logger = require("./logger");
+const _chalk = /*#__PURE__*/ _interop_require_default(require("chalk"));
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj
@@ -63,7 +65,7 @@ function _interop_require_wildcard(obj, nodeInterop) {
 _dotenv.config({
     path: _path.default.resolve(__dirname, '../../../.env')
 });
-const MARKET_OPEN_MINUTE = 9 * 60 + 30;
+const MARKET_OPEN_MINUTE = 9 * 60 + 30; // 09:30
 /**
  * Convert a date string + HH:MM time in ET to unix ms.
  * Uses America/New_York timezone.
@@ -122,18 +124,19 @@ function minutesToTime(mins) {
 }
 async function main() {
     const config = (0, _config.parseArgs)(process.argv);
-    console.log(`\nBacktest Simulator`);
-    console.log(`Date: ${config.date} | Time: ${config.startTime}-${config.endTime}`);
-    console.log(`Threshold: ${config.threshold} | TP: ${config.targetPct}% | SL: ${config.stopLossPct}%\n`);
+    console.log(_chalk.default.bgBlue.white.bold('\n  Backtest Simulator  '));
+    console.log(_chalk.default.dim('  Date: ') + _chalk.default.white.bold(config.date) + _chalk.default.dim(' | Time: ') + _chalk.default.white.bold(`${config.startTime}-${config.endTime}`) + _chalk.default.dim(' | Thr: ') + _chalk.default.yellow.bold(String(config.threshold)) + _chalk.default.dim(' | TP: ') + _chalk.default.green.bold(`${config.targetPct}%`) + _chalk.default.dim(' | SL: ') + _chalk.default.red.bold(`${config.stopLossPct}%`) + '\n');
     // 1. Initialize services
     const pool = (0, _db.createPool)();
     const alpacaClient = new _alpacaclient.AlpacaClient();
     const candleCache = new _candlecache.CandleCache();
-    const screener = new _screener.BacktestScreener(40, 1_000_000);
+    const screener = new _screener.BacktestScreener(40, 500_000);
     const indicatorEngine = new _indicatorengine.IndicatorEngine();
     const predictorClient = new _predictorclient.PredictorClient();
-    const tradeSimulator = new _tradesimulator.TradeSimulator(config.targetPct, config.stopLossPct, 60);
+    const tradeSimulator = new _tradesimulator.TradeSimulator(config.targetPct, config.stopLossPct, 120);
     const logger = new _logger.SimLogger();
+    logger.setThreshold(config.threshold);
+    let redis = null;
     try {
         // 2. Load data from DB
         console.log('[Init] Loading universe from screener_assets...');
@@ -145,31 +148,44 @@ async function main() {
         console.log('[Init] Loading stock profiles...');
         const profiles = await (0, _db.getStockProfiles)(pool);
         console.log(`  Stock profiles: ${profiles.size}`);
-        // 3. Fetch daily bars for the full universe (for screener rankings)
-        // Only fetch symbols that have prev_close data (meaningful for gap calculation)
+        // 3. Load 1m bars from Redis cache or fetch from Alpaca
         const symbolsWithPrev = universe.filter((s)=>prevCloseMap.has(s));
-        console.log(`\n[Init] Fetching daily bars for ${symbolsWithPrev.length} symbols with prev_close...`);
-        const dailyBars = await alpacaClient.fetchDailyBars(symbolsWithPrev, config.date);
-        console.log(`  Daily bars received for ${dailyBars.size} symbols`);
-        // 4. Build initial daily snapshots for screener
-        const dailySnapshots = screener.buildSnapshotsFromDailyBars(dailyBars, prevCloseMap);
+        let allBars;
+        try {
+            redis = await (0, _barscache.connectRedis)();
+            console.log(_chalk.default.green('[Redis] Connected'));
+            const cached = await (0, _barscache.getCachedBars)(redis, config.date);
+            if (cached) {
+                allBars = cached;
+                console.log(_chalk.default.green(`[Redis] Cache hit for ${config.date}: ${allBars.size} symbols`));
+            } else {
+                console.log(_chalk.default.yellow(`[Redis] Cache miss for ${config.date}, fetching from Alpaca...`));
+                allBars = await alpacaClient.fetchUniverse1mBars(symbolsWithPrev, config.date);
+                await (0, _barscache.setCachedBars)(redis, config.date, allBars);
+                console.log(_chalk.default.green(`[Redis] Cached ${allBars.size} symbols for ${config.date}`));
+            }
+        } catch (err) {
+            console.warn(_chalk.default.yellow(`[Redis] Unavailable (${err.message}), fetching from Alpaca...`));
+            allBars = await alpacaClient.fetchUniverse1mBars(symbolsWithPrev, config.date);
+        }
+        // 4. Load all bars into candle cache
+        candleCache.loadFromBars(allBars);
+        console.log(_chalk.default.green(`  Cache loaded: ${candleCache.symbolCount} symbols with 1m data\n`));
         // 5. Run minute-by-minute simulation
         const startMin = timeToMinutes(config.startTime);
         const endMin = timeToMinutes(config.endTime);
-        console.log(`\n[Sim] Starting simulation from ${config.startTime} to ${config.endTime}...`);
+        console.log(_chalk.default.cyan(`[Sim] Starting simulation from ${config.startTime} to ${config.endTime}...`));
         for(let min = startMin; min <= endMin; min++){
             const currentTime = minutesToTime(min);
             const currentTimeMs = etToUnixMs(config.date, currentTime);
             const isAfterOpen = min > MARKET_OPEN_MINUTE;
-            // 5a. Build synthetic snapshots (merge daily + 1m where available)
-            const synthSnapshots = screener.buildSyntheticSnapshots(new Map(candleCache.symbols.map((s)=>[
-                    s,
-                    candleCache.getCandlesUpTo(s, currentTimeMs)
-                ])), currentTimeMs, prevCloseMap, dailySnapshots);
+            // 5a. Build synthetic snapshots from ALL cached 1m bars up to current minute
+            const allCandlesUpTo = candleCache.getAllSymbolCandles(currentTimeMs);
+            const synthSnapshots = screener.buildSyntheticSnapshots(allCandlesUpTo, prevCloseMap);
             // 5b. Compute combined list + reasons
             const { symbols: combinedList, reasons } = screener.computeCombinedList(synthSnapshots, config.date, prevCloseMap, isAfterOpen);
-            // 5c. Ensure 1m bars cached for combined list symbols
-            await candleCache.ensureSymbols(combinedList, config.date, alpacaClient);
+            // 5c. Feed snapshot data to logger for summary table
+            logger.updateMarketData(synthSnapshots, combinedList);
             // 5d. Build indicators + predict payloads for each symbol
             const payloads = [];
             for (const symbol of combinedList){
@@ -235,6 +251,7 @@ async function main() {
         // 6. Final summary
         logger.printSummary(config);
     } finally{
+        redis?.disconnect();
         await pool.end();
     }
 }

@@ -15,7 +15,6 @@ const _tradermodule = require("../trader/trader.module");
 const _websocketmodule = require("../websocket/websocket.module");
 const _collectorservice = require("./collector.service");
 const _collectorcron = require("./collector.cron");
-const _momostreamservice = require("./momo-stream.service");
 const _collectorgateway = require("./collector.gateway");
 const _collectorcontroller = require("./collector.controller");
 const _topgainerssourceservice = require("./top-gainers-source.service");
@@ -48,7 +47,6 @@ CollectorModule = _ts_decorate([
             _collectorservice.CollectorService,
             _collectorfeaturepreviewservice.CollectorFeaturePreviewService,
             _collectorcron.CollectorCron,
-            _momostreamservice.MomoStreamService,
             _collectorgateway.CollectorGateway,
             _scannedtrackerservice.ScannedTrackerService,
             _scannedtrackercron.ScannedTrackerCron,
@@ -59,7 +57,6 @@ CollectorModule = _ts_decorate([
         ],
         exports: [
             _collectorservice.CollectorService,
-            _momostreamservice.MomoStreamService,
             _collectorgateway.CollectorGateway,
             _scannedtrackerservice.ScannedTrackerService,
             'COLLECTOR_SERVICE'

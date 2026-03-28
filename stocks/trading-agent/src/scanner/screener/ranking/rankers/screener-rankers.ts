@@ -44,6 +44,67 @@ function sortByMetricThenVolume(
     }));
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Generic ranking engine — each exported function only provides a metric fn
+// ═══════════════════════════════════════════════════════════════════════════
+
+interface MetricResult {
+  metric: number;
+  /** Override close/high in extras when the effective price differs from dailyBar */
+  closeOverride?: number;
+  highOverride?: number;
+}
+
+type MetricFn = (
+  dailyBar: { o: number; h: number; l: number; c: number; v: number },
+  prev: number,
+  item: SnapshotItem,
+) => MetricResult | null;
+
+function rankByMetric(
+  snapshots: SnapshotsResponse,
+  prevCloseBySymbol: ReadonlyMap<string, number>,
+  topN: number,
+  minVolume: number,
+  rankType: ScreenerRankType,
+  metricFn: MetricFn,
+): ScreenerRankRow[] {
+  const acc: { symbol: string; metric: number; volume: number; extras: Partial<ScreenerRankRow> }[] = [];
+
+  for (const [symbol, item] of Object.entries(snapshots)) {
+    const dailyBar = item?.dailyBar;
+    if (!dailyBar) continue;
+    const v = dailyBar.v ?? 0;
+    if (!Number.isFinite(v) || v < minVolume) continue;
+    if (!Number.isFinite(dailyBar.c) || dailyBar.c <= 1) continue;
+    const prev = prevCloseForItem(symbol, item, prevCloseBySymbol);
+    if (prev == null) continue;
+
+    const result = metricFn(dailyBar, prev, item);
+    if (result == null || !Number.isFinite(result.metric)) continue;
+
+    acc.push({
+      symbol,
+      metric: result.metric,
+      volume: v,
+      extras: {
+        open: dailyBar.o,
+        high: result.highOverride ?? dailyBar.h,
+        low: dailyBar.l,
+        close: result.closeOverride ?? dailyBar.c,
+        previous_close: prev,
+        volume: v,
+      },
+    });
+  }
+
+  return sortByMetricThenVolume(acc, topN, rankType);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Exported rankers
+// ═══════════════════════════════════════════════════════════════════════════
+
 /** Gap from prev close to today's open: (dailyBar.o - prev) / prev * 100 */
 export function rankTopGappers(
   snapshots: SnapshotsResponse,
@@ -52,36 +113,10 @@ export function rankTopGappers(
   topN: number,
   minVolume: number,
 ): ScreenerRankRow[] {
-  const acc: { symbol: string; metric: number; volume: number; extras: Partial<ScreenerRankRow> }[] = [];
-
-  for (const [symbol, item] of Object.entries(snapshots)) {
-    if (symbol === 'ONCO') {
-      console.log('item', item);
-    }
-    const dailyBar = item?.dailyBar;
-    if (!dailyBar) continue;
-    const v = dailyBar.v ?? 0;
-    if (!Number.isFinite(v) || v < minVolume) continue;
-    const prev = prevCloseForItem(symbol, item, prevCloseBySymbol);
-    if (prev == null || !Number.isFinite(dailyBar.o) || dailyBar.o <= 0) continue;
-    const gapPct = ((dailyBar.o - prev) / prev) * 100;
-    if (!Number.isFinite(gapPct)) continue;
-    acc.push({
-      symbol,
-      metric: gapPct,
-      volume: v,
-      extras: {
-        open: dailyBar.o,
-        high: dailyBar.h,
-        low: dailyBar.l,
-        close: dailyBar.c,
-        previous_close: prev,
-        volume: v,
-      },
-    });
-  }
-
-  return sortByMetricThenVolume(acc, topN, 'gapper');
+  return rankByMetric(snapshots, prevCloseBySymbol, topN, minVolume, 'gapper', (bar, prev) => {
+    if (!Number.isFinite(bar.o) || bar.o <= 0) return null;
+    return { metric: ((bar.o - prev) / prev) * 100 };
+  });
 }
 
 /** Session / "historical of day" from snapshot daily close vs prev daily bar close. */
@@ -92,39 +127,12 @@ export function rankTopGainersSession(
   topN: number,
   minVolume: number,
 ): ScreenerRankRow[] {
-  const acc: { symbol: string; metric: number; volume: number; extras: Partial<ScreenerRankRow> }[] = [];
-
-  for (const [symbol, item] of Object.entries(snapshots)) {
-    const dailyBar = item?.dailyBar;
-    if (!dailyBar) continue;
-    const v = dailyBar.v ?? 0;
-    if (!Number.isFinite(v) || v < minVolume) continue;
-    const prev = prevCloseForItem(symbol, item, prevCloseBySymbol);
-    if (prev == null || !Number.isFinite(dailyBar.c) || dailyBar.c <= 0) continue;
-    const pct = ((dailyBar.c - prev) / prev) * 100;
-    if (!Number.isFinite(pct)) continue;
-    acc.push({
-      symbol,
-      metric: pct,
-      volume: v,
-      extras: {
-        open: dailyBar.o,
-        high: dailyBar.h,
-        low: dailyBar.l,
-        close: dailyBar.c,
-        previous_close: prev,
-        volume: v,
-      },
-    });
-  }
-
-  return sortByMetricThenVolume(acc, topN, 'gainer_session');
+  return rankByMetric(snapshots, prevCloseBySymbol, topN, minVolume, 'gainer_session', (bar, prev) => {
+    return { metric: ((bar.c - prev) / prev) * 100 };
+  });
 }
 
-/**
- * Intraday: % from prev close to latest trade price when present, else dailyBar.c
- * (see plan: último precio de sesión).
- */
+/** Intraday: % from prev close to latest trade price when present, else dailyBar.c */
 export function rankTopGainersIntraday(
   snapshots: SnapshotsResponse,
   _sessionDate: string,
@@ -132,38 +140,14 @@ export function rankTopGainersIntraday(
   topN: number,
   minVolume: number,
 ): ScreenerRankRow[] {
-  const acc: { symbol: string; metric: number; volume: number; extras: Partial<ScreenerRankRow> }[] = [];
-
-  for (const [symbol, item] of Object.entries(snapshots)) {
-    const dailyBar = item?.dailyBar;
-    if (!dailyBar) continue;
-    const v = dailyBar.v ?? 0;
-    if (!Number.isFinite(v) || v < minVolume) continue;
-    const prev = prevCloseForItem(symbol, item, prevCloseBySymbol);
-    if (prev == null) continue;
-    const last = item.latestTrade?.p ?? dailyBar.c;
-    if (!Number.isFinite(last) || last <= 0) continue;
-    const pct = ((last - prev) / prev) * 100;
-    if (!Number.isFinite(pct)) continue;
-    acc.push({
-      symbol,
-      metric: pct,
-      volume: v,
-      extras: {
-        open: dailyBar.o,
-        high: dailyBar.h,
-        low: dailyBar.l,
-        close: last,
-        previous_close: prev,
-        volume: v,
-      },
-    });
-  }
-
-  return sortByMetricThenVolume(acc, topN, 'gainer_intraday');
+  return rankByMetric(snapshots, prevCloseBySymbol, topN, minVolume, 'gainer_intraday', (bar, prev, item) => {
+    const last = item.latestTrade?.p ?? bar.c;
+    if (!Number.isFinite(last) || last <= 0) return null;
+    return { metric: ((last - prev) / prev) * 100, closeOverride: last };
+  });
 }
 
-/** High of day (dailyBar.h) vs prev close — same as buildTodayTopHighOfDayFromSnapshots. */
+/** High of day (dailyBar.h) vs prev close */
 export function rankTopHighSession(
   snapshots: SnapshotsResponse,
   _sessionDate: string,
@@ -171,39 +155,13 @@ export function rankTopHighSession(
   topN: number,
   minVolume: number,
 ): ScreenerRankRow[] {
-  const acc: { symbol: string; metric: number; volume: number; extras: Partial<ScreenerRankRow> }[] = [];
-
-  for (const [symbol, item] of Object.entries(snapshots)) {
-    const dailyBar = item?.dailyBar;
-    if (!dailyBar) continue;
-    const v = dailyBar.v ?? 0;
-    if (!Number.isFinite(v) || v < minVolume) continue;
-    const prev = prevCloseForItem(symbol, item, prevCloseBySymbol);
-    if (prev == null || !Number.isFinite(dailyBar.h) || dailyBar.h <= 0) continue;
-    const pct = ((dailyBar.h - prev) / prev) * 100;
-    if (!Number.isFinite(pct)) continue;
-    acc.push({
-      symbol,
-      metric: pct,
-      volume: v,
-      extras: {
-        open: dailyBar.o,
-        high: dailyBar.h,
-        low: dailyBar.l,
-        close: dailyBar.c,
-        previous_close: prev,
-        volume: v,
-      },
-    });
-  }
-
-  return sortByMetricThenVolume(acc, topN, 'high_session');
+  return rankByMetric(snapshots, prevCloseBySymbol, topN, minVolume, 'high_session', (bar, prev) => {
+    if (!Number.isFinite(bar.h) || bar.h <= 0) return null;
+    return { metric: ((bar.h - prev) / prev) * 100 };
+  });
 }
 
-/**
- * "Current" high extension: max(dailyBar.h, latestTrade.p) vs prev when last sale exists;
- * otherwise same as session (plan default without 1Min bars).
- */
+/** "Current" high extension: max(dailyBar.h, latestTrade.p) vs prev */
 export function rankTopHighCurrent(
   snapshots: SnapshotsResponse,
   _sessionDate: string,
@@ -211,36 +169,12 @@ export function rankTopHighCurrent(
   topN: number,
   minVolume: number,
 ): ScreenerRankRow[] {
-  const acc: { symbol: string; metric: number; volume: number; extras: Partial<ScreenerRankRow> }[] = [];
-
-  for (const [symbol, item] of Object.entries(snapshots)) {
-    const dailyBar = item?.dailyBar;
-    if (!dailyBar) continue;
-    const v = dailyBar.v ?? 0;
-    if (!Number.isFinite(v) || v < minVolume) continue;
-    const prev = prevCloseForItem(symbol, item, prevCloseBySymbol);
-    if (prev == null || !Number.isFinite(dailyBar.h) || dailyBar.h <= 0) continue;
+  return rankByMetric(snapshots, prevCloseBySymbol, topN, minVolume, 'high_current', (bar, prev, item) => {
+    if (!Number.isFinite(bar.h) || bar.h <= 0) return null;
     const lt = item.latestTrade?.p;
-    const effectiveHigh =
-      lt != null && Number.isFinite(lt) ? Math.max(dailyBar.h, lt) : dailyBar.h;
-    const pct = ((effectiveHigh - prev) / prev) * 100;
-    if (!Number.isFinite(pct)) continue;
-    acc.push({
-      symbol,
-      metric: pct,
-      volume: v,
-      extras: {
-        open: dailyBar.o,
-        high: effectiveHigh,
-        low: dailyBar.l,
-        close: dailyBar.c,
-        previous_close: prev,
-        volume: v,
-      },
-    });
-  }
-
-  return sortByMetricThenVolume(acc, topN, 'high_current');
+    const effectiveHigh = lt != null && Number.isFinite(lt) ? Math.max(bar.h, lt) : bar.h;
+    return { metric: ((effectiveHigh - prev) / prev) * 100, highOverride: effectiveHigh };
+  });
 }
 
 export function barsPrevCloseBeforeSession(

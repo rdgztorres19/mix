@@ -10,6 +10,7 @@ Object.defineProperty(exports, "ScannedTrackerService", {
 });
 const _common = require("@nestjs/common");
 const _mysqltrainingrepository = require("../../scanner/mysql/mysql-training.repository");
+const _fundamentalcacheservice = require("../../training/fundamental-cache.service");
 const _axios = /*#__PURE__*/ _interop_require_default(require("axios"));
 const _newstool = require("../../agent/tools/news.tool");
 function _interop_require_default(obj) {
@@ -98,11 +99,20 @@ let ScannedTrackerService = class ScannedTrackerService {
         this.logger.log(`Started tracking new symbol from scanner: ${symbol}`);
     }
     async fetchFloatData(data) {
-        const fmpKey = process.env.FMP_API_KEY;
-        if (!fmpKey) {
-            this.logger.warn(`No FMP_API_KEY found, skipping float fetch for ${data.symbol}`);
-            return;
+        // 1. Try local cache first (stock_profile from CSV/MySQL/Finnhub)
+        try {
+            const fundamentals = await this.fundamentalCache.getFundamentals(data.symbol);
+            if (fundamentals.sharesOutstanding != null) {
+                data.outstanding_shares = fundamentals.sharesOutstanding;
+                this.logger.log(`Float for ${data.symbol}: shares_outstanding=${fundamentals.sharesOutstanding} (from cache)`);
+                return;
+            }
+        } catch (err) {
+            this.logger.debug(`FundamentalCache miss for ${data.symbol}: ${err.message}`);
         }
+        // 2. Fallback to FMP API only if cache had nothing
+        const fmpKey = process.env.FMP_API_KEY;
+        if (!fmpKey) return;
         try {
             const url = `https://financialmodelingprep.com/stable/shares-float?symbol=${data.symbol}&apikey=${fmpKey}`;
             const res = await _axios.default.get(url, {
@@ -113,10 +123,10 @@ let ScannedTrackerService = class ScannedTrackerService {
                 data.float_shares = info.floatShares || null;
                 data.outstanding_shares = info.outstandingShares || null;
                 data.free_float = info.freeFloat || null;
-                this.logger.log(`Fetched float for ${data.symbol}: ${data.free_float}% free float`);
+                this.logger.log(`Float for ${data.symbol}: free_float=${data.free_float}% (from FMP)`);
             }
         } catch (err) {
-            this.logger.error(`Failed to fetch float for ${data.symbol}: ${err.message}`);
+            this.logger.warn(`FMP fallback failed for ${data.symbol}: ${err.message}`);
         }
     }
     async fetchNewsData(data) {
@@ -151,8 +161,9 @@ let ScannedTrackerService = class ScannedTrackerService {
         // Persist to DB
         await this.mysqlRepo.upsertScannedSymbol(tracked);
     }
-    constructor(mysqlRepo){
+    constructor(mysqlRepo, fundamentalCache){
         this.mysqlRepo = mysqlRepo;
+        this.fundamentalCache = fundamentalCache;
         this.logger = new _common.Logger(ScannedTrackerService.name);
         // In-memory cache for today's tracked symbols
         this.trackedSymbols = new Map();
@@ -162,7 +173,8 @@ ScannedTrackerService = _ts_decorate([
     (0, _common.Injectable)(),
     _ts_metadata("design:type", Function),
     _ts_metadata("design:paramtypes", [
-        typeof _mysqltrainingrepository.MysqlTrainingRepository === "undefined" ? Object : _mysqltrainingrepository.MysqlTrainingRepository
+        typeof _mysqltrainingrepository.MysqlTrainingRepository === "undefined" ? Object : _mysqltrainingrepository.MysqlTrainingRepository,
+        typeof _fundamentalcacheservice.FundamentalCacheService === "undefined" ? Object : _fundamentalcacheservice.FundamentalCacheService
     ])
 ], ScannedTrackerService);
 

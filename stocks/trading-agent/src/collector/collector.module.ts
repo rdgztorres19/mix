@@ -5,7 +5,6 @@ import { TraderModule } from '../trader/trader.module';
 import { WebSocketModule } from '../websocket/websocket.module';
 import { CollectorService } from './collector.service';
 import { CollectorCron } from './collector.cron';
-import { MomoStreamService } from './momo-stream.service';
 import { CollectorGateway } from './collector.gateway';
 import { CollectorController } from './collector.controller';
 import { TopGainersSourceService } from './top-gainers-source.service';
@@ -22,7 +21,6 @@ import { CollectorFeaturePreviewService } from './collector-feature-preview.serv
     CollectorService,
     CollectorFeaturePreviewService,
     CollectorCron,
-    MomoStreamService,
     CollectorGateway,
     ScannedTrackerService,
     ScannedTrackerCron,
@@ -31,6 +29,6 @@ import { CollectorFeaturePreviewService } from './collector-feature-preview.serv
       useExisting: CollectorService,
     },
   ],
-  exports: [CollectorService, MomoStreamService, CollectorGateway, ScannedTrackerService, 'COLLECTOR_SERVICE'],
+  exports: [CollectorService, CollectorGateway, ScannedTrackerService, 'COLLECTOR_SERVICE'],
 })
 export class CollectorModule {}

@@ -2,10 +2,18 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-Object.defineProperty(exports, "CandleCache", {
-    enumerable: true,
-    get: function() {
+function _export(target, all) {
+    for(var name in all)Object.defineProperty(target, name, {
+        enumerable: true,
+        get: Object.getOwnPropertyDescriptor(all, name).get
+    });
+}
+_export(exports, {
+    get CandleCache () {
         return CandleCache;
+    },
+    get alpacaBarsToCandles () {
+        return alpacaBarsToCandles;
     }
 });
 let CandleCache = class CandleCache {
@@ -13,6 +21,9 @@ let CandleCache = class CandleCache {
         return [
             ...this.cache.keys()
         ];
+    }
+    get symbolCount() {
+        return this.cache.size;
     }
     has(symbol) {
         return this.cache.has(symbol.toUpperCase());
@@ -27,15 +38,21 @@ let CandleCache = class CandleCache {
                 this.cache.set(sym, alpacaBarsToCandles(barArr));
             }
         }
-        // Evict symbols no longer in the combined list
-        for (const sym of this.cache.keys()){
-            if (!upper.includes(sym)) this.cache.delete(sym);
-        }
     }
     loadFromBars(barsMap) {
         for (const [sym, bars] of barsMap){
             this.cache.set(sym.toUpperCase(), alpacaBarsToCandles(bars));
         }
+    }
+    /** Returns all cached symbols' candles filtered up to the given timestamp. */ getAllSymbolCandles(upToMs) {
+        const result = new Map();
+        for (const [sym, candles] of this.cache){
+            const upTo = candles.filter((c)=>c.t <= upToMs);
+            if (upTo.length > 0) {
+                result.set(sym, upTo);
+            }
+        }
+        return result;
     }
     getCandlesUpTo(symbol, currentTimeMs) {
         const all = this.cache.get(symbol.toUpperCase());

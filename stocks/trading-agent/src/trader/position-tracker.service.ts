@@ -11,6 +11,8 @@ export interface AutoPosition {
   symbol: string;
   entry_time: string;
   entry_price: number;
+  take_profit_price: number | null;
+  stop_loss_price: number | null;
   qty: number;
   entry_candle_idx: number;
   candles_elapsed: number;
@@ -61,11 +63,13 @@ export class PositionTrackerService implements OnModuleInit {
     candleIdx: number,
     alpacaOrderId: string,
     metadata: Record<string, unknown> | null = null,
+    takeProfitPrice: number | null = null,
+    stopLossPrice: number | null = null,
   ): Promise<AutoPosition> {
     symbol = symbol.toUpperCase();
 
-    const id = await this.insertPositionRow(symbol, entryPrice, qty, candleIdx, alpacaOrderId, metadata);
-    const pos = this.buildNewPosition(id, symbol, entryPrice, qty, candleIdx, alpacaOrderId, metadata);
+    const id = await this.insertPositionRow(symbol, entryPrice, qty, candleIdx, alpacaOrderId, metadata, takeProfitPrice, stopLossPrice);
+    const pos = this.buildNewPosition(id, symbol, entryPrice, qty, candleIdx, alpacaOrderId, metadata, takeProfitPrice, stopLossPrice);
 
     this.openPositions.set(symbol, pos);
     this.logger.log(`Opened position: ${symbol} qty=${qty} @ $${entryPrice.toFixed(2)}`);
@@ -111,6 +115,8 @@ export class PositionTrackerService implements OnModuleInit {
         symbol VARCHAR(16) NOT NULL,
         entry_time DATETIME NOT NULL,
         entry_price DECIMAL(12,4) NOT NULL,
+        take_profit_price DECIMAL(12,4) DEFAULT NULL,
+        stop_loss_price DECIMAL(12,4) DEFAULT NULL,
         qty DECIMAL(16,8) NOT NULL,
         entry_candle_idx INT NOT NULL DEFAULT 0,
         candles_elapsed INT NOT NULL DEFAULT 0,
@@ -124,16 +130,25 @@ export class PositionTrackerService implements OnModuleInit {
         INDEX idx_symbol_status (symbol, status)
       )
     `);
-    // Add metadata column if missing (for existing tables)
-    await pool.query(`
+    // Migrate existing tables: add missing columns
+    const [cols] = await pool.query(`
       SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
-      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'auto_positions' AND COLUMN_NAME = 'metadata'
-    `).then(async ([rows]: any) => {
-      if ((rows as any[]).length === 0) {
-        await pool.query(`ALTER TABLE auto_positions ADD COLUMN metadata JSON DEFAULT NULL`);
-        this.logger.log('Added metadata column to auto_positions');
-      }
-    });
+      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'auto_positions'
+    `) as any;
+    const existing = new Set((cols as any[]).map((r: any) => r.COLUMN_NAME));
+
+    if (!existing.has('metadata')) {
+      await pool.query(`ALTER TABLE auto_positions ADD COLUMN metadata JSON DEFAULT NULL`);
+      this.logger.log('Added metadata column to auto_positions');
+    }
+    if (!existing.has('take_profit_price')) {
+      await pool.query(`ALTER TABLE auto_positions ADD COLUMN take_profit_price DECIMAL(12,4) DEFAULT NULL AFTER entry_price`);
+      this.logger.log('Added take_profit_price column to auto_positions');
+    }
+    if (!existing.has('stop_loss_price')) {
+      await pool.query(`ALTER TABLE auto_positions ADD COLUMN stop_loss_price DECIMAL(12,4) DEFAULT NULL AFTER take_profit_price`);
+      this.logger.log('Added stop_loss_price column to auto_positions');
+    }
     this.logger.log('auto_positions table ready');
   }
 
@@ -161,13 +176,15 @@ export class PositionTrackerService implements OnModuleInit {
   private async insertPositionRow(
     symbol: string, entryPrice: number, qty: number, candleIdx: number, orderId: string,
     metadata: Record<string, unknown> | null = null,
+    takeProfitPrice: number | null = null,
+    stopLossPrice: number | null = null,
   ): Promise<number> {
     const pool = this.getPool();
     const [result] = await pool.query(
       `INSERT INTO auto_positions
-       (symbol, entry_time, entry_price, qty, entry_candle_idx, candles_elapsed, status, alpaca_order_id, metadata)
-       VALUES (?, ?, ?, ?, ?, 0, 'open', ?, ?)`,
-      [symbol, this.nowMysql(), entryPrice, qty, candleIdx, orderId, metadata ? JSON.stringify(metadata) : null],
+       (symbol, entry_time, entry_price, take_profit_price, stop_loss_price, qty, entry_candle_idx, candles_elapsed, status, alpaca_order_id, metadata)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'open', ?, ?)`,
+      [symbol, this.nowMysql(), entryPrice, takeProfitPrice, stopLossPrice, qty, candleIdx, orderId, metadata ? JSON.stringify(metadata) : null],
     );
     return (result as any).insertId;
   }
@@ -211,12 +228,16 @@ export class PositionTrackerService implements OnModuleInit {
   private buildNewPosition(
     id: number, symbol: string, entryPrice: number, qty: number, candleIdx: number, orderId: string,
     metadata: Record<string, unknown> | null = null,
+    takeProfitPrice: number | null = null,
+    stopLossPrice: number | null = null,
   ): AutoPosition {
     return {
       id,
       symbol,
       entry_time: this.nowMysql(),
       entry_price: entryPrice,
+      take_profit_price: takeProfitPrice,
+      stop_loss_price: stopLossPrice,
       qty,
       entry_candle_idx: candleIdx,
       candles_elapsed: 0,
@@ -239,6 +260,8 @@ export class PositionTrackerService implements OnModuleInit {
       symbol: r.symbol,
       entry_time: String(r.entry_time),
       entry_price: parseFloat(r.entry_price),
+      take_profit_price: r.take_profit_price != null ? parseFloat(r.take_profit_price) : null,
+      stop_loss_price: r.stop_loss_price != null ? parseFloat(r.stop_loss_price) : null,
       qty: parseFloat(r.qty),
       entry_candle_idx: r.entry_candle_idx,
       candles_elapsed: r.candles_elapsed,

@@ -9,6 +9,7 @@ Object.defineProperty(exports, "ScreenerModule", {
     }
 });
 const _common = require("@nestjs/common");
+const _cachemodule = require("../../cache/cache.module");
 const _screenerservice = require("./screener.service");
 const _screenercontroller = require("./screener.controller");
 const _rankingservice = require("./ranking/ranking.service");
@@ -27,6 +28,9 @@ let ScreenerModule = class ScreenerModule {
 };
 ScreenerModule = _ts_decorate([
     (0, _common.Module)({
+        imports: [
+            _cachemodule.CacheModule
+        ],
         providers: [
             _screenerrepository.ScreenerRepository,
             _alpacascreenerclient.AlpacaScreenerClient,

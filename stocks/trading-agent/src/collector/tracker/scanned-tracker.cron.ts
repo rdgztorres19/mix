@@ -426,7 +426,7 @@ export class ScannedTrackerCron {
 
     const bars = response?.bars ?? [];
     if (bars.length === 0) {
-      this.logger.warn(`No live bars returned for ${symbol} between ${range.start} and ${range.end}`);
+      //this.logger.warn(`No live bars returned for ${symbol} between ${range.start} and ${range.end}`);
       return [];
     }
 

@@ -2,7 +2,6 @@ import type { CollectorCandle } from '../../collector/indicator.calculator';
 import type {
   SnapshotsResponse,
   SnapshotItem,
-  AlpacaBar,
 } from '../../scanner/screener/alpaca/alpaca-screener.client';
 import type { ScreenerRankRow, ScreenerRankType } from '../../scanner/screener/persistence/screener.repository';
 import {
@@ -29,48 +28,26 @@ export class BacktestScreener {
     this.minVolume = minVolume;
   }
 
-  buildSnapshotsFromDailyBars(
-    dailyBars: Map<string, AlpacaBar[]>,
+  /**
+   * Build synthetic snapshots from 1m bars accumulated up to the current minute.
+   * All symbols use the same data source (1m bars) so rankings are consistent.
+   * Input candles should already be filtered to upToMs by the caller.
+   */
+  buildSyntheticSnapshots(
+    candlesBySymbol: Map<string, CollectorCandle[]>,
     prevCloseMap: ReadonlyMap<string, number>,
   ): SnapshotsResponse {
     const snapshots: SnapshotsResponse = {};
 
-    for (const [symbol, bars] of dailyBars) {
-      if (!bars.length) continue;
-      const bar = bars[bars.length - 1];
-      const prevClose = prevCloseMap.get(symbol.toUpperCase());
-
-      const item: SnapshotItem = {
-        dailyBar: { t: bar.t, o: bar.o, h: bar.h, l: bar.l, c: bar.c, v: bar.v },
-        latestTrade: { p: bar.c },
-      };
-      if (prevClose != null) {
-        item.prevDailyBar = { t: '', o: 0, h: 0, l: 0, c: prevClose, v: 0 };
-      }
-      snapshots[symbol.toUpperCase()] = item;
-    }
-
-    return snapshots;
-  }
-
-  buildSyntheticSnapshots(
-    candlesBySymbol: Map<string, CollectorCandle[]>,
-    currentTimeMs: number,
-    prevCloseMap: ReadonlyMap<string, number>,
-    dailySnapshots: SnapshotsResponse,
-  ): SnapshotsResponse {
-    const snapshots: SnapshotsResponse = { ...dailySnapshots };
-
     for (const [symbol, candles] of candlesBySymbol) {
-      const upTo = candles.filter((c) => c.t <= currentTimeMs);
-      if (!upTo.length) continue;
+      if (!candles.length) continue;
 
-      const first = upTo[0];
-      const last = upTo[upTo.length - 1];
+      const first = candles[0];
+      const last = candles[candles.length - 1];
       let hod = -Infinity;
       let lod = Infinity;
       let vol = 0;
-      for (const c of upTo) {
+      for (const c of candles) {
         if (c.h > hod) hod = c.h;
         if (c.l < lod) lod = c.l;
         vol += c.v;

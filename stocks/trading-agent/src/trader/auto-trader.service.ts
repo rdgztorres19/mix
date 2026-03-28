@@ -63,7 +63,7 @@ export class AutoTraderService {
 
     try {
       if (this.positions.hasOpenPosition(row.symbol)) {
-        await this.trackOpenPosition(row);
+        //await this.trackOpenPosition(row);
       } else {
         await this.evaluateAndTrade(row);
       }
@@ -76,14 +76,14 @@ export class AutoTraderService {
   // Open-position management
   // ═══════════════════════════════════════════════════════════════════════
 
-  private async trackOpenPosition(row: CandleRow): Promise<void> {
-    const elapsed = await this.positions.incrementCandles(row.symbol);
-    this.logger.debug(`${row.symbol} position candle ${elapsed}/${this.exitCandles}`);
+  // private async trackOpenPosition(row: CandleRow): Promise<void> {
+  //   const elapsed = await this.positions.incrementCandles(row.symbol);
+  //   this.logger.debug(`${row.symbol} position candle ${elapsed}/${this.exitCandles}`);
 
-    if (elapsed >= this.exitCandles) {
-      await this.closeAndSell(row);
-    }
-  }
+  //   if (elapsed >= this.exitCandles) {
+  //     await this.closeAndSell(row);
+  //   }
+  // }
 
   private async closeAndSell(row: CandleRow): Promise<void> {
     const pos = this.positions.getOpenPosition(row.symbol);
@@ -196,12 +196,13 @@ export class AutoTraderService {
         return;
       }
 
-      // Use bracket order with aggressive limit entry, TP 2% and SL 1.5%
+      // Use bracket order with aggressive limit entry, TP and SL
       const order = await this.alpaca.buyBracketLimit(row.symbol, dollarAmount, row.close);
       const fillPrice = this.parseFillPrice(order, row.close);
       const qty = this.parseFillQty(order, dollarAmount, row.close);
 
-      await this.positions.openPosition(row.symbol, fillPrice, qty, row.candle_idx, order.id, row as unknown as Record<string, unknown>);
+      const { takeProfitPrice, stopLossPrice } = this.extractBracketPrices(fillPrice);
+      await this.positions.openPosition(row.symbol, fillPrice, qty, row.candle_idx, order.id, row as unknown as Record<string, unknown>, takeProfitPrice, stopLossPrice);
       await this.storeTradeRowByDay(row);
       this.notifyEntry(row, fillPrice, qty, dollarAmount, order.id);
     } catch (err) {
@@ -226,6 +227,7 @@ export class AutoTraderService {
         inserted_at_utc: new Date().toISOString(),
       });
       await redis.rpush(key, payload);
+      await redis.expire(key, 7 * 24 * 60 * 60); // 7 days TTL
     } catch (err) {
       this.logger.warn(`Failed to persist traded row in Redis (${row.symbol}): ${(err as Error).message}`);
     }
@@ -242,6 +244,17 @@ export class AutoTraderService {
 
   private parseFillQty(order: AlpacaOrder, dollarAmount: number, closePrice: number): number {
     return order.filled_qty ? parseFloat(order.filled_qty) : dollarAmount / closePrice;
+  }
+
+  private extractBracketPrices(entryPrice: number): { takeProfitPrice: number | null; stopLossPrice: number | null } {
+    // Bracket order legs don't expose limit_price/stop_price in our AlpacaOrder interface.
+    // Compute from entry price using the same defaults as buyBracketLimit.
+    const tpPct = parseFloat(process.env.AUTO_TRADE_TP_PCT ?? '0.04');
+    const slPct = parseFloat(process.env.AUTO_TRADE_SL_PCT ?? '0.02');
+    return {
+      takeProfitPrice: parseFloat((entryPrice * (1 + tpPct)).toFixed(4)),
+      stopLossPrice: parseFloat((entryPrice * (1 - slPct)).toFixed(4)),
+    };
   }
 
   private notifyEntry(row: CandleRow, price: number, qty: number, dollarAmount: number, orderId: string): void {

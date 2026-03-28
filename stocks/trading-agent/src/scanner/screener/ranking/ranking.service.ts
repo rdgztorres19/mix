@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { PromisePool } from '@supercharge/promise-pool';
+import { RedisClientService } from '../../../cache/redis-client.service';
 import { AlpacaScreenerClient, type SnapshotsResponse } from '../alpaca/alpaca-screener.client';
 import {
   ScreenerRepository,
@@ -52,6 +53,7 @@ export class RankingService {
     private readonly assets: AssetsService,
     private readonly repo: ScreenerRepository,
     private readonly activeSymbols: ActiveSymbolsService,
+    @Optional() private readonly redisClient?: RedisClientService,
   ) {}
 
   private chunkSize(): number {
@@ -291,6 +293,7 @@ export class RankingService {
       }
 
       await this.activeSymbols.rebuildFromStoredRanks(sessionDate);
+      await this.cacheRankingsToRedis(sessionDate, lists);
     }
 
     await this.persistQuotesBatch(snapshots);
@@ -302,5 +305,40 @@ export class RankingService {
     );
 
     return { status: 'ok', symbols: universe.length, ranks: opts.full };
+  }
+
+  /**
+   * Cache each ranking list + the combined list to Redis.
+   * Keys: screener:{type}:{date}, screener:combined:{date}
+   * TTL: 7 days
+   */
+  private async cacheRankingsToRedis(
+    sessionDate: string,
+    lists: { type: ScreenerRankType; rows: ScreenerRankRow[] }[],
+  ): Promise<void> {
+    const redis = this.redisClient?.getClient();
+    if (!redis) return;
+
+    const TTL = 7 * 24 * 60 * 60;
+    const ts = new Date().toISOString();
+
+    try {
+      // Store each ranking category
+      for (const { type, rows } of lists) {
+        const key = `screener:${type}:${sessionDate}`;
+        const payload = JSON.stringify({ type, sessionDate, updated_at: ts, rows });
+        await redis.set(key, payload, 'EX', TTL);
+      }
+
+      // Store combined list
+      const combined = await this.activeSymbols.getActive(sessionDate);
+      const combinedKey = `screener:combined:${sessionDate}`;
+      const combinedPayload = JSON.stringify({ sessionDate, updated_at: ts, symbols: combined });
+      await redis.set(combinedKey, combinedPayload, 'EX', TTL);
+
+      this.logger.log(`Cached ${lists.length} rankings + combined to Redis (${sessionDate})`);
+    } catch (err) {
+      this.logger.warn(`Failed to cache rankings to Redis: ${(err as Error).message}`);
+    }
   }
 }

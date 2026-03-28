@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find '/Users/rdgztorres19/Documents/Projects/node copy/stocks/trading-agent/src' -type f -name *.ts)",
+      "Bash(npm install:*)",
+      "Bash(npx ts-node:*)",
+      "WebSearch",
+      "Bash(npm info:*)",
+      "Bash(npm search:*)"
+    ]
+  }
+}

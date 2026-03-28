@@ -9,6 +9,10 @@ export class CandleCache {
     return [...this.cache.keys()];
   }
 
+  get symbolCount(): number {
+    return this.cache.size;
+  }
+
   has(symbol: string): boolean {
     return this.cache.has(symbol.toUpperCase());
   }
@@ -24,17 +28,24 @@ export class CandleCache {
         this.cache.set(sym, alpacaBarsToCandles(barArr));
       }
     }
-
-    // Evict symbols no longer in the combined list
-    for (const sym of this.cache.keys()) {
-      if (!upper.includes(sym)) this.cache.delete(sym);
-    }
   }
 
   loadFromBars(barsMap: Map<string, AlpacaBar[]>): void {
     for (const [sym, bars] of barsMap) {
       this.cache.set(sym.toUpperCase(), alpacaBarsToCandles(bars));
     }
+  }
+
+  /** Returns all cached symbols' candles filtered up to the given timestamp. */
+  getAllSymbolCandles(upToMs: number): Map<string, CollectorCandle[]> {
+    const result = new Map<string, CollectorCandle[]>();
+    for (const [sym, candles] of this.cache) {
+      const upTo = candles.filter((c) => c.t <= upToMs);
+      if (upTo.length > 0) {
+        result.set(sym, upTo);
+      }
+    }
+    return result;
   }
 
   getCandlesUpTo(symbol: string, currentTimeMs: number): CollectorCandle[] {
@@ -48,7 +59,7 @@ export class CandleCache {
   }
 }
 
-function alpacaBarsToCandles(bars: AlpacaBar[]): CollectorCandle[] {
+export function alpacaBarsToCandles(bars: AlpacaBar[]): CollectorCandle[] {
   return bars.map((b) => ({
     o: b.o,
     h: b.h,

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MysqlTrainingRepository } from '../../scanner/mysql/mysql-training.repository';
+import { FundamentalCacheService } from '../../training/fundamental-cache.service';
 import axios from 'axios';
 import { scoreHeadlines, fetchYahooNews, fetchFinvizNews } from '../../agent/tools/news.tool';
 
@@ -31,6 +32,7 @@ export class ScannedTrackerService {
 
   constructor(
     private readonly mysqlRepo: MysqlTrainingRepository,
+    private readonly fundamentalCache: FundamentalCacheService,
   ) {}
 
   async onModuleInit() {
@@ -114,11 +116,21 @@ export class ScannedTrackerService {
   }
 
   private async fetchFloatData(data: ScannedSymbolData) {
-    const fmpKey = process.env.FMP_API_KEY;
-    if (!fmpKey) {
-      this.logger.warn(`No FMP_API_KEY found, skipping float fetch for ${data.symbol}`);
-      return;
+    // 1. Try local cache first (stock_profile from CSV/MySQL/Finnhub)
+    try {
+      const fundamentals = await this.fundamentalCache.getFundamentals(data.symbol);
+      if (fundamentals.sharesOutstanding != null) {
+        data.outstanding_shares = fundamentals.sharesOutstanding;
+        this.logger.log(`Float for ${data.symbol}: shares_outstanding=${fundamentals.sharesOutstanding} (from cache)`);
+        return;
+      }
+    } catch (err) {
+      this.logger.debug(`FundamentalCache miss for ${data.symbol}: ${(err as Error).message}`);
     }
+
+    // 2. Fallback to FMP API only if cache had nothing
+    const fmpKey = process.env.FMP_API_KEY;
+    if (!fmpKey) return;
 
     try {
       const url = `https://financialmodelingprep.com/stable/shares-float?symbol=${data.symbol}&apikey=${fmpKey}`;
@@ -128,10 +140,10 @@ export class ScannedTrackerService {
         data.float_shares = info.floatShares || null;
         data.outstanding_shares = info.outstandingShares || null;
         data.free_float = info.freeFloat || null;
-        this.logger.log(`Fetched float for ${data.symbol}: ${data.free_float}% free float`);
+        this.logger.log(`Float for ${data.symbol}: free_float=${data.free_float}% (from FMP)`);
       }
     } catch (err) {
-      this.logger.error(`Failed to fetch float for ${data.symbol}: ${err.message}`);
+      this.logger.warn(`FMP fallback failed for ${data.symbol}: ${(err as Error).message}`);
     }
   }
 

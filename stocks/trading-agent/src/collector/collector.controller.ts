@@ -114,24 +114,6 @@ export class CollectorController {
     return this.collector.forceResubscribeAll();
   }
 
-  /**
-   * POST /collector/test-scan
-   * Manually trigger a MoMo scan.
-   */
-  @Post('test-scan')
-  async testScan(): Promise<{ ok: boolean; newSymbols: string[] }> {
-    const newSymbols = await this.collector.scanMomo();
-    return { ok: true, newSymbols };
-  }
-
-  /**
-   * GET /collector/websocket-stats
-   * Debug endpoint: WebSocket data flow statistics.
-   */
-  @Get('websocket-stats')
-  async getWebSocketStats() {
-    return this.collector.getWebSocketStats();
-  }
 
   /**
    * GET /collector/debug-streams
@@ -140,9 +122,7 @@ export class CollectorController {
   @Get('debug-streams')
   async getStreamStatus(): Promise<{
     alpaca: { connected: boolean; subscriptions: string[]; source: string };
-    momo: { connected: boolean; subscriptions: string[]; source: string };
     activeSymbols: string[];
-    primaryStream: string;
     positions: Array<{
       id: number;
       symbol: string;
@@ -158,25 +138,15 @@ export class CollectorController {
     const alpacaConnected = this.webSocketInit?.isAlpacaConnected() ?? false;
     const alpacaSubscriptions = this.webSocketInit?.getAlpacaSubscriptions() ?? [];
     const lastBarTimes = this.webSocketInit?.getLastBarTimesMap() ?? {};
-
-    const momoConnected = this.collector['momoStream']?.isConnected() ?? false;
-    const momoSubscriptions = this.collector['momoStream']?.getSubscribedSymbols() ?? [];
-
     const positions = this.positionTracker?.getAllOpen() ?? [];
 
     return {
       alpaca: {
         connected: alpacaConnected,
         subscriptions: alpacaSubscriptions,
-        source: 'Premium SIP Feed'
-      },
-      momo: {
-        connected: momoConnected,
-        subscriptions: momoSubscriptions,
-        source: 'MoMo Fallback'
+        source: 'Premium SIP Feed',
       },
       activeSymbols: this.collector.getActiveSymbolList(),
-      primaryStream: alpacaConnected ? 'Alpaca Premium' : 'MoMo Fallback',
       positions: positions.map(p => ({
         id: p.id,
         symbol: p.symbol,
