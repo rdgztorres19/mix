@@ -232,10 +232,16 @@ def run_grid(
                         print("  SKIP: test split has only one class")
                         continue
 
-                    # Scale
-                    scaler = StandardScaler()
-                    X_train_s = scaler.fit_transform(X_train)
-                    X_test_s = scaler.transform(X_test)
+                    # Scale (skip for V2 feature sets — all relative, trees don't need it)
+                    use_scaler = not fset_name.startswith("V2")
+                    if use_scaler:
+                        scaler = StandardScaler()
+                        X_train_s = scaler.fit_transform(X_train)
+                        X_test_s = scaler.transform(X_test)
+                    else:
+                        scaler = None
+                        X_train_s = X_train.values if hasattr(X_train, 'values') else X_train
+                        X_test_s = X_test.values if hasattr(X_test, 'values') else X_test
 
                     # Class weights
                     sw = compute_sample_weights(y_train)

@@ -110,7 +110,8 @@ def run_batch(batch: list, threshold: float, model, scaler, meta, add_features_f
         ]
 
     X = np.array([rows[i] for i in valid_indices])
-    if scaler is not None:
+    use_scaler = meta.get("use_scaler", True)  # V2 models set this to False
+    if use_scaler and scaler is not None:
         X = scaler.transform(X)
 
     probas = model.predict_proba(X)

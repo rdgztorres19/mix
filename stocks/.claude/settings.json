@@ -10,7 +10,12 @@
       "Bash(grep -E \"\\\\.\\(ts|sql\\)$\")",
       "Read(//tmp/**)",
       "Read(//private/tmp/**)",
-      "Bash(ls -la /Users/rdgztorres19/Documents/Projects/node copy/stocks/stock-training/ml/experiments/*.py)"
+      "Bash(ls -la /Users/rdgztorres19/Documents/Projects/node copy/stocks/stock-training/ml/experiments/*.py)",
+      "Read(//Users/rdgztorres19/Documents/Projects/**)",
+      "Bash(find '/Users/rdgztorres19/Documents/Projects/node copy/stocks/trading-agent/src/scripts/build-training-v2' -type f -name *.js -o -name *.ts)",
+      "WebFetch(domain:www.mdpi.com)",
+      "WebFetch(domain:arxiv.org)",
+      "WebFetch(domain:link.springer.com)"
     ]
   }
 }

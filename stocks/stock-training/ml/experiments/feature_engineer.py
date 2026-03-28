@@ -327,6 +327,80 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
         vm_z = _safe_div(vol_mom_5, np.maximum(vm_roll_std, 1e-8))
         grp["momentum_divergence"] = pm_z - vm_z
 
+        # ── V2 new features ─────────────────────────────────────────────
+
+        # Return acceleration (change in momentum direction)
+        grp["return_accel_1m"] = grp["return_lag_1"].values - grp["return_lag_2"].values if "return_lag_1" in grp.columns else np.zeros(len(grp))
+        grp["return_accel_5m"] = grp["roc_5"].values - grp["roc_10"].values if "roc_5" in grp.columns else np.zeros(len(grp))
+
+        # Move strength vs volatility (z-score of 5m move)
+        vol_15m = grp["volatility_15m"].values if "volatility_15m" in grp.columns else np.ones(len(grp)) * 1e-6
+        chg_5m = grp["roc_5"].values if "roc_5" in grp.columns else np.zeros(len(grp))
+        grp["move_vs_vol"] = _safe_div(chg_5m, np.maximum(vol_15m, 1e-6))
+
+        rolling_std_5m = _rolling_std(rets_1, 5)
+        grp["z_score_5m"] = _safe_div(chg_5m, np.maximum(rolling_std_5m, 1e-6))
+
+        # Distance to recent 5-bar high/low (not day high, recent structure)
+        min_low_5 = np.zeros(len(gc))
+        gl = grp["low"].values.astype(np.float64)
+        for i in range(len(gc)):
+            start = max(0, i - 4)
+            min_low_5[i] = np.min(gl[start:i + 1])
+        grp["dist_high_5"] = _safe_div(gc - max_high_5, np.maximum(np.abs(max_high_5), 1e-6))
+        grp["dist_low_5"] = _safe_div(gc - min_low_5, np.maximum(np.abs(min_low_5), 1e-6))
+
+        # Buy volume ratio (proxy: sum vol of green candles / total vol, rolling 5)
+        is_green_arr = (gc > go).astype(np.float64)
+        buy_vol = gv * is_green_arr
+        buy_vol_5 = _rolling_sum(buy_vol, 5)
+        total_vol_5 = _rolling_sum(gv, 5)
+        grp["buy_volume_ratio"] = _safe_div(buy_vol_5, np.maximum(total_vol_5, 1.0))
+
+        # Volume trend: slope of volume_rel over last 5 bars
+        vr = grp["volume_rel"].values if "volume_rel" in grp.columns else np.ones(len(grp))
+        vr_slope = pd.Series(vr).rolling(5, min_periods=2).apply(
+            lambda x: np.polyfit(np.arange(len(x)), x, 1)[0] if len(x) > 1 else 0, raw=True
+        ).fillna(0).values
+        grp["vol_trend_5"] = vr_slope
+
+        # Volume concentration: % of cumulative vol in last 5 bars
+        vol_5 = _rolling_sum(gv, 5)
+        grp["vol_concentration_5"] = _safe_div(vol_5, np.maximum(cum_vol, 1.0))
+
+        # Close position within candle range (0=at low, 1=at high)
+        bar_range_raw = gh - gl
+        grp["close_position"] = _safe_div(gc - gl, np.maximum(bar_range_raw, 1e-6))
+
+        # Bar range as % of price
+        grp["bar_range_pct"] = _safe_div(bar_range_raw, np.maximum(gc, 1e-6))
+
+        # Bars above VWAP (count of last 5 bars where close > vwap)
+        above_vwap = (gc > gvwap).astype(np.float64)
+        grp["bars_above_vwap_5"] = _rolling_sum(above_vwap, 5)
+
+        # EMA spread and its change (trend strength)
+        d_ema9 = grp["dist_ema9"].values if "dist_ema9" in grp.columns else np.zeros(len(grp))
+        d_ema20 = grp["dist_ema20"].values if "dist_ema20" in grp.columns else np.zeros(len(grp))
+        ema_spread = d_ema9 - d_ema20
+        grp["ema_spread"] = ema_spread
+        ema_spread_prev = np.roll(ema_spread, 1)
+        ema_spread_prev[0] = ema_spread[0]
+        grp["ema_spread_change"] = ema_spread - ema_spread_prev
+
+        # Gap vs ATR (gap strength relative to typical volatility)
+        if "gap_pct" in grp.columns:
+            gap_vals = grp["gap_pct"].values.astype(np.float64)
+            atr_rel_vals = _safe_div(gatr, np.maximum(gc, 1e-6))
+            grp["gap_vs_atr"] = _safe_div(gap_vals, np.maximum(atr_rel_vals, 1e-6))
+        else:
+            grp["gap_vs_atr"] = 0.0
+
+        # Pre-market strength vs ATR
+        pm_dist = grp["dist_pm_high"].values if "dist_pm_high" in grp.columns else np.zeros(len(grp))
+        atr_rel_arr = grp["atr_rel"].values if "atr_rel" in grp.columns else np.ones(len(grp)) * 1e-6
+        grp["pm_strength"] = _safe_div(np.abs(pm_dist), np.maximum(atr_rel_arr, 1e-6))
+
         grouped_frames.append(grp)
 
     result = pd.concat(grouped_frames, ignore_index=True) if grouped_frames else df
@@ -482,6 +556,83 @@ for _name in ["FEATURE_SET_D_CLEAN", "FEATURE_SET_D1", "FEATURE_SET_D2", "FEATUR
             _deduped.append(_f)
     globals()[_name] = _deduped
 
+# ── V2 Feature Sets: ALL relative, NO absolute prices/volumes ─────────────
+
+# V2_core: essential relative features only (~40 features)
+FEATURE_SET_V2_CORE = [
+    # Position in time
+    "candle_idx", "minute_of_day", "time_since_open_min",
+    "is_premarket", "is_first_30min", "is_open", "is_midday", "is_power_hour",
+    # Price change & momentum (all %)
+    "change_pct_at_candle", "change_1m", "change_5m", "change_10m",
+    "roc_3", "roc_5", "roc_10",
+    "return_lag_1", "return_lag_2", "return_lag_3",
+    "return_accel_1m", "return_accel_5m",
+    "momentum_acceleration",
+    # Distances to key levels (all %)
+    "dist_vwap_pct", "dist_hod_pct", "dist_lod_pct",
+    "dist_ema9", "dist_ema20", "dist_pm_high",
+    "dist_prev_hod_pct", "dist_day_open",
+    "dist_high_5", "dist_low_5",
+    # Volatility & structure (all relative)
+    "atr_rel", "volatility_15m", "volatility_ratio",
+    "rsi", "bar_range_vs_atr", "bar_range_pct",
+    # Volume (all relative)
+    "volume_rel", "volume_spike", "volume_acceleration",
+    "buy_volume_ratio", "float_rotation",
+]
+
+# V2_full: core + all advanced relative features (~65 features)
+FEATURE_SET_V2_FULL = FEATURE_SET_V2_CORE + [
+    # Candle structure
+    "body_pct", "upper_wick_pct", "lower_wick_pct", "is_green",
+    "close_position", "range_expansion", "pct_of_day_range", "relative_range",
+    # Breakout signals
+    "break_hod", "break_prev_hod_high", "break_prev_hod_close", "break_high_5",
+    "break_pm_high", "vwap_cross_up", "gap_filled",
+    # Volume advanced
+    "relative_dollar_volume", "cumulative_volume_ratio",
+    "vol_trend_5", "vol_concentration_5",
+    # Momentum advanced
+    "move_vs_vol", "z_score_5m", "momentum_divergence",
+    "consecutive_green", "consecutive_red", "consolidation_score",
+    # EMA spread
+    "ema_spread", "ema_spread_change",
+    # Context
+    "gap_vs_atr", "pm_strength",
+    "bars_above_vwap_5",
+    "minutes_since_hod",
+    "gap_pct", "premarket_volume",
+    "roc_20",
+]
+
+# V2_momentum: focused on momentum signals (~35 features)
+FEATURE_SET_V2_MOMENTUM = [
+    "candle_idx", "minute_of_day", "time_since_open_min",
+    "is_first_30min", "is_open", "is_midday",
+    "change_pct_at_candle", "change_1m", "change_5m", "change_10m",
+    "roc_5", "roc_10", "return_lag_1", "return_lag_2",
+    "return_accel_1m", "return_accel_5m", "momentum_acceleration",
+    "move_vs_vol", "z_score_5m",
+    "dist_vwap_pct", "dist_hod_pct", "dist_ema9", "dist_ema20",
+    "dist_prev_hod_pct", "dist_high_5",
+    "atr_rel", "volatility_15m", "rsi",
+    "volume_rel", "volume_spike", "buy_volume_ratio", "vol_trend_5",
+    "break_hod", "break_high_5", "ema_spread",
+    "bar_range_vs_atr", "close_position",
+]
+
+# Dedupe V2 sets
+for _name in ["FEATURE_SET_V2_CORE", "FEATURE_SET_V2_FULL", "FEATURE_SET_V2_MOMENTUM"]:
+    _lst = globals()[_name]
+    _seen = set()
+    _deduped = []
+    for _f in _lst:
+        if _f not in _seen:
+            _seen.add(_f)
+            _deduped.append(_f)
+    globals()[_name] = _deduped
+
 FEATURE_SETS = {
     "A_base": FEATURE_SET_A,
     "B_enriched": FEATURE_SET_B,
@@ -493,4 +644,8 @@ FEATURE_SETS = {
     "D2_breakout_structure": FEATURE_SET_D2,
     "D3_liquidity_context": FEATURE_SET_D3,
     "D_clean_ext": FEATURE_SET_D_CLEAN_EXT,
+    # V2: all-relative feature sets
+    "V2_core": FEATURE_SET_V2_CORE,
+    "V2_full": FEATURE_SET_V2_FULL,
+    "V2_momentum": FEATURE_SET_V2_MOMENTUM,
 }

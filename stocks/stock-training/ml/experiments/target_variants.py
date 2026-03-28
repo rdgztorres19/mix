@@ -450,6 +450,36 @@ def compute_target_variants(df: pd.DataFrame) -> dict[str, dict[str, np.ndarray]
 
     valid_atr_scaled = valid_mfr10m_final & atr_rel_valid
 
+    # ── V2 targets: longer horizons aligned with backtest strategy ────────
+
+    # Triple barrier with longer horizons (match backtest lookAhead)
+    tb_30m_4p0_2p0, valid_tb_30m_4p0_2p0 = _hit_tp_before_sl(df, 0.040, 0.020, 30)
+    tb_60m_4p0_2p0, valid_tb_60m_4p0_2p0 = _hit_tp_before_sl(df, 0.040, 0.020, 60)
+    tb_30m_3p0_1p5, valid_tb_30m_3p0_1p5 = _hit_tp_before_sl(df, 0.030, 0.015, 30)
+
+    # Reward/Risk with longer horizon (30 candles)
+    mfr30m, valid_mfr30m = _future_max_return(df, 30)
+    minfr30m, valid_minfr30m = _future_min_return(df, 30)
+    rr30m = _safe_div(mfr30m, np.maximum(np.abs(minfr30m), 1e-8), fill=np.nan)
+    valid_rr30m = valid_mfr30m & valid_minfr30m & np.isfinite(rr30m)
+
+    rr30m_ge_2 = (rr30m >= 2.0).astype(np.int32)
+    valid_rr30m_ge_2 = valid_rr30m
+
+    # Sustained momentum: close[t+10] > close[t+5] > close[t]
+    fr5m_close, valid_fr5m_close = _future_close_return(df, 5)
+    sustained_mom = np.zeros(n, dtype=np.int32)
+    valid_sustained = valid_fr5m_close & valid_fr10m
+    sustained_mom[valid_sustained & (fr5m_close > 0) & (fr10m > fr5m_close)] = 1
+
+    # Clean entry: upside >= 3% AND drawdown < 1.5% in 10 candles
+    clean_entry_10m = ((mfr10m_final >= 0.030) & (minfr10m > -0.015)).astype(np.int32)
+    valid_clean_entry_10m = valid_mfr10m_final & valid_minfr10m
+
+    # No drawdown + good upside in 30 candles
+    clean_entry_30m = ((mfr30m >= 0.030) & (minfr30m > -0.015)).astype(np.int32)
+    valid_clean_entry_30m = valid_mfr30m & valid_minfr30m
+
     targets = {
         # Existing targets kept
         "mc_2p5": {"y": np.where(valid_original, original, 0).astype(np.int32), "valid": valid_original},
@@ -500,6 +530,15 @@ def compute_target_variants(df: pd.DataFrame) -> dict[str, dict[str, np.ndarray]
 
         "bin_mfr10m_1atr": {"y": bin_mfr10m_1atr, "valid": valid_atr_scaled},
         "bin_mfr10m_1p5atr": {"y": bin_mfr10m_1p5atr, "valid": valid_atr_scaled},
+
+        # V2 targets: longer horizons aligned with backtest strategy
+        "bin_tb30m_tp4p0_sl2p0": {"y": np.nan_to_num(tb_30m_4p0_2p0, nan=0.0).astype(np.int32), "valid": valid_tb_30m_4p0_2p0},
+        "bin_tb60m_tp4p0_sl2p0": {"y": np.nan_to_num(tb_60m_4p0_2p0, nan=0.0).astype(np.int32), "valid": valid_tb_60m_4p0_2p0},
+        "bin_tb30m_tp3p0_sl1p5": {"y": np.nan_to_num(tb_30m_3p0_1p5, nan=0.0).astype(np.int32), "valid": valid_tb_30m_3p0_1p5},
+        "bin_rr30m_ge_2": {"y": rr30m_ge_2, "valid": valid_rr30m_ge_2},
+        "bin_sustained_momentum_10m": {"y": sustained_mom, "valid": valid_sustained},
+        "bin_clean_entry_10m": {"y": clean_entry_10m, "valid": valid_clean_entry_10m},
+        "bin_clean_entry_30m": {"y": clean_entry_30m, "valid": valid_clean_entry_30m},
     }
 
     return targets
@@ -552,4 +591,13 @@ TARGET_META = {
 
     "bin_mfr10m_1atr": (False, "Max high futuro 10m > 1x ATR"),
     "bin_mfr10m_1p5atr": (False, "Max high futuro 10m > 1.5x ATR"),
+
+    # V2 targets
+    "bin_tb30m_tp4p0_sl2p0": (False, "TP +4.0% antes SL -2.0% en 30 candles"),
+    "bin_tb60m_tp4p0_sl2p0": (False, "TP +4.0% antes SL -2.0% en 60 candles"),
+    "bin_tb30m_tp3p0_sl1p5": (False, "TP +3.0% antes SL -1.5% en 30 candles"),
+    "bin_rr30m_ge_2": (False, "Reward/Risk futuro 30m >= 2"),
+    "bin_sustained_momentum_10m": (False, "Momentum sostenido: close[t+10] > close[t+5] > close[t]"),
+    "bin_clean_entry_10m": (False, "Upside >= 3% y drawdown < 1.5% en 10 candles"),
+    "bin_clean_entry_30m": (False, "Upside >= 3% y drawdown < 1.5% en 30 candles"),
 }

@@ -317,7 +317,8 @@ def main():
                 row.append(0)
 
     X = np.array([row])
-    if scaler is not None:
+    use_scaler = meta.get("use_scaler", True)  # V2 models set this to False
+    if use_scaler and scaler is not None:
         X = scaler.transform(X)
 
     probas = model.predict_proba(X)[0]

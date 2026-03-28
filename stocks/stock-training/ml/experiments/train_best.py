@@ -257,14 +257,18 @@ def _train_one(cfg: dict, rank: int = 1):
     output_dir = BEST_MODELS_DIR / subdir
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    use_scaler = not fset_name.startswith("V2")
+
     joblib.dump(model, output_dir / "model.joblib")
-    joblib.dump(scaler, output_dir / "scaler.joblib")
+    if use_scaler:
+        joblib.dump(scaler, output_dir / "scaler.joblib")
 
     meta = {
         "model_name": model_name,
         "feature_set": fset_name,
         "target": target_name,
         "is_multiclass": is_mc,
+        "use_scaler": use_scaler,
         "feature_columns": feature_cols,
         "class_labels": [int(c) for c in class_labels],
         "tuned_params": params,
