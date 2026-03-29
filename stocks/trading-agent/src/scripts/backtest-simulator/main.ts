@@ -172,6 +172,10 @@ async function main() {
 
     console.log(chalk.cyan(`[Sim] Starting simulation from ${config.startTime} to ${config.endTime}...`));
 
+    const everSeenSymbols = new Set<string>();
+    // Track last candle count per symbol to detect new candles
+    const lastCandleCount = new Map<string, number>();
+
     for (let min = startMin; min <= endMin; min++) {
       const currentTime = minutesToTime(min);
       const currentTimeMs = etToUnixMs(config.date, currentTime);
@@ -181,7 +185,7 @@ async function main() {
       const allCandlesUpTo = candleCache.getAllSymbolCandles(currentTimeMs);
       const synthSnapshots = screener.buildSyntheticSnapshots(allCandlesUpTo, prevCloseMap);
 
-      // 5b. Compute combined list + reasons
+      // 5b. Compute combined list and accumulate
       const { symbols: combinedList, reasons } = screener.computeCombinedList(
         synthSnapshots,
         config.date,
@@ -189,19 +193,30 @@ async function main() {
         isAfterOpen,
       );
 
-      // 5c. Feed snapshot data to logger for summary table
-      logger.updateMarketData(synthSnapshots, combinedList);
+      // Accumulate: once a symbol enters combined list, keep predicting it
+      for (const sym of combinedList) everSeenSymbols.add(sym);
 
-      // 5d. Build indicators + predict payloads for each symbol
+      // Predict all symbols ever seen (same as build-training-v2)
+      const symbolsToPredict = [...everSeenSymbols];
+
+      // 5c. Feed snapshot data to logger
+      logger.updateMarketData(synthSnapshots, symbolsToPredict);
+
       const payloads: { symbol: string; payload: import('./types').PredictPayload }[] = [];
 
-      for (const symbol of combinedList) {
+      for (const symbol of symbolsToPredict) {
         const history = candleCache.getCandlesUpTo(symbol, currentTimeMs);
         if (history.length < 2) continue;
+
+        // Only predict if there's a NEW candle this minute (skip if same count as last minute)
+        const prevCount = lastCandleCount.get(symbol) ?? 0;
+        if (history.length === prevCount) continue;
+        lastCandleCount.set(symbol, history.length);
 
         const prevClose = prevCloseMap.get(symbol) ?? 0;
         if (prevClose <= 0) continue;
 
+        // Send candles + computed metadata to Python (same values as CSV)
         const metadata = indicatorEngine.buildMetadata(history, prevClose, profiles.get(symbol));
         const row = indicatorEngine.buildRow(symbol, history, metadata);
         const payload = indicatorEngine.buildPredictPayload(row, history);
@@ -243,8 +258,8 @@ async function main() {
         }
       }
 
-      // 5g. Log minute results
-      logger.logMinute(currentTime, combinedList, reasons, minuteSignals);
+      // 5g. Log minute results (using all ever-seen symbols)
+      logger.logMinute(currentTime, symbolsToPredict, reasons, minuteSignals);
     }
 
     // 6. Final summary

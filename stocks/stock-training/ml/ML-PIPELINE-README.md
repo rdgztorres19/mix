@@ -32,7 +32,14 @@ CONFIGS = [
 
 Execute: python3 experiments/tune_focused.py 2>&1 | tee /tmp/tune_output.txt
 
-python3 -m experiments.train_best --all 
+# Opción A: Entrenar con defaults del grid (RECOMENDADO — los que dieron buenos resultados)
+python3 -m experiments.train_best --from-grid
+
+# Opción B: Re-tunear y luego entrenar (más lento, puede no mejorar)
+python3 -m experiments.tune_focused
+python3 -m experiments.train_best --all
+
+Recomiendo Opción A (--from-grid). El grid ya demostró que los defaults dan 68%+ prec@0.7 con 35K+ señales.
 
 # ML Pipeline — Momentum Stock Long Trade Predictor
 

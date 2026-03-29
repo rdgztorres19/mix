@@ -13,7 +13,7 @@ import pandas as pd
 # --- paths ----------------------------------------------------------------
 ML_DIR = Path(__file__).resolve().parent.parent          # ml/
 STOCK_TRAINING_DIR = ML_DIR.parent                       # stock-training/
-CSV_PATH = STOCK_TRAINING_DIR / "data" / "training.csv"  # 61-col CSV (enriched slots may be empty)
+CSV_PATH = STOCK_TRAINING_DIR / "data" / "training-v2.csv"  # V2: screener-based, no survivorship bias
 
 # 31 base columns
 BASE_COLUMNS = [
@@ -132,3 +132,44 @@ def prepare_Xy(
     X = X.fillna(0)
 
     return X, y
+
+
+def load_df_with_features() -> pd.DataFrame:
+    """
+    Load CSV + add_features with disk cache.
+    Cache is invalidated when training CSV is modified.
+    """
+    import time as _time
+    from experiments.feature_engineer import add_features
+
+    cache_path = Path(__file__).resolve().parent / "results" / "_df_features_cache.pkl"
+    cache_mtime_path = Path(str(cache_path) + ".mtime")
+    csv_mtime = CSV_PATH.stat().st_mtime if CSV_PATH.exists() else 0
+
+    cache_valid = False
+    if cache_path.exists() and cache_mtime_path.exists():
+        try:
+            stored_mtime = float(cache_mtime_path.read_text().strip())
+            if stored_mtime == csv_mtime:
+                cache_valid = True
+        except Exception:
+            pass
+
+    if cache_valid:
+        print(f"  Loading cached features...")
+        t0 = _time.time()
+        df = pd.read_pickle(cache_path)
+        print(f"  Cache loaded ({df.shape[1]} cols, {len(df)} rows) in {_time.time() - t0:.1f}s")
+    else:
+        t0 = _time.time()
+        df_base = load_base_df()
+        print(f"  Loaded {len(df_base)} rows in {_time.time() - t0:.1f}s")
+        print(f"  Adding features...")
+        t0 = _time.time()
+        df = add_features(df_base)
+        print(f"  Feature engineering done ({df.shape[1]} cols) in {_time.time() - t0:.1f}s")
+        print(f"  Saving cache...")
+        df.to_pickle(cache_path)
+        cache_mtime_path.write_text(str(csv_mtime))
+
+    return df

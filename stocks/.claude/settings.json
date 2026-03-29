@@ -15,7 +15,23 @@
       "Bash(find '/Users/rdgztorres19/Documents/Projects/node copy/stocks/trading-agent/src/scripts/build-training-v2' -type f -name *.js -o -name *.ts)",
       "WebFetch(domain:www.mdpi.com)",
       "WebFetch(domain:arxiv.org)",
-      "WebFetch(domain:link.springer.com)"
+      "WebFetch(domain:link.springer.com)",
+      "Bash(python3 -c \":*)",
+      "Bash(curl -s \"https://www.google.com/search?q=options+gamma+exposure+GEX+SPY+intraday+prediction+data+source+API+2024+2025\" -H \"User-Agent: Mozilla/5.0\")",
+      "Bash(curl -s \"https://www.google.com/search?q=order+flow+imbalance+SPY+intraday+prediction+1+minute+bars+approximate+tick+data+research+2024\" -H \"User-Agent: Mozilla/5.0\")",
+      "Bash(curl -s \"https://www.google.com/search?q=temporal+fusion+transformer+stock+intraday+prediction+SPY+ES+futures+results+accuracy+2024+2025\" -H \"User-Agent: Mozilla/5.0\")",
+      "Bash(curl -s \"https://www.google.com/search?q=metalabeling+de+prado+implementation+python+triple+barrier+SPY+intraday+precision+recall+2024\" -H \"User-Agent: Mozilla/5.0\")",
+      "Bash(curl -s \"https://www.google.com/search?q=SPY+ES+intraday+trading+system+open+source+github+backtest+results+sharpe+2024+2025\" -H \"User-Agent: Mozilla/5.0\")",
+      "WebFetch(domain:hudsonthames.org)",
+      "WebFetch(domain:dm13450.github.io)",
+      "WebFetch(domain:journals.plos.org)",
+      "WebFetch(domain:www.sitmo.com)",
+      "WebFetch(domain:perfiliev.com)",
+      "WebFetch(domain:www.quantifiedstrategies.com)",
+      "Bash(ls -la \"/Users/rdgztorres19/Documents/Projects/node copy/stocks/stock-training/ml/experiments/results/\"*.db \"/Users/rdgztorres19/Documents/Projects/node copy/stocks/stock-training/ml/experiments/\"*.db)",
+      "Bash(ls -la \"/Users/rdgztorres19/Documents/Projects/node copy/stocks/stock-training/ml/\"*.db)",
+      "Read(//Users/rdgztorres19/Documents/Projects/node copy/stocks/**)",
+      "Bash(node -e \":*)"
     ]
   }
 }

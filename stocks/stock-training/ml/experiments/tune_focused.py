@@ -35,21 +35,24 @@ from experiments.run_grid import compute_sample_weights
 
 optuna.logging.set_verbosity(optuna.logging.WARNING)
 
-SUBSAMPLE = 200_000  # rows for tuning speed
+SUBSAMPLE = 1_000_000  # 20% of dataset — enough to be representative
 N_TRIALS = 60
 N_SPLITS = 3
 EMBARGO = 30
+MAX_PARALLEL_CONFIGS = 9  # how many configs to tune in parallel
 
 # Top configs to tune — chosen by composite score / practical usefulness
 CONFIGS = [
+    # V2 top 9 from grid results
+    ("XGBoost", "V2_full", "bin_tb60m_tp4p0_sl2p0"),
+    ("LightGBM", "V2_full", "bin_tb60m_tp4p0_sl2p0"),
+    ("LightGBM", "D_clean_ext", "bin_tb60m_tp4p0_sl2p0"),
+    ("XGBoost", "D_clean_ext", "bin_rr10m_ge_2"),
+    ("LightGBM", "V2_full", "bin_rr10m_ge_2"),
+    ("LightGBM", "D_clean_ext", "bin_rr10m_ge_3"),
+    ("XGBoost", "V2_full", "bin_tb30m_tp4p0_sl2p0"),
+    ("LightGBM", "V2_core", "bin_tb30m_tp4p0_sl2p0"),
     ("LightGBM", "D_clean_ext", "bin_rr10m_ge_2"),
-    ("XGBoost", "D_all", "bin_rr10m_ge_2"),
-    ("LightGBM", "D_all", "bin_mfr10m_1p5"),
-    ("XGBoost", "D_all", "bin_mfr10m_1p5"),
-    ("XGBoost", "D_clean", "bin_mfr10m_1p5"),
-    ("XGBoost", "D3_liquidity_context", "bin_mfr10m_1atr"),
-    ("LightGBM", "D3_liquidity_context", "bin_mfr10m_1p5atr"),
-    ("XGBoost", "D_all", "bin_first_touch_10m_2p5")
 ]
 
 
@@ -121,15 +124,29 @@ def walk_forward_prec07(model_factory, X, y, n_splits=N_SPLITS):
 
         if 1 in classes:
             proba_1 = y_proba[:, classes.index(1)]
-            prec, n_sig = precision_at_threshold(
-                y_te,
-                proba_1,
-                0.7,
-                bullish_class=1,
-            )
-            if n_sig < 10:
-                prec *= 0.3
-            scores.append(prec)
+            n_test = len(y_te)
+
+            # Evaluate at multiple thresholds for robust scoring
+            prec_07, sig_07 = precision_at_threshold(y_te, proba_1, 0.7, bullish_class=1)
+            prec_06, sig_06 = precision_at_threshold(y_te, proba_1, 0.6, bullish_class=1)
+
+            # Signal ratio: what % of test set gets a signal at 0.6
+            sig_ratio_06 = sig_06 / max(n_test, 1)
+
+            # Combined score: precision matters, but signals must be meaningful
+            # Target: prec@0.7 >= 60% AND signals@0.6 >= 5% of test set
+            # Formula: prec@0.7 * sqrt(signal_ratio@0.6) — rewards both precision and coverage
+            if sig_07 < 10:
+                score = 0.0  # useless if almost no signals
+            elif sig_ratio_06 < 0.01:
+                score = prec_07 * 0.3  # heavy penalty: less than 1% coverage
+            else:
+                score = prec_07 * min(1.0, np.sqrt(sig_ratio_06 / 0.05))
+                # At 5%+ coverage → full prec@0.7 score
+                # At 1% coverage → prec@0.7 * 0.45
+                # At 0.1% coverage → prec@0.7 * 0.14
+
+            scores.append(score)
         else:
             scores.append(0.0)
 
@@ -224,15 +241,21 @@ def main():
                 "valid": valid_arr,
             }
 
-    all_results = []
+    # ── Tune function for a single config (can run in parallel) ─────────
 
-    for ci, (model_name, fset_name, target_name) in enumerate(CONFIGS, 1):
+    def tune_one_config(ci, model_name, fset_name, target_name):
+        """Tune a single (model, feature_set, target) combo. Returns result dict or None."""
+        import os
+        # Limit threads per process when running in parallel
+        n_cores = os.cpu_count() or 8
+        jobs_per_proc = max(1, n_cores // MAX_PARALLEL_CONFIGS)
+
         is_mc = TARGET_META[target_name][0]
         feature_cols = FEATURE_SETS[fset_name]
 
         print(f"\n{'=' * 70}")
         print(f"  [{ci}/{len(CONFIGS)}] {model_name} | {fset_name} | {target_name}")
-        print(f"  {N_TRIALS} trials, {N_SPLITS}-fold walk-forward CV")
+        print(f"  {N_TRIALS} trials, {N_SPLITS}-fold walk-forward CV, n_jobs={jobs_per_proc}")
         print(f"{'=' * 70}")
 
         target_info = targets_sub[target_name]
@@ -242,18 +265,18 @@ def main():
         df_work = df_work.loc[target_info["valid"]].copy()
 
         if len(df_work) < 1000:
-            print("  SKIP: too few valid rows")
-            continue
+            print(f"  SKIP: too few valid rows ({len(df_work)})")
+            return None
 
         if len(np.unique(df_work["_target"])) < 2:
             print("  SKIP: target has <2 classes after valid filtering")
-            continue
+            return None
 
         X, y = prepare_Xy(df_work, feature_cols, target_col="_target")
 
         if len(y) < 1000:
             print("  SKIP: too few usable rows after prepare_Xy")
-            continue
+            return None
 
         # Remap multiclass labels
         if is_mc and y.min() < 0:
@@ -268,12 +291,54 @@ def main():
 
         if len(np.unique(y_cv)) < 2:
             print("  SKIP: CV train portion has <2 classes")
-            continue
+            return None
 
-        if model_name == "XGBoost":
-            obj_fn = lambda trial: xgb_objective(trial, X_cv, y_cv, is_mc)
-        else:
-            obj_fn = lambda trial: lgbm_objective(trial, X_cv, y_cv, is_mc)
+        # Override n_jobs to share cores across parallel configs
+        def xgb_obj_limited(trial):
+            from xgboost import XGBClassifier
+            p = {
+                "n_estimators": trial.suggest_int("n_estimators", 100, 600),
+                "max_depth": trial.suggest_int("max_depth", 3, 9),
+                "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.2, log=True),
+                "subsample": trial.suggest_float("subsample", 0.6, 1.0),
+                "colsample_bytree": trial.suggest_float("colsample_bytree", 0.4, 1.0),
+                "min_child_weight": trial.suggest_int("min_child_weight", 1, 20),
+                "gamma": trial.suggest_float("gamma", 0.0, 3.0),
+                "reg_alpha": trial.suggest_float("reg_alpha", 1e-3, 5.0, log=True),
+                "reg_lambda": trial.suggest_float("reg_lambda", 1e-3, 5.0, log=True),
+                "random_state": 42,
+                "n_jobs": jobs_per_proc,
+                "tree_method": "hist",
+                "eval_metric": "mlogloss" if is_mc else "logloss",
+                "objective": "multi:softprob" if is_mc else "binary:logistic",
+            }
+            if is_mc:
+                p["num_class"] = int(len(np.unique(y_cv)))
+            return walk_forward_prec07(lambda: XGBClassifier(**p), X_cv, y_cv)
+
+        def lgbm_obj_limited(trial):
+            from lightgbm import LGBMClassifier
+            p = {
+                "n_estimators": trial.suggest_int("n_estimators", 100, 600),
+                "max_depth": trial.suggest_int("max_depth", 3, 10),
+                "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.2, log=True),
+                "subsample": trial.suggest_float("subsample", 0.6, 1.0),
+                "colsample_bytree": trial.suggest_float("colsample_bytree", 0.4, 1.0),
+                "min_child_samples": trial.suggest_int("min_child_samples", 5, 60),
+                "reg_alpha": trial.suggest_float("reg_alpha", 1e-3, 5.0, log=True),
+                "reg_lambda": trial.suggest_float("reg_lambda", 1e-3, 5.0, log=True),
+                "num_leaves": trial.suggest_int("num_leaves", 20, 100),
+                "random_state": 42,
+                "n_jobs": jobs_per_proc,
+                "verbose": -1,
+                "objective": "multiclass" if is_mc else "binary",
+                "metric": "multi_logloss" if is_mc else "binary_logloss",
+            }
+            if is_mc:
+                p["num_class"] = int(len(np.unique(y_cv)))
+            return walk_forward_prec07(lambda: LGBMClassifier(**p), X_cv, y_cv)
+
+        obj_fn = xgb_obj_limited if model_name == "XGBoost" else lgbm_obj_limited
 
         study = optuna.create_study(
             direction="maximize",
@@ -281,23 +346,56 @@ def main():
             sampler=optuna.samplers.TPESampler(seed=42, n_startup_trials=15),
         )
 
-        t0 = time.time()
+        t_start = time.time()
         study.optimize(obj_fn, n_trials=N_TRIALS, show_progress_bar=True)
-        elapsed = time.time() - t0
+        elapsed = time.time() - t_start
 
         best = study.best_trial
-        print(f"\n  Best CV prec@0.7: {best.value:.4f}")
+        print(f"\n  [{ci}] {model_name}|{fset_name}|{target_name}")
+        print(f"  Best CV prec@0.7: {best.value:.4f}")
         print(f"  Best params: {json.dumps(best.params, indent=2, default=str)}")
         print(f"  Time: {elapsed:.0f}s ({elapsed / N_TRIALS:.1f}s/trial)")
 
-        all_results.append({
+        return {
             "model": model_name,
             "feature_set": fset_name,
             "target": target_name,
             "cv_prec07": round(float(best.value), 4),
             "best_params": best.params,
             "time_s": round(elapsed, 1),
-        })
+        }
+
+    # ── Run configs in parallel ───────────────────────────────────────
+
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    all_results = []
+
+    if MAX_PARALLEL_CONFIGS <= 1:
+        # Sequential fallback
+        for ci, (m, f, t) in enumerate(CONFIGS, 1):
+            result = tune_one_config(ci, m, f, t)
+            if result:
+                all_results.append(result)
+    else:
+        print(f"\n  Running {len(CONFIGS)} configs with up to {MAX_PARALLEL_CONFIGS} in parallel\n")
+        with ThreadPoolExecutor(max_workers=MAX_PARALLEL_CONFIGS) as executor:
+            futures = {}
+            for ci, (m, f, t) in enumerate(CONFIGS, 1):
+                fut = executor.submit(tune_one_config, ci, m, f, t)
+                futures[fut] = (m, f, t)
+
+            for fut in as_completed(futures):
+                m, f, t = futures[fut]
+                try:
+                    result = fut.result()
+                    if result:
+                        all_results.append(result)
+                except Exception as e:
+                    print(f"  ERROR tuning {m}|{f}|{t}: {e}")
+
+    # Sort by score
+    all_results.sort(key=lambda x: x["cv_prec07"], reverse=True)
 
     # Save
     out_path = RESULTS_DIR / "tuned_params.json"

@@ -164,17 +164,17 @@ async function main() {
     });
 
     // Run screener simulation to find which symbols enter the combined list
+    // and WHEN they first enter (to avoid lookahead bias)
     const screener = new BacktestScreener(SCREENER_TOP_N, SCREENER_MIN_VOLUME);
     const startMin = timeToMinutes(SIM_START);
     const endMin = timeToMinutes(SIM_END);
-    const everInList = new Set<string>();
+    const firstSeenAt = new Map<string, number>(); // symbol → unix ms when first seen
 
     for (let min = startMin; min <= endMin; min++) {
       const currentTime = minutesToTime(min);
       const currentTimeMs = etToUnixMs(date, currentTime);
       const isAfterOpen = min > MARKET_OPEN_MINUTE;
 
-      // Build snapshots from candles up to this minute
       const candlesUpTo = new Map<string, CollectorCandle[]>();
       allCandlesMap.forEach((candles, sym) => {
         const upTo = candles.filter(c => c.t <= currentTimeMs);
@@ -186,14 +186,19 @@ async function main() {
         synthSnapshots, date, prevCloseMap, isAfterOpen,
       );
 
-      for (const sym of combinedList) everInList.add(sym);
+      for (const sym of combinedList) {
+        if (!firstSeenAt.has(sym)) {
+          firstSeenAt.set(sym, currentTimeMs);
+        }
+      }
     }
 
-    console.log(chalk.dim(`  Screener found ${everInList.size} unique symbols`));
+    console.log(chalk.dim(`  Screener found ${firstSeenAt.size} unique symbols`));
 
     // For each symbol that ever appeared in the combined list, emit ALL its candles
+    // (full history from pre-market for correct ATR/EMA/VWAP)
     let dayRows = 0;
-    for (const sym of everInList) {
+    for (const [sym, entryTimeMs] of firstSeenAt) {
       const allCandles = allCandlesMap.get(sym);
       if (!allCandles || allCandles.length < 5) continue;
 
@@ -228,8 +233,8 @@ async function main() {
     }
 
     totalRows += dayRows;
-    totalSymbols += everInList.size;
-    console.log(chalk.green(`  ${dayRows} rows from ${everInList.size} symbols`));
+    totalSymbols += firstSeenAt.size;
+    console.log(chalk.green(`  ${dayRows} rows from ${firstSeenAt.size} symbols`));
   }
 
   writeStream.end();

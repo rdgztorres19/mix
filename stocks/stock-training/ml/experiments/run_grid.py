@@ -95,18 +95,11 @@ def run_grid(
     print("  EXPERIMENT GRID — Loading data")
     print("=" * 70)
 
-    # 1. Load base CSV
-    t0 = time.time()
-    df_base = load_base_df()
-    print(f"  Loaded {len(df_base)} rows in {time.time() - t0:.1f}s")
+    # 1. Load CSV + features (cached)
+    from experiments.data_loader import load_df_with_features
+    df = load_df_with_features()
 
-    # 2. Feature engineering
-    print(f"Adding features to {len(df_base)} rows")
-    t0 = time.time()
-    df = add_features(df_base)
-    print(f"  Feature engineering done ({df.shape[1]} cols) in {time.time() - t0:.1f}s")
-
-    # 3. Compute all target variants
+    # 2. Compute all target variants
     targets = compute_target_variants(df)
 
     # 4. Determine grid
@@ -141,178 +134,152 @@ def run_grid(
     print(f"\n  Grid: {len(model_names)} models × {len(fset_names)} fsets × {len(target_names)} targets = {total} combos")
     print(f"  Already completed: {skipped_count}, remaining: {total - skipped_count}\n")
 
-    done = 0
-    for model_name in model_names:
-        mod = _load_model_module(model_name)
+    # ── Train one combo ─────────────────────────────────────────────────
+    import os
+    MAX_PARALLEL = 4
+    n_cores = os.cpu_count() or 8
+    jobs_per_model = max(1, n_cores // MAX_PARALLEL)
 
-        for fset_name in fset_names:
+    def _run_one_combo(model_name, fset_name, target_name, combo_idx):
+        is_mc, desc = TARGET_META[target_name]
+        tag = f"[{combo_idx}/{total}] {model_name} | {fset_name} | {target_name}"
+
+        if (model_name, fset_name, target_name) in completed:
+            return None
+
+        try:
+            if target_name not in targets:
+                return None
+
+            bundle = targets[target_name]
+            if not isinstance(bundle, dict) or "y" not in bundle or "valid" not in bundle:
+                return None
+
+            y_full = np.asarray(bundle["y"])
+            valid_mask = np.asarray(bundle["valid"]).astype(bool)
+
+            if len(y_full) != len(df) or len(valid_mask) != len(df):
+                return None
+
+            df_target = df.loc[valid_mask].copy()
+            if len(df_target) == 0:
+                return None
+
+            df_target["_target"] = y_full[valid_mask]
+
+            unique_labels = np.unique(df_target["_target"])
+            if len(unique_labels) < 2:
+                return None
+
             feature_cols = FEATURE_SETS[fset_name]
+            X, y = prepare_Xy(df_target, feature_cols, target_col="_target")
 
+            if len(X) == 0 or len(y) == 0:
+                return None
+
+            if len(np.unique(y)) < 2:
+                return None
+
+            label_map = None
+            inv_map = None
+            if is_mc and y.min() < 0:
+                unique_sorted = np.array(sorted(np.unique(y)))
+                label_map = {old: new for new, old in enumerate(unique_sorted)}
+                inv_map = {new: old for old, new in label_map.items()}
+                y = np.array([label_map[v] for v in y])
+
+            X_train, X_test, y_train, y_test = temporal_split(X, y, train_frac=0.8, embargo_rows=30)
+
+            if len(X_test) < 50 or len(np.unique(y_train)) < 2 or len(np.unique(y_test)) < 2:
+                return None
+
+            use_scaler = not fset_name.startswith("V2")
+            if use_scaler:
+                scaler = StandardScaler()
+                X_train_s = scaler.fit_transform(X_train)
+                X_test_s = scaler.transform(X_test)
+            else:
+                X_train_s = X_train.values if hasattr(X_train, 'values') else X_train
+                X_test_s = X_test.values if hasattr(X_test, 'values') else X_test
+
+            sw = compute_sample_weights(y_train)
+
+            class_labels = tuple(sorted(np.unique(y)))
+            n_classes = len(class_labels)
+            extra_params = {}
+            if is_mc and model_name in ("XGBoost", "LightGBM"):
+                extra_params["num_class"] = n_classes
+
+            # Load model module and build with limited n_jobs
+            mod = _load_model_module(model_name)
+            model = mod.make_model(is_multiclass=is_mc, n_jobs=jobs_per_model, **extra_params)
+
+            val_split = int(len(X_train_s) * 0.9)
+            if val_split <= 0 or val_split >= len(X_train_s):
+                return None
+
+            X_tr, y_tr = X_train_s[:val_split], y_train[:val_split]
+            X_vl, y_vl = X_train_s[val_split:], y_train[val_split:]
+            sw_tr = sw[:val_split]
+
+            if len(X_vl) == 0:
+                return None
+
+            t0 = time.time()
+            mod.train(model, X_tr, y_tr, X_val=X_vl, y_val=y_vl, sample_weight=sw_tr)
+            train_time = time.time() - t0
+
+            y_pred = model.predict(X_test_s)
+            y_proba = model.predict_proba(X_test_s)
+
+            if label_map is not None and inv_map is not None:
+                y_pred = np.array([inv_map[v] for v in y_pred])
+                y_test = np.array([inv_map[v] for v in y_test])
+                class_labels = tuple(sorted(inv_map.values()))
+
+            result = evaluate_model(
+                y_true=y_test, y_pred=y_pred, y_proba_all=y_proba,
+                class_labels=class_labels, model_name=model_name,
+                feature_set=fset_name, target_name=target_name, is_multiclass=is_mc,
+            )
+            result["train_time_s"] = round(train_time, 2)
+            result["n_features"] = len(feature_cols)
+            result["n_train"] = len(X_train_s)
+            result["n_valid_target_rows"] = int(valid_mask.sum())
+            result["target_desc"] = desc
+
+            log_result(result)
+            print(f"\n  ✓ {tag} — prec@0.7={result.get('prec@0.7', 0):.4f} ({train_time:.1f}s)")
+            return result
+
+        except Exception as e:
+            print(f"\n  ✗ {tag} — ERROR: {e}")
+            traceback.print_exc()
+            return None
+
+    # ── Run combos in parallel ────────────────────────────────────────
+
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    combos = []
+    idx = 0
+    for model_name in model_names:
+        for fset_name in fset_names:
             for target_name in target_names:
-                done += 1
-                is_mc, desc = TARGET_META[target_name]
-                tag = f"[{done}/{total}] {model_name} | {fset_name} | {target_name}"
+                idx += 1
+                if (model_name, fset_name, target_name) not in completed:
+                    combos.append((model_name, fset_name, target_name, idx))
 
-                if (model_name, fset_name, target_name) in completed:
-                    print(f"\n--- {tag} --- SKIP (already done)")
-                    continue
+    print(f"\n  Running {len(combos)} combos with up to {MAX_PARALLEL} in parallel (n_jobs={jobs_per_model})\n")
 
-                print(f"\n--- {tag} ---")
-
-                try:
-                    # ------------------------------------------------------------------
-                    # NEW TARGET STRUCTURE:
-                    # bundle = {"y": ..., "valid": ...}
-                    # ------------------------------------------------------------------
-                    if target_name not in targets:
-                        print("  SKIP: target not found in computed targets")
-                        continue
-
-                    bundle = targets[target_name]
-                    if not isinstance(bundle, dict) or "y" not in bundle or "valid" not in bundle:
-                        print("  SKIP: target bundle has invalid format")
-                        continue
-
-                    y_full = np.asarray(bundle["y"])
-                    valid_mask = np.asarray(bundle["valid"]).astype(bool)
-
-                    if len(y_full) != len(df) or len(valid_mask) != len(df):
-                        print("  SKIP: target length mismatch with dataframe")
-                        continue
-
-                    # Filter only valid rows for this target
-                    df_target = df.loc[valid_mask].copy()
-                    if len(df_target) == 0:
-                        print("  SKIP: no valid rows for target")
-                        continue
-
-                    df_target["_target"] = y_full[valid_mask]
-
-                    # Skip if target is all one class
-                    unique_labels = np.unique(df_target["_target"])
-                    if len(unique_labels) < 2:
-                        print(f"  SKIP: only {len(unique_labels)} class(es) in target")
-                        continue
-
-                    # Prepare X, y
-                    X, y = prepare_Xy(df_target, feature_cols, target_col="_target")
-
-                    if len(X) == 0 or len(y) == 0:
-                        print("  SKIP: empty X/y after prepare_Xy")
-                        continue
-
-                    unique_after_prepare = np.unique(y)
-                    if len(unique_after_prepare) < 2:
-                        print(f"  SKIP: only {len(unique_after_prepare)} class(es) after prepare_Xy")
-                        continue
-
-                    # Remap multiclass labels if needed, e.g. [-1,0,1] -> [0,1,2]
-                    label_map = None
-                    inv_map = None
-                    if is_mc and y.min() < 0:
-                        unique_sorted = np.array(sorted(np.unique(y)))
-                        label_map = {old: new for new, old in enumerate(unique_sorted)}
-                        inv_map = {new: old for old, new in label_map.items()}
-                        y = np.array([label_map[v] for v in y])
-
-                    # Temporal split
-                    X_train, X_test, y_train, y_test = temporal_split(
-                        X, y, train_frac=0.8, embargo_rows=30
-                    )
-
-                    if len(X_test) < 50:
-                        print(f"  SKIP: test set too small ({len(X_test)})")
-                        continue
-
-                    if len(np.unique(y_train)) < 2:
-                        print("  SKIP: training split has only one class")
-                        continue
-
-                    if len(np.unique(y_test)) < 2:
-                        print("  SKIP: test split has only one class")
-                        continue
-
-                    # Scale (skip for V2 feature sets — all relative, trees don't need it)
-                    use_scaler = not fset_name.startswith("V2")
-                    if use_scaler:
-                        scaler = StandardScaler()
-                        X_train_s = scaler.fit_transform(X_train)
-                        X_test_s = scaler.transform(X_test)
-                    else:
-                        scaler = None
-                        X_train_s = X_train.values if hasattr(X_train, 'values') else X_train
-                        X_test_s = X_test.values if hasattr(X_test, 'values') else X_test
-
-                    # Class weights
-                    sw = compute_sample_weights(y_train)
-
-                    # Build model
-                    class_labels = tuple(sorted(np.unique(y)))
-                    n_classes = len(class_labels)
-                    extra_params = {}
-
-                    if is_mc and model_name == "XGBoost":
-                        extra_params["num_class"] = n_classes
-                    if is_mc and model_name == "LightGBM":
-                        extra_params["num_class"] = n_classes
-
-                    model = mod.make_model(is_multiclass=is_mc, **extra_params)
-
-                    # Validation split for early stopping
-                    val_split = int(len(X_train_s) * 0.9)
-                    if val_split <= 0 or val_split >= len(X_train_s):
-                        print("  SKIP: invalid validation split")
-                        continue
-
-                    X_tr = X_train_s[:val_split]
-                    y_tr = y_train[:val_split]
-                    X_vl = X_train_s[val_split:]
-                    y_vl = y_train[val_split:]
-                    sw_tr = sw[:val_split]
-
-                    if len(X_vl) == 0 or len(y_vl) == 0:
-                        print("  SKIP: empty validation set")
-                        continue
-
-                    # Train
-                    t0 = time.time()
-                    mod.train(model, X_tr, y_tr, X_val=X_vl, y_val=y_vl, sample_weight=sw_tr)
-                    train_time = time.time() - t0
-
-                    # Predict
-                    y_pred = model.predict(X_test_s)
-                    y_proba = model.predict_proba(X_test_s)
-
-                    # Remap labels back to original values for evaluation
-                    if label_map is not None and inv_map is not None:
-                        y_pred = np.array([inv_map[v] for v in y_pred])
-                        y_test = np.array([inv_map[v] for v in y_test])
-                        class_labels = tuple(sorted(inv_map.values()))
-
-                    # Evaluate
-                    result = evaluate_model(
-                        y_true=y_test,
-                        y_pred=y_pred,
-                        y_proba_all=y_proba,
-                        class_labels=class_labels,
-                        model_name=model_name,
-                        feature_set=fset_name,
-                        target_name=target_name,
-                        is_multiclass=is_mc,
-                    )
-                    result["train_time_s"] = round(train_time, 2)
-                    result["n_features"] = len(feature_cols)
-                    result["n_train"] = len(X_train_s)
-                    result["n_valid_target_rows"] = int(valid_mask.sum())
-                    result["target_desc"] = desc
-
-                    log_result(result)
-                    print_result(result)
-
-                except Exception as e:
-                    print(f"  ERROR: {e}")
-                    traceback.print_exc()
-                    continue
+    with ThreadPoolExecutor(max_workers=MAX_PARALLEL) as executor:
+        futures = {executor.submit(_run_one_combo, m, f, t, i): (m, f, t) for m, f, t, i in combos}
+        for fut in as_completed(futures):
+            try:
+                fut.result()
+            except Exception as e:
+                m, f, t = futures[fut]
+                print(f"  ERROR {m}|{f}|{t}: {e}")
 
     # Final summary
     print("\n" + "=" * 70)

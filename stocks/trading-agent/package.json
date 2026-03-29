@@ -19,6 +19,8 @@
     "download-data": "ts-node -r tsconfig-paths/register src/scripts/data-downloader/main.ts",
     "build-training-v2": "NODE_OPTIONS='--max-old-space-size=16384' ts-node -r tsconfig-paths/register src/scripts/build-training-v2/main.ts",
     "debug-predict-csv-day-summary": "node scripts/debug-predict-csv-day-summary.js --",
+    "debug-csv-v2": "node scripts/debug-predict-csv-v2-summary.js --",
+    "csv-backtest": "ts-node -r tsconfig-paths/register src/scripts/csv-backtest/main.ts",
     "verify-sync": "node scripts/verify-data-sync.js",
     "quick-test": "node scripts/quick-sync-test.js",
     "historical-test": "node scripts/historical-sync-test.js",

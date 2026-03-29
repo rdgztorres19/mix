@@ -122,6 +122,66 @@ let BacktestScreener = class BacktestScreener {
             reasons: filteredReasons
         };
     }
+    /**
+   * Returns ALL symbols that appeared in ANY ranking (before the top-N cut).
+   * Typically ~70-100 symbols vs ~40 from computeCombinedList.
+   */ computeAllRankedSymbols(snapshots, sessionDate, prevCloseMap, isAfterOpen) {
+        const n = this.topN;
+        const mv = this.minVolume;
+        let gapperRanks;
+        if (isAfterOpen && this.cachedGapperRanks) {
+            gapperRanks = this.cachedGapperRanks;
+        } else {
+            gapperRanks = (0, _screenerrankers.rankTopGappers)(snapshots, sessionDate, prevCloseMap, n, mv);
+            this.cachedGapperRanks = gapperRanks;
+        }
+        const ranksByType = [
+            [
+                'gapper',
+                gapperRanks
+            ],
+            [
+                'gainer_session',
+                (0, _screenerrankers.rankTopGainersSession)(snapshots, sessionDate, prevCloseMap, n, mv)
+            ],
+            [
+                'gainer_intraday',
+                (0, _screenerrankers.rankTopGainersIntraday)(snapshots, sessionDate, prevCloseMap, n, mv)
+            ],
+            [
+                'high_session',
+                (0, _screenerrankers.rankTopHighSession)(snapshots, sessionDate, prevCloseMap, n, mv)
+            ],
+            [
+                'high_current',
+                (0, _screenerrankers.rankTopHighCurrent)(snapshots, sessionDate, prevCloseMap, n, mv)
+            ]
+        ];
+        // Merge ALL ranked symbols (no top-N cut on the final merge)
+        const bySymbol = new Map();
+        const reasons = new Map();
+        for (const [rankType, ranks] of ranksByType){
+            for (const r of ranks.slice(0, n)){
+                const sym = r.symbol.toUpperCase();
+                const prev = bySymbol.get(sym) ?? 0;
+                bySymbol.set(sym, Math.max(prev, Math.abs(r.metric_value)));
+                let set = reasons.get(sym);
+                if (!set) {
+                    set = new Set();
+                    reasons.set(sym, set);
+                }
+                set.add(rankType);
+            }
+        }
+        // Return ALL — no .slice(0, n)
+        const symbols = [
+            ...bySymbol.entries()
+        ].sort((a, b)=>b[1] - a[1] || a[0].localeCompare(b[0])).map(([sym])=>sym);
+        return {
+            symbols,
+            reasons
+        };
+    }
     constructor(topN = 40, minVolume = 0){
         this.cachedGapperRanks = null;
         this.topN = topN;

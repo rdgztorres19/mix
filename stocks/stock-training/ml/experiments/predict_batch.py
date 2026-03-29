@@ -46,6 +46,8 @@ def run_batch(batch: list, threshold: float, model, scaler, meta, add_features_f
             "vwap": round(float(tr.get("vwap", 0)), 4) if pd.notna(tr.get("vwap")) else None,
         }
 
+    _payload_dump_done = False
+
     for data in batch:
         if "candles" not in data or len(data.get("candles", [])) == 0:
             rows.append(None)
@@ -56,6 +58,34 @@ def run_batch(batch: list, threshold: float, model, scaler, meta, add_features_f
         target_idx = int(data.get("target_idx", len(data["candles"]) - 1))
         df = build_dataframe(data)
         df = add_features_fn(df)
+
+        # DEBUG: dump first payload + computed features to compare with eval_multiday
+        import os
+        debug_dir = os.path.join(os.path.dirname(__file__), "results")
+        payload_path = os.path.join(debug_dir, "_debug_payload.json")
+        features_path = os.path.join(debug_dir, "_debug_features_b.json")
+        if not _payload_dump_done and not os.path.exists(payload_path):
+            _payload_dump_done = True
+            import json as _json
+            # Save raw payload (without full candle array to keep file small)
+            payload_meta = {k: v for k, v in data.items() if k != "candles"}
+            payload_meta["_n_candles"] = len(data.get("candles", []))
+            payload_meta["_first_candle"] = data["candles"][0] if data.get("candles") else None
+            payload_meta["_last_candle"] = data["candles"][-1] if data.get("candles") else None
+            with open(payload_path, "w") as _f:
+                _json.dump(payload_meta, _f, indent=2, default=str)
+            # Save computed features for target row
+            if target_idx < len(df):
+                tr = df.iloc[target_idx]
+                feat_data = {}
+                for col in feature_cols:
+                    val = tr.get(col, 0)
+                    feat_data[col] = round(float(val), 8) if pd.notna(val) else 0.0
+                feat_data["_prob"] = "pending"
+                feat_data["_candle_time"] = str(tr.get("candle_time_et", "?"))
+                feat_data["_n_candles"] = len(df)
+                with open(features_path, "w") as _f:
+                    _json.dump(feat_data, _f, indent=2)
 
         # Fix cumulative_volume_ratio for partial day prediction
         if "cumulative_volume_ratio" in df.columns and len(df) < 500:
@@ -89,6 +119,19 @@ def run_batch(batch: list, threshold: float, model, scaler, meta, add_features_f
         for col in feature_cols:
             val = target_row.get(col, 0)
             row.append(float(val) if pd.notna(val) else 0.0)
+
+        # DEBUG: dump first valid prediction's features to file
+        import os
+        debug_path = os.path.join(os.path.dirname(__file__), "results", "_debug_features.json")
+        if not os.path.exists(debug_path) and row is not None:
+            debug_data = {col: round(float(row[j]), 8) for j, col in enumerate(feature_cols)}
+            debug_data["_symbol"] = data.get("_symbol", "?")
+            debug_data["_n_candles"] = len(data.get("candles", []))
+            debug_data["_target_idx"] = target_idx
+            debug_data["_candle_time"] = str(target_row.get("candle_time_et", "?"))
+            with open(debug_path, "w") as _f:
+                import json as _json
+                _json.dump(debug_data, _f, indent=2)
 
         rows.append(row)
         skip_reasons.append(None)

@@ -130,4 +130,60 @@ export class BacktestScreener {
 
     return { symbols, reasons: filteredReasons };
   }
+
+  /**
+   * Returns ALL symbols that appeared in ANY ranking (before the top-N cut).
+   * Typically ~70-100 symbols vs ~40 from computeCombinedList.
+   */
+  computeAllRankedSymbols(
+    snapshots: SnapshotsResponse,
+    sessionDate: string,
+    prevCloseMap: ReadonlyMap<string, number>,
+    isAfterOpen: boolean,
+  ): CombinedResult {
+    const n = this.topN;
+    const mv = this.minVolume;
+
+    let gapperRanks: ScreenerRankRow[];
+    if (isAfterOpen && this.cachedGapperRanks) {
+      gapperRanks = this.cachedGapperRanks;
+    } else {
+      gapperRanks = rankTopGappers(snapshots, sessionDate, prevCloseMap, n, mv);
+      this.cachedGapperRanks = gapperRanks;
+    }
+
+    const ranksByType: [ScreenerRankType, ScreenerRankRow[]][] = [
+      ['gapper', gapperRanks],
+      ['gainer_session', rankTopGainersSession(snapshots, sessionDate, prevCloseMap, n, mv)],
+      ['gainer_intraday', rankTopGainersIntraday(snapshots, sessionDate, prevCloseMap, n, mv)],
+      ['high_session', rankTopHighSession(snapshots, sessionDate, prevCloseMap, n, mv)],
+      ['high_current', rankTopHighCurrent(snapshots, sessionDate, prevCloseMap, n, mv)],
+    ];
+
+    // Merge ALL ranked symbols (no top-N cut on the final merge)
+    const bySymbol = new Map<string, number>();
+    const reasons = new Map<string, Set<ScreenerRankType>>();
+
+    for (const [rankType, ranks] of ranksByType) {
+      for (const r of ranks.slice(0, n)) {
+        const sym = r.symbol.toUpperCase();
+        const prev = bySymbol.get(sym) ?? 0;
+        bySymbol.set(sym, Math.max(prev, Math.abs(r.metric_value)));
+
+        let set = reasons.get(sym);
+        if (!set) {
+          set = new Set();
+          reasons.set(sym, set);
+        }
+        set.add(rankType);
+      }
+    }
+
+    // Return ALL — no .slice(0, n)
+    const symbols = [...bySymbol.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([sym]) => sym);
+
+    return { symbols, reasons };
+  }
 }

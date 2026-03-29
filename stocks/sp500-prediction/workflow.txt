@@ -1,0 +1,72 @@
+# SP500 Day Trading ML Pipeline — Workflow Commands
+
+# 1. Install dependencies
+npm install
+pip install -r requirements.txt
+
+# 2. Create .env with Alpaca keys
+# ALPACA_API_KEY_ID=your_key
+# ALPACA_API_SECRET_KEY=your_secret
+
+# 3. Download 1min bars for SPY + UVXY (per-date cached)
+npm run download -- 2024-01-01 2026-03-28
+
+# 4. Build training CSV from cached bars (includes UVXY VIX proxy data)
+npm run build-csv -- 2024-01-01 2026-03-28
+
+# ── Grid Search ──────────────────────────────────────────────────────────
+
+# 5a. Quick grid (2 models × 3 fsets × 5 targets)
+python -m ml.run_grid --quick
+
+# 5b. Full grid (all day data)
+python -m ml.run_grid
+
+# 5c. Session-specific grid (the key to higher precision)
+python -m ml.run_grid --session open --quick      # solo 09:30-10:00 (alta vol)
+python -m ml.run_grid --session power --quick     # solo 14:30-16:00 (MOC trends)
+python -m ml.run_grid --session active --quick    # open + power (sin midday ruido)
+
+# 5d. Filter by models/targets/fsets
+python -m ml.run_grid --models LightGBM XGBoost
+python -m ml.run_grid --targets vs_tb10m_15_10 vs_tb30m_20_10 bin_rr10m_ge_2
+python -m ml.run_grid --fsets G_spy_optimized E_clean
+python -m ml.run_grid --session open --models XGBoost --fsets G_spy_optimized
+
+# ── Train Best ───────────────────────────────────────────────────────────
+
+# 6a. Auto-pick best model (by prec@0.7 with >50 signals)
+python -m ml.train_best --auto
+
+# 6b. Train specific config
+python -m ml.train_best XGBoost G_spy_optimized bin_rr10m_ge_2
+
+# 6c. Train session-specific model
+python -m ml.train_best XGBoost G_spy_optimized bin_rr10m_ge_2 --session open
+python -m ml.train_best XGBoost G_spy_optimized bin_rr30m_ge_2 --session power
+
+# ── Prediction ───────────────────────────────────────────────────────────
+
+# 7a. Single model predict
+echo '{"candles": [...], "uvxy_candles": [...], ...}' | python -m ml.predict
+
+# 7b. Ensemble predict (multiple models must agree)
+echo '{
+  "candles": [...],
+  "uvxy_candles": [...],
+  "_ensemble": {
+    "model_dirs": [
+      "XGBoost_G_spy_optimized_bin_rr10m_ge_2_S_open",
+      "XGBoost_G_spy_optimized_bin_rr30m_ge_2_S_open",
+      "LightGBM_B_enriched_vs_tb10m_10_07_S_open"
+    ],
+    "mode": "unanimous",
+    "threshold": 0.7
+  }
+}' | python -m ml.predict_ensemble
+
+# ── Recommended Strategy ─────────────────────────────────────────────────
+# 1. Run session grids:  --session open  and  --session power
+# 2. Train top 3 models per session (different targets for diversity)
+# 3. Use ensemble in "unanimous" mode with threshold 0.7+
+# 4. Only trade when all 3 models agree → higher precision, fewer trades
