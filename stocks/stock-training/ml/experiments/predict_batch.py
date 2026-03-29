@@ -34,10 +34,6 @@ def run_batch(batch: list, threshold: float, model, scaler, meta, add_features_f
     is_multiclass = meta.get("is_multiclass", False)
     inv_label_map = meta.get("inv_label_map", {})
 
-    rows = []
-    skip_reasons = []
-    ticket_details = []
-
     def _extract_details(tr):
         return {
             "close": round(float(tr.get("close", 0)), 4) if pd.notna(tr.get("close")) else None,
@@ -46,52 +42,19 @@ def run_batch(batch: list, threshold: float, model, scaler, meta, add_features_f
             "vwap": round(float(tr.get("vwap", 0)), 4) if pd.notna(tr.get("vwap")) else None,
         }
 
-    _payload_dump_done = False
+    # ── Process each payload (parallelized) ───────────────────────────
 
-    for data in batch:
+    def _process_one(data):
+        """Process a single payload: build_dataframe + add_features + extract row."""
         if "candles" not in data or len(data.get("candles", [])) == 0:
-            rows.append(None)
-            skip_reasons.append("invalid payload")
-            ticket_details.append(None)
-            continue
+            return None, "invalid payload", None
 
         target_idx = int(data.get("target_idx", len(data["candles"]) - 1))
         df = build_dataframe(data)
         df = add_features_fn(df)
 
-        # DEBUG: dump first payload + computed features to compare with eval_multiday
-        import os
-        debug_dir = os.path.join(os.path.dirname(__file__), "results")
-        payload_path = os.path.join(debug_dir, "_debug_payload.json")
-        features_path = os.path.join(debug_dir, "_debug_features_b.json")
-        if not _payload_dump_done and not os.path.exists(payload_path):
-            _payload_dump_done = True
-            import json as _json
-            # Save raw payload (without full candle array to keep file small)
-            payload_meta = {k: v for k, v in data.items() if k != "candles"}
-            payload_meta["_n_candles"] = len(data.get("candles", []))
-            payload_meta["_first_candle"] = data["candles"][0] if data.get("candles") else None
-            payload_meta["_last_candle"] = data["candles"][-1] if data.get("candles") else None
-            with open(payload_path, "w") as _f:
-                _json.dump(payload_meta, _f, indent=2, default=str)
-            # Save computed features for target row
-            if target_idx < len(df):
-                tr = df.iloc[target_idx]
-                feat_data = {}
-                for col in feature_cols:
-                    val = tr.get(col, 0)
-                    feat_data[col] = round(float(val), 8) if pd.notna(val) else 0.0
-                feat_data["_prob"] = "pending"
-                feat_data["_candle_time"] = str(tr.get("candle_time_et", "?"))
-                feat_data["_n_candles"] = len(df)
-                with open(features_path, "w") as _f:
-                    _json.dump(feat_data, _f, indent=2)
-
-        # Fix cumulative_volume_ratio for partial day prediction
         if "cumulative_volume_ratio" in df.columns and len(df) < 500:
-            df["cumulative_volume_ratio"] = (
-                df["cumulative_volume_ratio"] * (len(df) / 539.0)
-            )
+            df["cumulative_volume_ratio"] = df["cumulative_volume_ratio"] * (len(df) / 539.0)
 
         if target_idx >= len(df):
             target_idx = len(df) - 1
@@ -99,42 +62,36 @@ def run_batch(batch: list, threshold: float, model, scaler, meta, add_features_f
         target_row = df.iloc[target_idx]
         details = _extract_details(target_row)
 
-        # ---------------------------------------------------------
-        # PRE-PREDICTION FILTER
-        #
-        # Examples of when a row may be ignored:
-        # - price below EMA9
-        # - price below VWAP
-        # - low volume / bad ATR / bad time window
-        # - any other hard filter defined in should_skip_prediction()
-        # ---------------------------------------------------------
         should_skip, skip_reason = should_skip_prediction(target_row, data)
         if should_skip:
-            rows.append(None)
-            skip_reasons.append(skip_reason or "ignored by filter")
-            ticket_details.append(details)
-            continue
+            return None, skip_reason or "ignored by filter", details
 
         row = []
         for col in feature_cols:
             val = target_row.get(col, 0)
             row.append(float(val) if pd.notna(val) else 0.0)
 
-        # DEBUG: dump first valid prediction's features to file
-        import os
-        debug_path = os.path.join(os.path.dirname(__file__), "results", "_debug_features.json")
-        if not os.path.exists(debug_path) and row is not None:
-            debug_data = {col: round(float(row[j]), 8) for j, col in enumerate(feature_cols)}
-            debug_data["_symbol"] = data.get("_symbol", "?")
-            debug_data["_n_candles"] = len(data.get("candles", []))
-            debug_data["_target_idx"] = target_idx
-            debug_data["_candle_time"] = str(target_row.get("candle_time_et", "?"))
-            with open(debug_path, "w") as _f:
-                import json as _json
-                _json.dump(debug_data, _f, indent=2)
+        return row, None, details
 
+    # Run in parallel using threads (numpy/pandas release GIL for heavy ops)
+    from concurrent.futures import ThreadPoolExecutor
+    import os
+
+    n_workers = min(len(batch), max(1, (os.cpu_count() or 4) - 1))
+
+    if len(batch) <= 3:
+        # Small batch: sequential is faster (no thread overhead)
+        processed = [_process_one(data) for data in batch]
+    else:
+        with ThreadPoolExecutor(max_workers=n_workers) as executor:
+            processed = list(executor.map(_process_one, batch))
+
+    rows = []
+    skip_reasons = []
+    ticket_details = []
+    for row, skip_reason, details in processed:
         rows.append(row)
-        skip_reasons.append(None)
+        skip_reasons.append(skip_reason)
         ticket_details.append(details)
 
     # Build X, handling skipped/invalid rows

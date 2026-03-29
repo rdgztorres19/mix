@@ -16,6 +16,7 @@ const _indicatorengine = require("./indicator-engine");
 const _predictorclient = require("./predictor-client");
 const _tradesimulator = require("./trade-simulator");
 const _logger = require("./logger");
+const _tradefilters = require("./trade-filters");
 const _chalk = /*#__PURE__*/ _interop_require_default(require("chalk"));
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
@@ -152,6 +153,13 @@ async function main() {
         console.log('[Init] Loading stock profiles...');
         const profiles = await (0, _db.getStockProfiles)(pool);
         console.log(`  Stock profiles: ${profiles.size}`);
+        // Connect Redis (used for screener cache + bars cache)
+        try {
+            redis = await (0, _barscache.connectRedis)();
+            console.log(_chalk.default.green('[Redis] Connected'));
+        } catch  {
+            console.log(_chalk.default.yellow('[Redis] Unavailable — screener cache disabled'));
+        }
         // 3. Load 1m bars + prev_close (local data → Redis → Alpaca)
         let allBars;
         let prevCloseMap;
@@ -164,8 +172,7 @@ async function main() {
         } else {
             // Priority 2/3: Redis → Alpaca for 1m bars
             try {
-                redis = await (0, _barscache.connectRedis)();
-                console.log(_chalk.default.green('[Redis] Connected'));
+                if (!redis) throw new Error('Redis not available');
                 const cached = await (0, _barscache.getCachedBars)(redis, config.date);
                 if (cached) {
                     allBars = cached;
@@ -199,73 +206,192 @@ async function main() {
         const endMin = timeToMinutes(config.endTime);
         console.log(_chalk.default.cyan(`[Sim] Starting simulation from ${config.startTime} to ${config.endTime}...`));
         const everSeenSymbols = new Set();
-        // Track last candle count per symbol to detect new candles
         const lastCandleCount = new Map();
-        for(let min = startMin; min <= endMin; min++){
-            const currentTime = minutesToTime(min);
-            const currentTimeMs = etToUnixMs(config.date, currentTime);
-            const isAfterOpen = min > MARKET_OPEN_MINUTE;
-            // 5a. Build synthetic snapshots from ALL cached 1m bars up to current minute
-            const allCandlesUpTo = candleCache.getAllSymbolCandles(currentTimeMs);
-            const synthSnapshots = screener.buildSyntheticSnapshots(allCandlesUpTo, prevCloseMap);
-            // 5b. Compute combined list and accumulate
-            const { symbols: combinedList, reasons } = screener.computeCombinedList(synthSnapshots, config.date, prevCloseMap, isAfterOpen);
-            // Accumulate: once a symbol enters combined list, keep predicting it
-            for (const sym of combinedList)everSeenSymbols.add(sym);
-            // Predict all symbols ever seen (same as build-training-v2)
-            const symbolsToPredict = [
-                ...everSeenSymbols
-            ];
-            // 5c. Feed snapshot data to logger
-            logger.updateMarketData(synthSnapshots, symbolsToPredict);
-            const payloads = [];
-            for (const symbol of symbolsToPredict){
-                const history = candleCache.getCandlesUpTo(symbol, currentTimeMs);
-                if (history.length < 2) continue;
-                // Only predict if there's a NEW candle this minute (skip if same count as last minute)
-                const prevCount = lastCandleCount.get(symbol) ?? 0;
-                if (history.length === prevCount) continue;
-                lastCandleCount.set(symbol, history.length);
-                const prevClose = prevCloseMap.get(symbol) ?? 0;
-                if (prevClose <= 0) continue;
-                // Send candles + computed metadata to Python (same values as CSV)
-                const metadata = indicatorEngine.buildMetadata(history, prevClose, profiles.get(symbol));
-                const row = indicatorEngine.buildRow(symbol, history, metadata);
-                const payload = indicatorEngine.buildPredictPayload(row, history);
-                payloads.push({
-                    symbol,
-                    payload
+        const signalsPerStock = new Map();
+        // Log active filters
+        const activeFilters = Object.entries(_tradefilters.FILTERS).filter(([, f])=>f.enabled).map(([, f])=>f.name);
+        console.log(_chalk.default.dim(`  Filters: ${activeFilters.length > 0 ? activeFilters.join(', ') : 'none'}`));
+        console.log(_chalk.default.dim(`  Max signals per stock: 3\n`));
+        // ═══ PHASE 1: Run screener + build payloads (with Redis cache) ═══
+        console.log(_chalk.default.cyan('  [Phase 1] Running screener for all minutes...'));
+        const t0Phase1 = Date.now();
+        const minuteDataList = [];
+        // Try to load screener results from Redis cache
+        const screenerCacheKey = `backtest:screener:${config.date}:${config.startTime}:${config.endTime}`;
+        let screenerCache = null;
+        if (redis) {
+            try {
+                const cached = await redis.get(screenerCacheKey);
+                if (cached) {
+                    screenerCache = JSON.parse(cached);
+                    console.log(_chalk.default.green(`  [Redis] Screener cache hit (${Object.keys(screenerCache.symbolsPerMinute).length} minutes)`));
+                }
+            } catch  {}
+        }
+        if (screenerCache) {
+            // Rebuild from cache: we know which symbols to predict per minute
+            for(let min = startMin; min <= endMin; min++){
+                const currentTime = minutesToTime(min);
+                const currentTimeMs = etToUnixMs(config.date, currentTime);
+                const cachedSymbols = screenerCache.symbolsPerMinute[currentTime] ?? [];
+                for (const sym of cachedSymbols)everSeenSymbols.add(sym);
+                const symbolsToPredict = [
+                    ...everSeenSymbols
+                ];
+                // Build payloads
+                const payloads = [];
+                for (const symbol of symbolsToPredict){
+                    const history = candleCache.getCandlesUpTo(symbol, currentTimeMs);
+                    if (history.length < 2) continue;
+                    const prevCount = lastCandleCount.get(symbol) ?? 0;
+                    if (history.length === prevCount) continue;
+                    lastCandleCount.set(symbol, history.length);
+                    const prevClose = prevCloseMap.get(symbol) ?? 0;
+                    if (prevClose <= 0) continue;
+                    const metadata = indicatorEngine.buildMetadata(history, prevClose, profiles.get(symbol));
+                    const row = indicatorEngine.buildRow(symbol, history, metadata);
+                    const payload = indicatorEngine.buildPredictPayload(row, history);
+                    payloads.push({
+                        symbol,
+                        payload
+                    });
+                }
+                const reasons = new Map();
+                minuteDataList.push({
+                    min,
+                    time: currentTime,
+                    timeMs: currentTimeMs,
+                    symbolsToPredict,
+                    reasons,
+                    payloads
                 });
             }
-            // 5e. Batch predict
-            let predictions = [];
-            if (payloads.length > 0) {
-                try {
-                    predictions = await predictorClient.predictBatch(payloads.map((p)=>p.payload), config.threshold);
-                } catch (err) {
-                    console.error(`  [Predict] Error at ${currentTime}:`, err.message);
-                    predictions = payloads.map(()=>({
-                            tradeable: false,
-                            prob: 0,
-                            threshold: config.threshold
-                        }));
+        } else {
+            // Run screener from scratch
+            const screenerResults = {};
+            for(let min = startMin; min <= endMin; min++){
+                const currentTime = minutesToTime(min);
+                const currentTimeMs = etToUnixMs(config.date, currentTime);
+                const isAfterOpen = min > MARKET_OPEN_MINUTE;
+                const allCandlesUpTo = candleCache.getAllSymbolCandles(currentTimeMs);
+                const synthSnapshots = screener.buildSyntheticSnapshots(allCandlesUpTo, prevCloseMap);
+                const { symbols: combinedList, reasons } = screener.computeCombinedList(synthSnapshots, config.date, prevCloseMap, isAfterOpen);
+                screenerResults[currentTime] = combinedList;
+                for (const sym of combinedList)everSeenSymbols.add(sym);
+                const symbolsToPredict = [
+                    ...everSeenSymbols
+                ];
+                logger.updateMarketData(synthSnapshots, symbolsToPredict);
+                const payloads = [];
+                for (const symbol of symbolsToPredict){
+                    const history = candleCache.getCandlesUpTo(symbol, currentTimeMs);
+                    if (history.length < 2) continue;
+                    const prevCount = lastCandleCount.get(symbol) ?? 0;
+                    if (history.length === prevCount) continue;
+                    lastCandleCount.set(symbol, history.length);
+                    const prevClose = prevCloseMap.get(symbol) ?? 0;
+                    if (prevClose <= 0) continue;
+                    const metadata = indicatorEngine.buildMetadata(history, prevClose, profiles.get(symbol));
+                    const row = indicatorEngine.buildRow(symbol, history, metadata);
+                    const payload = indicatorEngine.buildPredictPayload(row, history);
+                    payloads.push({
+                        symbol,
+                        payload
+                    });
                 }
+                minuteDataList.push({
+                    min,
+                    time: currentTime,
+                    timeMs: currentTimeMs,
+                    symbolsToPredict,
+                    reasons,
+                    payloads
+                });
             }
-            // 5f. Evaluate trades for BUY signals
+            // Save screener results to Redis (TTL 1 day)
+            if (redis) {
+                try {
+                    const cacheData = {
+                        symbolsPerMinute: screenerResults
+                    };
+                    await redis.setex(screenerCacheKey, 86_400, JSON.stringify(cacheData));
+                    console.log(_chalk.default.green('  [Redis] Screener results cached'));
+                } catch  {}
+            }
+        }
+        console.log(_chalk.default.green(`  Phase 1 done: ${minuteDataList.length} minutes, ${minuteDataList.reduce((s, m)=>s + m.payloads.length, 0)} total payloads (${((Date.now() - t0Phase1) / 1000).toFixed(1)}s)`));
+        // ═══ PHASE 2: Predict in parallel (batch multiple minutes) ═══
+        console.log(_chalk.default.cyan('  [Phase 2] Running predictions in parallel...'));
+        const t0Phase2 = Date.now();
+        const PARALLEL_MINUTES = 5; // spawn this many Python processes at once
+        const minuteResults = [];
+        for(let batch = 0; batch < minuteDataList.length; batch += PARALLEL_MINUTES){
+            const chunk = minuteDataList.slice(batch, batch + PARALLEL_MINUTES);
+            const promises = chunk.map(async (md, chunkIdx)=>{
+                let predictions = [];
+                if (md.payloads.length > 0) {
+                    try {
+                        predictions = await predictorClient.predictBatch(md.payloads.map((p)=>p.payload), config.threshold);
+                    } catch (err) {
+                        console.error(`  [Predict] Error at ${md.time}:`, err.message);
+                        predictions = md.payloads.map(()=>({
+                                tradeable: false,
+                                prob: 0,
+                                threshold: config.threshold
+                            }));
+                    }
+                }
+                return {
+                    idx: batch + chunkIdx,
+                    predictions
+                };
+            });
+            const results = await Promise.all(promises);
+            minuteResults.push(...results);
+        }
+        // Sort by minute index
+        minuteResults.sort((a, b)=>a.idx - b.idx);
+        console.log(_chalk.default.green(`  Phase 2 done (${((Date.now() - t0Phase2) / 1000).toFixed(1)}s)`));
+        // ═══ PHASE 3: Evaluate trades + log (sequential, fast) ═══
+        console.log(_chalk.default.cyan('  [Phase 3] Evaluating trades + logging...\n'));
+        for(let i = 0; i < minuteDataList.length; i++){
+            const md = minuteDataList[i];
+            const predictions = minuteResults[i]?.predictions ?? [];
             const minuteSignals = [];
-            for(let i = 0; i < payloads.length; i++){
-                const { symbol } = payloads[i];
-                const pred = predictions[i] ?? {
+            for(let j = 0; j < md.payloads.length; j++){
+                const { symbol } = md.payloads[j];
+                const pred = predictions[j] ?? {
                     tradeable: false,
                     prob: 0,
                     threshold: config.threshold
                 };
                 if (pred.tradeable) {
-                    // Find entry candle index in full day bars
+                    const history = candleCache.getCandlesUpTo(symbol, md.timeMs);
+                    const prevClose = prevCloseMap.get(symbol) ?? 0;
+                    const profile = profiles.get(symbol);
+                    const metadata = indicatorEngine.buildMetadata(history, prevClose, profile);
+                    const ctx = (0, _tradefilters.buildTradeContext)(symbol, pred.prob, history, prevClose, profile?.shares_outstanding ?? 0, metadata.premarketVolume, metadata.gapPct);
+                    const { pass } = (0, _tradefilters.applyFilters)(ctx);
+                    if (!pass) {
+                        minuteSignals.push({
+                            symbol,
+                            prob: pred.prob,
+                            tradeable: false
+                        });
+                        continue;
+                    }
+                    const symSignalCount = signalsPerStock.get(symbol) ?? 0;
+                    if (symSignalCount >= 3) {
+                        minuteSignals.push({
+                            symbol,
+                            prob: pred.prob,
+                            tradeable: false
+                        });
+                        continue;
+                    }
+                    signalsPerStock.set(symbol, symSignalCount + 1);
                     const allCandles = candleCache.getAllCandles(symbol);
-                    const history = candleCache.getCandlesUpTo(symbol, currentTimeMs);
                     const entryIdx = history.length - 1;
-                    // Look-ahead evaluation
                     const trade = tradeSimulator.evaluate(allCandles, entryIdx);
                     minuteSignals.push({
                         symbol,
@@ -281,8 +407,7 @@ async function main() {
                     });
                 }
             }
-            // 5g. Log minute results (using all ever-seen symbols)
-            logger.logMinute(currentTime, symbolsToPredict, reasons, minuteSignals);
+            logger.logMinute(md.time, md.symbolsToPredict, md.reasons, minuteSignals);
         }
         // 6. Final summary
         logger.printSummary(config);
