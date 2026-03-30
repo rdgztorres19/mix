@@ -51,6 +51,9 @@
       "Bash(node -e \"const{createClient}=require\\(''redis''\\);\\(async\\(\\)=>{const c=createClient\\(\\);await c.connect\\(\\);const keys=await c.keys\\(''backtest:screener:2026-03-27*''\\);if\\(keys.length\\)await c.del\\(keys\\);console.log\\(''Cleared'',keys.length,''keys''\\);await c.disconnect\\(\\);}\\)\\(\\)\")",
       "Bash(LANG=C tail -5 \"/private/tmp/claude-501/-Users-rdgztorres19-Documents-Projects-node-copy-stocks/e2887b3c-8907-4fab-bca9-10226eef0bcb/tasks/bnglwc6z5.output\")",
       "Bash(LANG=C tail -50 \"/private/tmp/claude-501/-Users-rdgztorres19-Documents-Projects-node-copy-stocks/e2887b3c-8907-4fab-bca9-10226eef0bcb/tasks/brffj3vln.output\")"
+    ],
+    "additionalDirectories": [
+      "/Users/rdgztorres19/Documents/Projects/node copy/stocks"
     ]
   }
 }
