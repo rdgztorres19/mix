@@ -145,6 +145,9 @@ async function main() {
       for (const err of errors) {
         console.error(chalk.red(`  Error on ${err.item}: ${err.message}`));
       }
+
+    } else {
+      console.log(chalk.green.bold('\nAll downloads completed without errors!'));
     }
 
     const totalElapsed = ((Date.now() - t0) / 1000).toFixed(1);
