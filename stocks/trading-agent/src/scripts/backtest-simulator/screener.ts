@@ -18,6 +18,13 @@ export interface CombinedResult {
   reasons: Map<string, Set<ScreenerRankType>>;
 }
 
+export interface CombinedResultWide extends CombinedResult {
+  /** For each symbol, its 0-based rank position in each ranking type */
+  rankPositions: Map<string, Map<ScreenerRankType, number>>;
+  /** For each symbol, its max absolute metric value across all rankings */
+  metricValues: Map<string, number>;
+}
+
 export class BacktestScreener {
   private cachedGapperRanks: ScreenerRankRow[] | null = null;
   private readonly topN: number;
@@ -185,5 +192,77 @@ export class BacktestScreener {
       .map(([sym]) => sym);
 
     return { symbols, reasons };
+  }
+
+  /**
+   * Wide screener for ML training: returns top `limit` symbols with
+   * per-ranker rank positions and metric values.
+   */
+  computeCombinedListWide(
+    snapshots: SnapshotsResponse,
+    sessionDate: string,
+    prevCloseMap: ReadonlyMap<string, number>,
+    isAfterOpen: boolean,
+    limit: number,
+  ): CombinedResultWide {
+    const n = this.topN;
+    const mv = this.minVolume;
+
+    let gapperRanks: ScreenerRankRow[];
+    if (isAfterOpen && this.cachedGapperRanks) {
+      gapperRanks = this.cachedGapperRanks;
+    } else {
+      gapperRanks = rankTopGappers(snapshots, sessionDate, prevCloseMap, n, mv);
+      this.cachedGapperRanks = gapperRanks;
+    }
+
+    const ranksByType: [ScreenerRankType, ScreenerRankRow[]][] = [
+      ['gapper', gapperRanks],
+      ['gainer_session', rankTopGainersSession(snapshots, sessionDate, prevCloseMap, n, mv)],
+      ['gainer_intraday', rankTopGainersIntraday(snapshots, sessionDate, prevCloseMap, n, mv)],
+      ['high_session', rankTopHighSession(snapshots, sessionDate, prevCloseMap, n, mv)],
+      ['high_current', rankTopHighCurrent(snapshots, sessionDate, prevCloseMap, n, mv)],
+    ];
+
+    const bySymbol = new Map<string, number>();
+    const reasons = new Map<string, Set<ScreenerRankType>>();
+    const rankPositions = new Map<string, Map<ScreenerRankType, number>>();
+
+    for (const [rankType, ranks] of ranksByType) {
+      const sliced = ranks.slice(0, n);
+      for (let i = 0; i < sliced.length; i++) {
+        const r = sliced[i];
+        const sym = r.symbol.toUpperCase();
+        const prev = bySymbol.get(sym) ?? 0;
+        bySymbol.set(sym, Math.max(prev, Math.abs(r.metric_value)));
+
+        let set = reasons.get(sym);
+        if (!set) { set = new Set(); reasons.set(sym, set); }
+        set.add(rankType);
+
+        let posMap = rankPositions.get(sym);
+        if (!posMap) { posMap = new Map(); rankPositions.set(sym, posMap); }
+        posMap.set(rankType, i);
+      }
+    }
+
+    const sorted = [...bySymbol.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+
+    const symbols = sorted.slice(0, limit).map(([sym]) => sym);
+
+    const metricValues = new Map<string, number>();
+    const filteredReasons = new Map<string, Set<ScreenerRankType>>();
+    const filteredRankPositions = new Map<string, Map<ScreenerRankType, number>>();
+
+    for (const sym of symbols) {
+      metricValues.set(sym, bySymbol.get(sym)!);
+      const r = reasons.get(sym);
+      if (r) filteredReasons.set(sym, r);
+      const rp = rankPositions.get(sym);
+      if (rp) filteredRankPositions.set(sym, rp);
+    }
+
+    return { symbols, reasons: filteredReasons, rankPositions: filteredRankPositions, metricValues };
   }
 }

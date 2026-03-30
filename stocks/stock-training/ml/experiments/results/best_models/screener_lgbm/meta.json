@@ -1,0 +1,72 @@
+{
+  "model_name": "LightGBM",
+  "task": "screener_selection",
+  "features": [
+    "price",
+    "gap_pct",
+    "premarket_volume",
+    "shares_outstanding",
+    "market_cap",
+    "atr_pct",
+    "volume_at_entry",
+    "dist_hod_pct",
+    "time_of_first_entry_min",
+    "in_gapper",
+    "in_gainer_session",
+    "in_gainer_intraday",
+    "in_high_session",
+    "in_high_current",
+    "rank_gapper",
+    "rank_gainer_session",
+    "rank_gainer_intraday",
+    "rank_high_session",
+    "rank_high_current",
+    "num_ranking_types",
+    "max_metric_value",
+    "combined_rank"
+  ],
+  "target": "cross_sectional_top30_bottom30_by_total_pnl",
+  "train_dates": {
+    "start": "2024-09-03",
+    "end": "2025-12-02",
+    "n_days": 317
+  },
+  "test_dates": {
+    "start": "2025-12-10",
+    "end": "2026-03-27",
+    "n_days": 75
+  },
+  "metrics": {
+    "accuracy": 0.8544676297485286,
+    "precision": 0.681912681912682,
+    "recall": 0.888201160541586,
+    "f1": 0.771505376344086,
+    "auc": 0.9373975942224715
+  },
+  "params": {
+    "boosting_type": "gbdt",
+    "class_weight": null,
+    "colsample_bytree": 0.8,
+    "importance_type": "split",
+    "learning_rate": 0.05,
+    "max_depth": 5,
+    "min_child_samples": 30,
+    "min_child_weight": 0.001,
+    "min_split_gain": 0.0,
+    "n_estimators": 300,
+    "n_jobs": -1,
+    "num_leaves": 31,
+    "objective": null,
+    "random_state": 42,
+    "reg_alpha": 0.1,
+    "reg_lambda": 1.0,
+    "subsample": 0.8,
+    "subsample_for_bin": 200000,
+    "subsample_freq": 0,
+    "scale_pos_weight": 2.6802607076350093,
+    "verbose": -1
+  },
+  "best_iteration": 299,
+  "n_train": 39526,
+  "n_test": 9345
+}

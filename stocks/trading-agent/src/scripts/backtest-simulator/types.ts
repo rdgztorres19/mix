@@ -5,6 +5,7 @@ export interface SimConfig {
   threshold: number;     // prediction probability threshold
   targetPct: number;     // take profit %
   stopLossPct: number;   // stop loss %
+  screenerML: boolean;   // use screener ML model to filter stocks
 }
 
 export interface PredictPayload {

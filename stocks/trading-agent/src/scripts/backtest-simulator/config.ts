@@ -13,7 +13,11 @@ export function parseArgs(argv: string[]): SimConfig {
     process.exit(1);
   }
 
-  const [date, startTime, endTime, thresholdStr, targetStr, stopStr] = args;
+  // Check for --screener-ml flag
+  const screenerML = args.includes('--screener-ml');
+  const positionalArgs = args.filter((a) => !a.startsWith('--'));
+
+  const [date, startTime, endTime, thresholdStr, targetStr, stopStr] = positionalArgs;
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     console.error(`Invalid date format: ${date}. Expected YYYY-MM-DD`);
@@ -33,5 +37,5 @@ export function parseArgs(argv: string[]): SimConfig {
     process.exit(1);
   }
 
-  return { date, startTime, endTime, threshold, targetPct, stopLossPct };
+  return { date, startTime, endTime, threshold, targetPct, stopLossPct, screenerML };
 }

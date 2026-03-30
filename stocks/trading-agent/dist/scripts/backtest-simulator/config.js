@@ -15,7 +15,10 @@ function parseArgs(argv) {
         console.error('Example: npx ts-node src/scripts/backtest-simulator/main.ts 2026-03-25 09:30 11:00 0.65 4 2');
         process.exit(1);
     }
-    const [date, startTime, endTime, thresholdStr, targetStr, stopStr] = args;
+    // Check for --screener-ml flag
+    const screenerML = args.includes('--screener-ml');
+    const positionalArgs = args.filter((a)=>!a.startsWith('--'));
+    const [date, startTime, endTime, thresholdStr, targetStr, stopStr] = positionalArgs;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
         console.error(`Invalid date format: ${date}. Expected YYYY-MM-DD`);
         process.exit(1);
@@ -41,7 +44,8 @@ function parseArgs(argv) {
         endTime,
         threshold,
         targetPct,
-        stopLossPct
+        stopLossPct,
+        screenerML
     };
 }
 

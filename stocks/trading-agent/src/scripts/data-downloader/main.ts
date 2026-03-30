@@ -6,6 +6,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 //npm run download-data -- 2026-03-01 2026-03-26
 
 import chalk from 'chalk';
+import { PromisePool } from '@supercharge/promise-pool';
 import { AlpacaClient } from '../backtest-simulator/alpaca-client';
 import { createPool, getUniverseSymbols } from '../backtest-simulator/db';
 import { barsPrevCloseBeforeSession } from '../../scanner/screener/ranking/rankers/screener-rankers';
@@ -14,6 +15,8 @@ import {
   writeLocalBars,
   writeLocalPrevClose,
 } from './file-cache';
+
+const CONCURRENCY = 10;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -89,49 +92,63 @@ async function main() {
     const universe = await getUniverseSymbols(pool);
     console.log(chalk.dim(`  Universe: ${universe.length} symbols\n`));
 
-    for (let d = 0; d < businessDays.length; d++) {
-      const date = businessDays[d];
-      const label = `[${d + 1}/${businessDays.length}] ${date}`;
-
-      // Skip if already downloaded
+    // Filter out already-downloaded dates
+    const pendingDays: string[] = [];
+    for (const date of businessDays) {
       if (await hasLocalData(date)) {
-        console.log(chalk.green(`${label} — already downloaded, skipping`));
-        continue;
+        console.log(chalk.green(`${date} — already downloaded, skipping`));
+      } else {
+        pendingDays.push(date);
       }
-
-      console.log(chalk.cyan.bold(`\n${label} — downloading...`));
-
-      // 1. Fetch 1m bars
-      console.log(chalk.dim('  Fetching 1m bars...'));
-      const t0 = Date.now();
-      const bars1m = await alpacaClient.fetchUniverse1mBars(universe, date);
-      const elapsed1m = ((Date.now() - t0) / 1000).toFixed(1);
-      console.log(chalk.dim(`  1m bars: ${bars1m.size} symbols (${elapsed1m}s)`));
-
-      // 2. Fetch daily bars for prev_close
-      console.log(chalk.dim('  Fetching daily bars for prev_close...'));
-      const rangeStart = prevCloseRangeStart(date);
-      const t1 = Date.now();
-      const dailyBars = await alpacaClient.fetchDailyBarsRange(universe, rangeStart, date);
-      const elapsed1d = ((Date.now() - t1) / 1000).toFixed(1);
-      console.log(chalk.dim(`  Daily bars: ${dailyBars.size} symbols (${elapsed1d}s)`));
-
-      // 3. Extract prev_close
-      const prevCloseMap = new Map<string, number>();
-      dailyBars.forEach((bars, sym) => {
-        const pc = barsPrevCloseBeforeSession(bars, date);
-        if (pc != null) prevCloseMap.set(sym, pc);
-      });
-      console.log(chalk.dim(`  prev_close entries: ${prevCloseMap.size}`));
-
-      // 4. Write to disk
-      await writeLocalBars(date, bars1m);
-      await writeLocalPrevClose(date, prevCloseMap);
-
-      console.log(chalk.green(`  ${label} — saved to data/${date}/`));
     }
 
-    console.log(chalk.green.bold('\nDone!'));
+    if (!pendingDays.length) {
+      console.log(chalk.green.bold('\nAll dates already downloaded!'));
+      return;
+    }
+
+    console.log(chalk.cyan(`\n${pendingDays.length} dates to download (concurrency: ${CONCURRENCY})\n`));
+
+    let completed = 0;
+    const t0 = Date.now();
+
+    const { errors } = await PromisePool
+      .for(pendingDays)
+      .withConcurrency(CONCURRENCY)
+      .process(async (date) => {
+        const t = Date.now();
+
+        // Fetch 1m bars + daily bars in parallel
+        const rangeStart = prevCloseRangeStart(date);
+        const [bars1m, dailyBars] = await Promise.all([
+          alpacaClient.fetchUniverse1mBars(universe, date),
+          alpacaClient.fetchDailyBarsRange(universe, rangeStart, date),
+        ]);
+
+        // Extract prev_close
+        const prevCloseMap = new Map<string, number>();
+        dailyBars.forEach((bars, sym) => {
+          const pc = barsPrevCloseBeforeSession(bars, date);
+          if (pc != null) prevCloseMap.set(sym, pc);
+        });
+
+        // Write to disk
+        await writeLocalBars(date, bars1m);
+        await writeLocalPrevClose(date, prevCloseMap);
+
+        completed++;
+        const elapsed = ((Date.now() - t) / 1000).toFixed(1);
+        console.log(chalk.green(`  [${completed}/${pendingDays.length}] ${date} — ${bars1m.size} symbols, ${prevCloseMap.size} prev_close (${elapsed}s)`));
+      });
+
+    if (errors.length) {
+      for (const err of errors) {
+        console.error(chalk.red(`  Error on ${err.item}: ${err.message}`));
+      }
+    }
+
+    const totalElapsed = ((Date.now() - t0) / 1000).toFixed(1);
+    console.log(chalk.green.bold(`\nDone! ${completed}/${pendingDays.length} dates downloaded in ${totalElapsed}s`));
   } finally {
     await pool.end();
   }
