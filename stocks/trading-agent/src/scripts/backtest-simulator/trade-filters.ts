@@ -56,7 +56,7 @@ export interface FilterConfig {
 export const FILTERS: Record<string, FilterConfig> = {
   // ETF / Leveraged / Inverse blacklist — model doesn't predict these well
   noETF: {
-    enabled: true,
+    enabled: false,
     name: 'No ETF/Leveraged',
     fn: (ctx) => !ETF_BLACKLIST.has(ctx.symbol),
   },
@@ -68,16 +68,22 @@ export const FILTERS: Record<string, FilterConfig> = {
     fn: (ctx) => ctx.price >= 3 && ctx.price <= 50,
   },
 
+  maxPrice5: {
+    enabled: true,
+    name: 'Price <= $5',
+    fn: (ctx) => ctx.price <= 5,
+  },
+
   // Gap > 30% already moved too much
   noHugeGap: {
-    enabled: true,
+    enabled: false,
     name: 'Gap < 30%',
     fn: (ctx) => ctx.gapPct < 30,
   },
 
   // Price > $50 poor WR (63%)
   noExpensive: {
-    enabled: true,
+    enabled: false,
     name: 'Price < $50',
     fn: (ctx) => ctx.price < 50,
   },

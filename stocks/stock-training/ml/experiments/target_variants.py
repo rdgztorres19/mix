@@ -480,6 +480,58 @@ def compute_target_variants(df: pd.DataFrame) -> dict[str, dict[str, np.ndarray]
     clean_entry_30m = ((mfr30m >= 0.030) & (minfr30m > -0.015)).astype(np.int32)
     valid_clean_entry_30m = valid_mfr30m & valid_minfr30m
 
+    # ── Bearish targets ──────────────────────────────────────────────────
+    # Drop: min(low) falls X% below close within horizon
+    drop_2p0_10m = (minfr10m <= -0.020).astype(np.int32)
+    drop_4p0_10m = (minfr10m <= -0.040).astype(np.int32)
+    drop_2p0_30m, valid_drop_2p0_30m = np.zeros(n, dtype=np.int32), valid_minfr30m
+    drop_2p0_30m[valid_minfr30m] = (minfr30m[valid_minfr30m] <= -0.020).astype(np.int32)
+    drop_4p0_30m = np.zeros(n, dtype=np.int32)
+    drop_4p0_30m[valid_minfr30m] = (minfr30m[valid_minfr30m] <= -0.040).astype(np.int32)
+
+    # SL hit before TP (inverse of existing tp_before_sl)
+    sl_before_tp_4p0_2p0, valid_sl_bt = _hit_tp_before_sl(df, 0.040, 0.020, 10)
+    sl_before_tp_4p0_2p0_inv = np.where(valid_sl_bt, 1 - np.nan_to_num(sl_before_tp_4p0_2p0, nan=0.0), 0).astype(np.int32)
+
+    sl_before_tp_30m, valid_sl_bt_30m = _hit_tp_before_sl(df, 0.040, 0.020, 30)
+    sl_before_tp_30m_inv = np.where(valid_sl_bt_30m, 1 - np.nan_to_num(sl_before_tp_30m, nan=0.0), 0).astype(np.int32)
+
+    # Bearish R/R: downside risk >= 2x upside in 10 candles
+    bearish_rr10m = _safe_div(np.abs(minfr10m), np.maximum(mfr10m_final, 1e-8), fill=np.nan)
+    valid_bearish_rr10m = valid_mfr10m_final & valid_minfr10m & np.isfinite(bearish_rr10m)
+    rr_bearish_ge_2 = np.zeros(n, dtype=np.int32)
+    rr_bearish_ge_2[valid_bearish_rr10m] = (bearish_rr10m[valid_bearish_rr10m] >= 2.0).astype(np.int32)
+
+    # Breakdown LOD: future low breaks current LOD
+    if "low_of_day" in df.columns:
+        lod_vals = df["low_of_day"].values.astype(np.float64)
+        future_min_vals = np.full(n, np.nan)
+        valid_breakdown = np.zeros(n, dtype=bool)
+        for (_sym, _date), grp in df.groupby(["symbol", "date"], sort=False):
+            idx = grp.index.values
+            low = grp["low"].values.astype(np.float64)
+            lod_grp = grp["low_of_day"].values.astype(np.float64)
+            ng = len(grp)
+            for i in range(ng):
+                if i + 10 >= ng:
+                    continue
+                future_min = np.min(low[i + 1 : i + 11])
+                future_min_vals[idx[i]] = future_min
+                valid_breakdown[idx[i]] = True
+        breakdown_lod = np.zeros(n, dtype=np.int32)
+        breakdown_lod[valid_breakdown] = (future_min_vals[valid_breakdown] < lod_vals[valid_breakdown]).astype(np.int32)
+    else:
+        breakdown_lod = np.zeros(n, dtype=np.int32)
+        valid_breakdown = np.zeros(n, dtype=bool)
+
+    # Close return negative (price drops in next X candles)
+    bin_fr10m_neg_1p0 = (fr10m <= -0.010).astype(np.int32)
+    bin_fr10m_neg_2p0 = (fr10m <= -0.020).astype(np.int32)
+
+    # Clean short: downside >= 3% and max adverse (upside) < 1.5% in 10 candles
+    clean_short_10m = ((np.abs(minfr10m) >= 0.030) & (mfr10m_final < 0.015)).astype(np.int32)
+    valid_clean_short_10m = valid_mfr10m_final & valid_minfr10m
+
     targets = {
         # Existing targets kept
         "mc_2p5": {"y": np.where(valid_original, original, 0).astype(np.int32), "valid": valid_original},
@@ -539,6 +591,19 @@ def compute_target_variants(df: pd.DataFrame) -> dict[str, dict[str, np.ndarray]
         "bin_sustained_momentum_10m": {"y": sustained_mom, "valid": valid_sustained},
         "bin_clean_entry_10m": {"y": clean_entry_10m, "valid": valid_clean_entry_10m},
         "bin_clean_entry_30m": {"y": clean_entry_30m, "valid": valid_clean_entry_30m},
+
+        # ── Bearish targets ──────────────────────────────────────────
+        "bin_drop_2p0_10m": {"y": drop_2p0_10m, "valid": valid_minfr10m},
+        "bin_drop_4p0_10m": {"y": drop_4p0_10m, "valid": valid_minfr10m},
+        "bin_drop_2p0_30m": {"y": drop_2p0_30m, "valid": valid_drop_2p0_30m},
+        "bin_drop_4p0_30m": {"y": drop_4p0_30m, "valid": valid_minfr30m},
+        "bin_sl_before_tp_10m": {"y": sl_before_tp_4p0_2p0_inv, "valid": valid_sl_bt},
+        "bin_sl_before_tp_30m": {"y": sl_before_tp_30m_inv, "valid": valid_sl_bt_30m},
+        "bin_rr10m_bearish_ge_2": {"y": rr_bearish_ge_2, "valid": valid_bearish_rr10m},
+        "bin_breakdown_lod_10m": {"y": breakdown_lod, "valid": valid_breakdown},
+        "bin_fr10m_neg_1p0": {"y": bin_fr10m_neg_1p0, "valid": valid_fr10m},
+        "bin_fr10m_neg_2p0": {"y": bin_fr10m_neg_2p0, "valid": valid_fr10m},
+        "bin_clean_short_10m": {"y": clean_short_10m, "valid": valid_clean_short_10m},
     }
 
     return targets
@@ -600,4 +665,17 @@ TARGET_META = {
     "bin_sustained_momentum_10m": (False, "Momentum sostenido: close[t+10] > close[t+5] > close[t]"),
     "bin_clean_entry_10m": (False, "Upside >= 3% y drawdown < 1.5% en 10 candles"),
     "bin_clean_entry_30m": (False, "Upside >= 3% y drawdown < 1.5% en 30 candles"),
+
+    # Bearish targets
+    "bin_drop_2p0_10m": (False, "Min low cae >= -2% en 10 candles"),
+    "bin_drop_4p0_10m": (False, "Min low cae >= -4% en 10 candles"),
+    "bin_drop_2p0_30m": (False, "Min low cae >= -2% en 30 candles"),
+    "bin_drop_4p0_30m": (False, "Min low cae >= -4% en 30 candles"),
+    "bin_sl_before_tp_10m": (False, "SL -2% hit antes que TP +4% en 10 candles"),
+    "bin_sl_before_tp_30m": (False, "SL -2% hit antes que TP +4% en 30 candles"),
+    "bin_rr10m_bearish_ge_2": (False, "Risk/Reward bearish >= 2 en 10 candles"),
+    "bin_breakdown_lod_10m": (False, "Rompe LOD en próximas 10 candles"),
+    "bin_fr10m_neg_1p0": (False, "Close[t+10] cae >= -1%"),
+    "bin_fr10m_neg_2p0": (False, "Close[t+10] cae >= -2%"),
+    "bin_clean_short_10m": (False, "Caída >= 3% con max adverse (subida) < 1.5% en 10 candles"),
 }

@@ -331,11 +331,14 @@ def train_from_grid(configs: list[tuple[str, str, str]]):
     Train models using DEFAULT hyperparameters (same as run_grid.py).
     No tuning needed — uses the combos that already performed well in the grid.
     """
+    import os
+    os.environ.setdefault("TRAINING_MAX_ROWS", "5000000")
+
     print("Loading data (once)...")
     import time
     from experiments.data_loader import load_df_with_features
     t0 = time.time()
-    df = load_df_with_features()
+    df = load_df_with_features(filter_valid=True)
     targets = compute_target_variants(df)
     print(f"  Data ready: {len(df)} rows in {time.time() - t0:.1f}s")
 
@@ -375,21 +378,13 @@ def train_from_grid(configs: list[tuple[str, str, str]]):
 
 # Top configs from grid_results.csv to train with defaults
 GRID_TOP_CONFIGS = [
-    # bin_rr10m_ge_2 — best overall
-    ("LightGBM", "V2_full", "bin_rr10m_ge_2"),
-    ("XGBoost", "V2_full", "bin_rr10m_ge_2"),
-    ("XGBoost", "D_clean_ext", "bin_rr10m_ge_2"),
-    ("LightGBM", "D_clean_ext", "bin_rr10m_ge_2"),
-    ("XGBoost", "V2_core", "bin_rr10m_ge_2"),
-    # bin_rr10m_ge_3
-    ("XGBoost", "V2_full", "bin_rr10m_ge_3"),
-    ("LightGBM", "V2_full", "bin_rr10m_ge_3"),
-    ("XGBoost", "D_clean_ext", "bin_rr10m_ge_3"),
-    # bin_rr30m_ge_2
-    ("XGBoost", "D_clean_ext", "bin_rr30m_ge_2"),
-    ("LightGBM", "D_clean_ext", "bin_rr30m_ge_2"),
-    ("XGBoost", "V2_full", "bin_rr30m_ge_2"),
-    ("XGBoost", "V2_core", "bin_rr30m_ge_2"),
+    # Bullish: best per target
+    ("LightGBM", "V2_full_bear", "bin_rr10m_ge_2"),   # 65.0% P@0.70
+    ("XGBoost", "V2_full", "bin_rr10m_ge_3"),          # 57.6% P@0.70
+    # Bearish: best per target
+    ("XGBoost", "D_clean_ext", "bin_drop_2p0_30m"),    # 75.2% P@0.70
+    ("XGBoost", "V2_full", "bin_rr10m_bearish_ge_2"),  # 66.8% P@0.70
+    ("LightGBM", "V2_full", "bin_drop_2p0_10m"),       # 60.3% P@0.70
 ]
 
 

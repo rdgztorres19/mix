@@ -25,41 +25,14 @@ import pandas as pd
 
 warnings.filterwarnings("ignore")
 
-# ── Modelos ordenados por prec@0.7 (mejores primero) ──
-# bin_rr10m_ge_2: R/R futuro 10m >= 2
-#  1. LightGBM V2_full    — prec@0.7=69.6%, 32K sig, prec@0.8=82.3%
-#  2. LightGBM D_clean_ext — prec@0.7=69.1%, 33K sig, prec@0.8=82.6%
-#  3. XGBoost  V2_full    — prec@0.7=66.5%, 53K sig, prec@0.8=77.5%
-#  4. XGBoost  D_clean_ext — prec@0.7=66.1%, 54K sig, prec@0.8=76.2%
-#  5. XGBoost  V2_core    — prec@0.7=66.0%, 50K sig, prec@0.8=76.7%
-# bin_rr30m_ge_2: R/R futuro 30m >= 2
-#  6. LightGBM D_clean_ext — prec@0.7=74.5%, 56K sig, prec@0.8=84.0%
-#  7. XGBoost  V2_core    — prec@0.7=71.3%, 70K sig, prec@0.8=81.6%
-#  8. XGBoost  V2_full    — prec@0.7=70.8%, 72K sig, prec@0.8=81.2%
-#  9. XGBoost  D_clean_ext — prec@0.7=69.2%, 78K sig, prec@0.8=79.4%
-# bin_rr10m_ge_3: R/R futuro 10m >= 3
-# 10. LightGBM V2_full    — prec@0.7=61.5%, 34K sig
-# 11. XGBoost  V2_full    — prec@0.7=59.1%, 53K sig
-# 12. XGBoost  D_clean_ext — prec@0.7=58.8%, 54K sig
+# ── Model selection ──
+# Override via env: PREDICT_MODEL=LightGBM_V2_full_bear_bin_rr10m_ge_2
+import os as _os
+_DEFAULT_MODEL = "LightGBM_V2_full_bear_bin_rr10m_ge_2"
+_model_name = _os.environ.get("PREDICT_MODEL", _DEFAULT_MODEL)
+BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / _model_name
 
-BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "LightGBM_D_clean_ext_bin_rr10m_ge_2"  # prec@0.7=69.1%, 33K sig
-# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "LightGBM_V2_full_bin_rr10m_ge_2"  # prec@0.7=69.6%, 32K sig
-# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "XGBoost_D_clean_ext_bin_rr10m_ge_2"  # prec@0.7=66.1%, 54K sig
-# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "XGBoost_V2_full_bin_rr10m_ge_2"  # prec@0.7=66.5%, 53K sig
-# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "LightGBM_D_clean_ext_bin_rr30m_ge_2"  # prec@0.7=74.5%, 56K sig
-# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "XGBoost_V2_core_bin_rr30m_ge_2"  # prec@0.7=71.3%, 70K sig
-# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "XGBoost_D_clean_ext_bin_rr30m_ge_2"  # prec@0.7=69.2%, 78K sig
-# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "LightGBM_V2_full_bin_rr10m_ge_3"  # prec@0.7=61.5%, 34K sig
-# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "XGBoost_V2_full_bin_rr10m_ge_3"  # prec@0.7=59.1%, 53K sig
-# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "XGBoost_D_clean_ext_bin_rr10m_ge_3"  # prec@0.7=58.8%, 54K sig
-# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "LightGBM_V2_core_bin_tb30m_tp4p0_sl2p0"  # tu estrategia 30min, prec@0.7=68.2%, threshold=0.6
-# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "XGBoost_V2_full_bin_tb30m_tp4p0_sl2p0"  # prec@0.6=38.8%, 207K signals, threshold=0.6
-# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "XGBoost_D_clean_ext_bin_rr10m_ge_2"  # prec@0.7=82.6% pero 23 signals, threshold=0.65
-# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "LightGBM_D_clean_ext_bin_rr10m_ge_2"  # prec@0.7=70.6% 214 signals, threshold=0.6
-# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "LightGBM_D_clean_ext_bin_tb60m_tp4p0_sl2p0"  # prec@0.7=71.7% 1415 signals, threshold=0.6
-# BEST_MODEL_DIR = Path(__file__).resolve().parent / "results" / "best_models" / "LightGBM_D_clean_ext_bin_rr10m_ge_3"  # prec@0.7=62.6% 786 signals, threshold=0.6
-
-DEFAULT_THRESHOLD = 0.6
+DEFAULT_THRESHOLD = float(_os.environ.get("PREDICT_THRESHOLD", "0.6"))
 
 
 # ---------------------------------------------------------------------------

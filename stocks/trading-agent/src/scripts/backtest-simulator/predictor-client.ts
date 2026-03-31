@@ -13,7 +13,6 @@ export class PredictorClient {
     );
     this.batchScriptPath = path.join(stockTraining, 'ml', 'experiments', 'predict_batch.py');
 
-    // Resolve python3 absolute path to avoid PATH issues in child processes
     try {
       this.pythonBin = execSync('which python3', { encoding: 'utf-8' }).trim();
     } catch {

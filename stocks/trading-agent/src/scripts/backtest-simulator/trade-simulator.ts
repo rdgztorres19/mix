@@ -2,20 +2,25 @@ import type { CollectorCandle } from '../../collector/indicator.calculator';
 import { timestampToET } from '../../collector/indicator.calculator';
 import type { TradeResult, TpSlResult } from './types';
 
+export type TradeDirection = 'long' | 'short';
+
 export class TradeSimulator {
   private readonly targetPct: number;
   private readonly stopLossPct: number;
   private readonly lookAhead: number;
+  private readonly direction: TradeDirection;
 
-  constructor(targetPct: number, stopLossPct: number, lookAhead = 60) {
+  constructor(targetPct: number, stopLossPct: number, lookAhead = 60, direction: TradeDirection = 'long') {
     this.targetPct = targetPct;
     this.stopLossPct = stopLossPct;
     this.lookAhead = lookAhead;
+    this.direction = direction;
   }
 
   /**
    * Evaluate a trade signal by looking ahead in the candle history.
-   * Replicates the logic from PredictorService.computeTpSlExit().
+   * Long: TP = price goes UP, SL = price goes DOWN
+   * Short: TP = price goes DOWN, SL = price goes UP
    */
   evaluate(allCandles: CollectorCandle[], entryIdx: number): TradeResult {
     const entryCandle = allCandles[entryIdx];
@@ -30,8 +35,14 @@ export class TradeSimulator {
 
     const tpDec = this.targetPct / 100;
     const slDec = this.stopLossPct / 100;
-    const levelUp = entryPrice * (1 + tpDec);
-    const levelDown = entryPrice * (1 - slDec);
+
+    // Long: TP above, SL below. Short: TP below, SL above.
+    const tpLevel = this.direction === 'long'
+      ? entryPrice * (1 + tpDec)
+      : entryPrice * (1 - tpDec);
+    const slLevel = this.direction === 'long'
+      ? entryPrice * (1 - slDec)
+      : entryPrice * (1 + slDec);
 
     let prevClose = entryPrice;
     const n = Math.min(this.lookAhead, allCandles.length - entryIdx - 1);
@@ -45,31 +56,54 @@ export class TradeSimulator {
       const lowJ = c.l;
       const closeJ = c.c;
 
-      // Gap up through TP
-      if (prevClose < openJ && prevClose < levelUp && levelUp < openJ) {
-        return this.buildResult('win', entryPrice, levelUp, c);
-      }
-      // Gap down through SL
-      if (prevClose > openJ && openJ < levelDown && levelDown < prevClose) {
-        return this.buildResult('loss', entryPrice, levelDown, c);
-      }
+      if (this.direction === 'long') {
+        // Long: TP hit when high >= tpLevel, SL hit when low <= slLevel
+        // Gap up through TP
+        if (prevClose < openJ && prevClose < tpLevel && tpLevel < openJ) {
+          return this.buildResult('win', entryPrice, tpLevel, c);
+        }
+        // Gap down through SL
+        if (prevClose > openJ && openJ < slLevel && slLevel < prevClose) {
+          return this.buildResult('loss', entryPrice, slLevel, c);
+        }
 
-      const touchUp = highJ >= levelUp;
-      const touchDown = lowJ <= levelDown;
+        const touchTp = highJ >= tpLevel;
+        const touchSl = lowJ <= slLevel;
 
-      if (touchUp && touchDown) {
-        // Both hit in same candle — use candle color heuristic (same as predictor.service.ts)
-        const hit: TpSlResult = closeJ >= openJ ? 'loss' : 'win';
-        const price = closeJ >= openJ ? levelDown : levelUp;
-        return this.buildResult(hit, entryPrice, price, c);
+        if (touchTp && touchSl) {
+          const hit: TpSlResult = closeJ >= openJ ? 'loss' : 'win';
+          const price = closeJ >= openJ ? slLevel : tpLevel;
+          return this.buildResult(hit, entryPrice, price, c);
+        }
+        if (touchTp) return this.buildResult('win', entryPrice, tpLevel, c);
+        if (touchSl) return this.buildResult('loss', entryPrice, slLevel, c);
+      } else {
+        // Short: TP hit when low <= tpLevel, SL hit when high >= slLevel
+        // Gap down through TP
+        if (prevClose > openJ && openJ < tpLevel && tpLevel < prevClose) {
+          return this.buildResult('win', entryPrice, tpLevel, c);
+        }
+        // Gap up through SL
+        if (prevClose < openJ && prevClose < slLevel && slLevel < openJ) {
+          return this.buildResult('loss', entryPrice, slLevel, c);
+        }
+
+        const touchTp = lowJ <= tpLevel;
+        const touchSl = highJ >= slLevel;
+
+        if (touchTp && touchSl) {
+          // Both hit same candle: green candle (up) = SL hit first, red candle (down) = TP hit first
+          const hit: TpSlResult = closeJ >= openJ ? 'loss' : 'win';
+          const price = closeJ >= openJ ? slLevel : tpLevel;
+          return this.buildResult(hit, entryPrice, price, c);
+        }
+        if (touchTp) return this.buildResult('win', entryPrice, tpLevel, c);
+        if (touchSl) return this.buildResult('loss', entryPrice, slLevel, c);
       }
-      if (touchUp) return this.buildResult('win', entryPrice, levelUp, c);
-      if (touchDown) return this.buildResult('loss', entryPrice, levelDown, c);
 
       prevClose = closeJ;
     }
 
-    // Timeout — neither TP nor SL hit within lookAhead candles
     return { result: 'neutral', entryPrice, pnlPct: 0 };
   }
 
@@ -79,7 +113,10 @@ export class TradeSimulator {
     exitPrice: number,
     candle: CollectorCandle,
   ): TradeResult {
-    const pnlPct = ((exitPrice - entryPrice) / entryPrice) * 100;
+    // Long: profit when exit > entry. Short: profit when exit < entry.
+    const pnlPct = this.direction === 'long'
+      ? ((exitPrice - entryPrice) / entryPrice) * 100
+      : ((entryPrice - exitPrice) / entryPrice) * 100;
     return {
       result,
       entryPrice,

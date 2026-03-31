@@ -95,12 +95,23 @@ def run_grid(
     print("  EXPERIMENT GRID — Loading data")
     print("=" * 70)
 
-    # 1. Load CSV + features (cached)
+    # 1. Load CSV + features (filter valid rows if available)
     from experiments.data_loader import load_df_with_features
-    df = load_df_with_features()
+    df = load_df_with_features(filter_valid=True)
 
     # 2. Compute all target variants
+    import gc
     targets = compute_target_variants(df)
+    gc.collect()
+
+    # 3. If targets_filter is set, drop unused targets to save memory
+    if targets_filter:
+        keep = set(targets_filter)
+        for k in list(targets.keys()):
+            if k not in keep:
+                del targets[k]
+        gc.collect()
+        print(f"  Kept {len(targets)} targets (freed unused)")
 
     # 4. Determine grid
     model_names = models_filter or list(MODEL_MODULES.keys())

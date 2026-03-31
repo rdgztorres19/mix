@@ -13,8 +13,8 @@ export function parseArgs(argv: string[]): SimConfig {
     process.exit(1);
   }
 
-  // Check for --screener-ml flag
-  const screenerML = args.includes('--screener-ml');
+  // Check for flags
+  const direction = args.includes('--short') ? 'short' as const : 'long' as const;
   const positionalArgs = args.filter((a) => !a.startsWith('--'));
 
   const [date, startTime, endTime, thresholdStr, targetStr, stopStr] = positionalArgs;
@@ -37,5 +37,5 @@ export function parseArgs(argv: string[]): SimConfig {
     process.exit(1);
   }
 
-  return { date, startTime, endTime, threshold, targetPct, stopLossPct, screenerML };
+  return { date, startTime, endTime, threshold, targetPct, stopLossPct, direction };
 }

@@ -53,10 +53,28 @@
       "Bash(LANG=C tail -50 \"/private/tmp/claude-501/-Users-rdgztorres19-Documents-Projects-node-copy-stocks/e2887b3c-8907-4fab-bca9-10226eef0bcb/tasks/brffj3vln.output\")",
       "Bash(git -C \"/Users/rdgztorres19/Documents/Projects/node copy\" diff --stat HEAD)",
       "Bash(git -C \"/Users/rdgztorres19/Documents/Projects/node copy\" stash pop)",
-      "Bash(git -C \"/Users/rdgztorres19/Documents/Projects/node copy\" stash drop)"
+      "Bash(git -C \"/Users/rdgztorres19/Documents/Projects/node copy\" stash drop)",
+      "Bash(ls -lh \"/Users/rdgztorres19/Documents/Projects/node copy/stocks/stock-training/data/.screener-worker\"*.csv)",
+      "Bash(LANG=C tail -20 \"/private/tmp/claude-501/-Users-rdgztorres19-Documents-Projects-node-copy-stocks/e2887b3c-8907-4fab-bca9-10226eef0bcb/tasks/bvrmnndvg.output\")",
+      "Bash(python3 -m experiments.run_grid_bearish)",
+      "Bash(find '/Users/rdgztorres19/Documents/Projects/node copy/stocks' -name *.pkl -o -name *.cache -o -name *.joblib)",
+      "Bash(xargs ls:*)",
+      "Bash(sort -k5 -h -r)",
+      "Bash(LANG=C tail -100 \"/private/tmp/claude-501/-Users-rdgztorres19-Documents-Projects-node-copy-stocks/e2887b3c-8907-4fab-bca9-10226eef0bcb/tasks/b3yslvj8h.output\")",
+      "Bash(LANG=C tail -150 \"/private/tmp/claude-501/-Users-rdgztorres19-Documents-Projects-node-copy-stocks/e2887b3c-8907-4fab-bca9-10226eef0bcb/tasks/b3yslvj8h.output\")",
+      "Bash(ls -lh /Users/rdgztorres19/Documents/Projects/node copy/stocks/stock-training/data/.training-v2-worker*.csv)",
+      "Bash(LANG=C grep \"SHORT\\\\|direction\" /private/tmp/claude-501/-Users-rdgztorres19-Documents-Projects-node-copy-stocks/e2887b3c-8907-4fab-bca9-10226eef0bcb/tasks/*.output)",
+      "Bash(python3 -m experiments.run_walk_forward)",
+      "Bash(TRAINING_MAX_ROWS=5000000 python3 -m experiments.run_walk_forward)",
+      "Bash(rm -rf trading-agent/src/scripts/build-screener-training/)",
+      "Bash(rm -f trading-agent/src/scripts/backtest-simulator/screener-ml-client.ts)",
+      "Bash(rm -f stock-training/ml/experiments/predict_screener_batch.py)",
+      "Bash(rm -f stock-training/ml/experiments/predict_batch_dual.py)",
+      "Bash(rm -f stock-training/ml/experiments/train_screener.py)"
     ],
     "additionalDirectories": [
-      "/Users/rdgztorres19/Documents/Projects/node copy/stocks"
+      "/Users/rdgztorres19/Documents/Projects/node copy/stocks",
+      "/Users/rdgztorres19/Documents/Projects/node copy/stocks/stock-training/data"
     ]
   }
 }

@@ -70,6 +70,101 @@ def _consecutive_count(bools: np.ndarray) -> np.ndarray:
 
 
 # ---------------------------------------------------------------------------
+# Tier 1 indicators (highest SHAP importance in literature)
+# ---------------------------------------------------------------------------
+
+def _stochastic(high: np.ndarray, low: np.ndarray, close: np.ndarray,
+                k_period: int = 14, d_period: int = 3) -> tuple[np.ndarray, np.ndarray]:
+    """Fast Stochastic Oscillator (%K and %D)."""
+    n = len(close)
+    k = np.full(n, 50.0)
+    for i in range(k_period - 1, n):
+        hh = np.max(high[i - k_period + 1:i + 1])
+        ll = np.min(low[i - k_period + 1:i + 1])
+        if hh - ll > 1e-8:
+            k[i] = 100.0 * (close[i] - ll) / (hh - ll)
+    d = pd.Series(k).rolling(d_period, min_periods=1).mean().fillna(50.0).values
+    return k, d
+
+
+def _cci(high: np.ndarray, low: np.ndarray, close: np.ndarray, period: int = 20) -> np.ndarray:
+    """Commodity Channel Index."""
+    tp = (high + low + close) / 3.0
+    tp_sma = pd.Series(tp).rolling(period, min_periods=1).mean().values
+    tp_mad = pd.Series(tp).rolling(period, min_periods=1).apply(
+        lambda x: np.mean(np.abs(x - np.mean(x))), raw=True
+    ).fillna(1e-8).values
+    return _safe_div(tp - tp_sma, np.maximum(0.015 * tp_mad, 1e-8))
+
+
+def _williams_r(high: np.ndarray, low: np.ndarray, close: np.ndarray, period: int = 14) -> np.ndarray:
+    """Williams %R (ranges from -100 to 0)."""
+    n = len(close)
+    wr = np.full(n, -50.0)
+    for i in range(period - 1, n):
+        hh = np.max(high[i - period + 1:i + 1])
+        ll = np.min(low[i - period + 1:i + 1])
+        if hh - ll > 1e-8:
+            wr[i] = -100.0 * (hh - close[i]) / (hh - ll)
+    return wr
+
+
+def _hull_ema(arr: np.ndarray, period: int) -> np.ndarray:
+    """Hull Moving Average — more responsive than standard EMA."""
+    half = max(1, period // 2)
+    sqrt_p = max(1, int(np.sqrt(period)))
+    ema_half = _ema(arr, half)
+    ema_full = _ema(arr, period)
+    hull_input = 2.0 * ema_half - ema_full
+    return _ema(hull_input, sqrt_p)
+
+
+def _bollinger_pct_b(close: np.ndarray, period: int = 20, num_std: float = 2.0) -> np.ndarray:
+    """Bollinger %B — position of price within Bollinger Bands (0=lower, 1=upper)."""
+    sma = pd.Series(close).rolling(period, min_periods=1).mean().values
+    std = pd.Series(close).rolling(period, min_periods=1).std().fillna(1e-8).values
+    upper = sma + num_std * std
+    lower = sma - num_std * std
+    band_width = upper - lower
+    return _safe_div(close - lower, np.maximum(band_width, 1e-8))
+
+
+def _adx(high: np.ndarray, low: np.ndarray, close: np.ndarray, period: int = 14) -> np.ndarray:
+    """Average Directional Index — trend strength (0-100)."""
+    n = len(close)
+    if n < period + 1:
+        return np.full(n, 25.0)
+
+    # True Range
+    prev_close = np.roll(close, 1)
+    prev_close[0] = close[0]
+    tr = np.maximum(high - low, np.maximum(np.abs(high - prev_close), np.abs(low - prev_close)))
+
+    # +DM, -DM
+    up_move = high - np.roll(high, 1)
+    down_move = np.roll(low, 1) - low
+    up_move[0] = 0
+    down_move[0] = 0
+    plus_dm = np.where((up_move > down_move) & (up_move > 0), up_move, 0.0)
+    minus_dm = np.where((down_move > up_move) & (down_move > 0), down_move, 0.0)
+
+    # Smoothed with EMA
+    atr = pd.Series(tr).ewm(span=period, adjust=False).mean().values
+    plus_di = 100.0 * _safe_div(
+        pd.Series(plus_dm).ewm(span=period, adjust=False).mean().values,
+        np.maximum(atr, 1e-8)
+    )
+    minus_di = 100.0 * _safe_div(
+        pd.Series(minus_dm).ewm(span=period, adjust=False).mean().values,
+        np.maximum(atr, 1e-8)
+    )
+
+    dx = 100.0 * _safe_div(np.abs(plus_di - minus_di), np.maximum(plus_di + minus_di, 1e-8))
+    adx = pd.Series(dx).ewm(span=period, adjust=False).mean().fillna(25.0).values
+    return np.where(np.isfinite(adx), adx, 25.0)
+
+
+# ---------------------------------------------------------------------------
 # Minute-of-day parser
 # ---------------------------------------------------------------------------
 
@@ -388,6 +483,106 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
         ema_spread_prev[0] = ema_spread[0]
         grp["ema_spread_change"] = ema_spread - ema_spread_prev
 
+        # ── Tier 1 indicators (highest SHAP importance) ──────────────
+
+        # Stochastic %K / %D (14,3)
+        stoch_k, stoch_d = _stochastic(gh, gl, gc, 14, 3)
+        grp["stochastic_k"] = stoch_k
+        grp["stochastic_d"] = stoch_d
+
+        # CCI (20)
+        grp["cci"] = _cci(gh, gl, gc, 20)
+
+        # Williams %R (14)
+        grp["williams_r"] = _williams_r(gh, gl, gc, 14)
+
+        # Hull EMA (7, 14)
+        hull7 = _hull_ema(gc, 7)
+        hull14 = _hull_ema(gc, 14)
+        grp["hull_ema_7"] = hull7
+        grp["hull_ema_14"] = hull14
+        grp["dist_hull7"] = _safe_div(gc - hull7, np.maximum(np.abs(hull7), 1e-6))
+        grp["dist_hull14"] = _safe_div(gc - hull14, np.maximum(np.abs(hull14), 1e-6))
+        grp["hull_cross"] = ((hull7 > hull14) & (np.roll(hull7, 1) <= np.roll(hull14, 1))).astype(np.float64)
+
+        # Bollinger %B (20, 2std)
+        grp["bollinger_pct_b"] = _bollinger_pct_b(gc, 20, 2.0)
+
+        # ADX (14) — trend strength
+        grp["adx"] = _adx(gh, gl, gc, 14)
+
+        # Multi-horizon momentum (longer ROC)
+        for p in [20, 60]:
+            shifted = np.roll(gc, p)
+            shifted[:p] = gc[:p]
+            grp[f"roc_{p}"] = _safe_div(gc - shifted, np.maximum(np.abs(shifted), 1e-6))
+
+        # VWAP deviation z-score (rolling 20)
+        vwap_dist = gc - gvwap
+        vwap_dist_std = _rolling_std(vwap_dist, 20)
+        grp["vwap_zscore"] = _safe_div(vwap_dist, np.maximum(vwap_dist_std, 1e-8))
+
+        # ── Bearish / weakness features ──────────────────────────────
+
+        # Selling pressure: vol in red candles / total vol (rolling 5)
+        is_red_arr = (gc < go).astype(np.float64)
+        sell_vol = gv * is_red_arr
+        sell_vol_5 = _rolling_sum(sell_vol, 5)
+        grp["selling_pressure"] = _safe_div(sell_vol_5, np.maximum(total_vol_5, 1.0))
+
+        # Distance to recent 5-bar low
+        min_low_5_arr = np.zeros(len(gc))
+        for i in range(len(gc)):
+            start = max(0, i - 4)
+            min_low_5_arr[i] = np.min(gl[start:i + 1])
+        grp["dist_recent_low_5"] = _safe_div(gc - min_low_5_arr, np.maximum(np.abs(min_low_5_arr), 1e-6))
+
+        # Average lower wick size (rolling 5) — distribution signal
+        lower_wicks = np.minimum(go, gc) - gl
+        grp["lower_wicks_avg_5"] = _safe_div(_rolling_mean(lower_wicks, 5), np.maximum(gatr, 1e-6))
+
+        # Break LOD: current low < previous low of day (use prev_lod, not current)
+        running_min_l_lod = np.minimum.accumulate(gl)
+        prev_lod_arr = np.zeros(len(gl))
+        prev_lod_arr[0] = gl[0]
+        prev_lod_arr[1:] = running_min_l_lod[:-1]
+        grp["break_lod"] = (gl < prev_lod_arr).astype(np.float64)
+
+        # Break previous LOD (rolling min of lows excluding current)
+        running_min_l = np.minimum.accumulate(gl)
+        prev_lod = np.zeros(len(gl))
+        prev_lod[0] = gl[0]
+        prev_lod[1:] = running_min_l[:-1]
+        grp["break_prev_lod"] = (gl < prev_lod).astype(np.float64)
+        grp["dist_prev_lod_pct"] = _safe_div(gc - prev_lod, np.maximum(np.abs(prev_lod), 1e-6))
+
+        # Red volume ratio: vol in red candles / vol in green candles (rolling 10)
+        red_vol_10 = _rolling_sum(sell_vol, 10)
+        green_vol_10 = _rolling_sum(gv * (1 - is_red_arr), 10)
+        grp["red_volume_ratio"] = _safe_div(red_vol_10, np.maximum(green_vol_10, 1.0))
+
+        # Failed breakout: high > prev_hod but close < prev_hod (rejection)
+        grp["failed_breakout"] = ((gh > prev_hod) & (gc < prev_hod)).astype(np.float64)
+
+        # EMA bearish cross: EMA9 < EMA20
+        gema9 = grp["ema9"].values.astype(np.float64) if "ema9" in grp.columns else gc.copy()
+        gema20 = grp["ema20"].values.astype(np.float64) if "ema20" in grp.columns else gc.copy()
+        grp["ema_bearish"] = (gema9 < gema20).astype(np.float64)
+
+        # RSI oversold/overbought zones
+        grsi = grp["rsi"].values if "rsi" in grp.columns else np.full(len(grp), 50.0)
+        grp["rsi_overbought"] = (grsi > 70).astype(np.float64)
+        grp["rsi_oversold"] = (grsi < 30).astype(np.float64)
+
+        # Consecutive red with increasing volume (capitulation signal)
+        red_inc_vol = is_red_arr * (gv > np.roll(gv, 1)).astype(np.float64)
+        red_inc_vol[0] = 0
+        grp["consec_red_inc_vol"] = _consecutive_count(red_inc_vol > 0)
+
+        # Price below VWAP count (last 5 bars)
+        below_vwap = (gc < gvwap).astype(np.float64)
+        grp["bars_below_vwap_5"] = _rolling_sum(below_vwap, 5)
+
         # Gap vs ATR (gap strength relative to typical volatility)
         if "gap_pct" in grp.columns:
             gap_vals = grp["gap_pct"].values.astype(np.float64)
@@ -633,6 +828,75 @@ for _name in ["FEATURE_SET_V2_CORE", "FEATURE_SET_V2_FULL", "FEATURE_SET_V2_MOME
             _deduped.append(_f)
     globals()[_name] = _deduped
 
+# Bearish-specific features
+BEARISH_FEATURES = [
+    "selling_pressure", "dist_recent_low_5", "lower_wicks_avg_5",
+    "break_lod", "break_prev_lod", "dist_prev_lod_pct",
+    "red_volume_ratio", "failed_breakout",
+    "ema_bearish", "rsi_overbought", "rsi_oversold",
+    "consec_red_inc_vol", "bars_below_vwap_5",
+]
+
+# V2_full + bearish features (for both long and short signals)
+FEATURE_SET_V2_FULL_BEAR = list(FEATURE_SET_V2_FULL) + BEARISH_FEATURES
+
+# Bearish-focused set: features most relevant for detecting drops
+FEATURE_SET_BEARISH = [
+    "candle_idx", "minute_of_day", "time_since_open_min",
+    "is_first_30min", "is_open", "is_midday",
+    # Momentum (bearish signals)
+    "change_pct_at_candle", "change_1m", "change_5m", "change_10m",
+    "roc_5", "roc_10", "return_lag_1", "return_lag_2",
+    "return_accel_1m", "return_accel_5m",
+    # Distance features
+    "dist_vwap_pct", "dist_hod_pct", "dist_lod_pct",
+    "dist_ema9", "dist_ema20", "dist_prev_hod_pct",
+    "dist_day_open", "dist_high_5", "dist_low_5",
+    # Volatility
+    "atr_rel", "volatility_15m", "rsi", "bar_range_vs_atr",
+    # Volume
+    "volume_rel", "volume_spike", "buy_volume_ratio",
+    # Candle structure
+    "body_pct", "upper_wick_pct", "lower_wick_pct", "is_green",
+    "close_position", "consecutive_green", "consecutive_red",
+    # Bearish-specific
+    "selling_pressure", "dist_recent_low_5", "lower_wicks_avg_5",
+    "break_lod", "break_prev_lod", "dist_prev_lod_pct",
+    "red_volume_ratio", "failed_breakout",
+    "ema_bearish", "rsi_overbought", "rsi_oversold",
+    "consec_red_inc_vol", "bars_below_vwap_5",
+]
+
+# ── Tier 1 features (add to existing sets) ──
+TIER1_FEATURES = [
+    "stochastic_k", "stochastic_d",
+    "cci", "williams_r",
+    "hull_ema_7", "hull_ema_14", "dist_hull7", "dist_hull14", "hull_cross",
+    "bollinger_pct_b", "adx",
+    "roc_60", "vwap_zscore",
+]
+
+# V3: V2_full + Tier 1 indicators (best features from literature)
+FEATURE_SET_V3 = list(FEATURE_SET_V2_FULL) + TIER1_FEATURES
+
+# V3_bear: V3 + bearish features
+FEATURE_SET_V3_BEAR = list(FEATURE_SET_V3) + BEARISH_FEATURES
+
+# V3_tier1: only core + Tier 1 (fewer features, less noise)
+FEATURE_SET_V3_TIER1 = list(FEATURE_SET_V2_CORE) + TIER1_FEATURES
+
+# Dedupe all new sets
+for _name in ["FEATURE_SET_V2_FULL_BEAR", "FEATURE_SET_BEARISH",
+              "FEATURE_SET_V3", "FEATURE_SET_V3_BEAR", "FEATURE_SET_V3_TIER1"]:
+    _lst = globals()[_name]
+    _seen = set()
+    _deduped = []
+    for _f in _lst:
+        if _f not in _seen:
+            _seen.add(_f)
+            _deduped.append(_f)
+    globals()[_name] = _deduped
+
 FEATURE_SETS = {
     "A_base": FEATURE_SET_A,
     "B_enriched": FEATURE_SET_B,
@@ -648,4 +912,10 @@ FEATURE_SETS = {
     "V2_core": FEATURE_SET_V2_CORE,
     "V2_full": FEATURE_SET_V2_FULL,
     "V2_momentum": FEATURE_SET_V2_MOMENTUM,
+    "V2_full_bear": FEATURE_SET_V2_FULL_BEAR,
+    "bearish": FEATURE_SET_BEARISH,
+    # V3: with Tier 1 indicators
+    "V3": FEATURE_SET_V3,
+    "V3_bear": FEATURE_SET_V3_BEAR,
+    "V3_tier1": FEATURE_SET_V3_TIER1,
 }

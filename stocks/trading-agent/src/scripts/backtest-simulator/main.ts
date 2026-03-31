@@ -17,7 +17,6 @@ import { PredictorClient } from './predictor-client';
 import { TradeSimulator } from './trade-simulator';
 import { SimLogger } from './logger';
 import { applyFilters, buildTradeContext, FILTERS } from './trade-filters';
-import { ScreenerMLClient, type ScreenerProfile } from './screener-ml-client';
 import chalk from 'chalk';
 
 const MARKET_OPEN_MINUTE = 9 * 60 + 30; // 09:30
@@ -98,22 +97,25 @@ async function main() {
     chalk.dim(' | Thr: ') + chalk.yellow.bold(String(config.threshold)) +
     chalk.dim(' | TP: ') + chalk.green.bold(`${config.targetPct}%`) +
     chalk.dim(' | SL: ') + chalk.red.bold(`${config.stopLossPct}%`) +
-    (config.screenerML ? chalk.magenta.bold(' | Screener ML') : '') + '\n',
+    (config.direction === 'short' ? chalk.red.bold(' | SHORT') : '') + '\n',
   );
 
   // 1. Initialize services
   const pool = createPool();
+  // Configurable via env vars
+  const SCREENER_TOP_N = parseInt(process.env.SCREENER_TOP_N ?? '40', 10);
+  const WIDE_LIMIT = parseInt(process.env.WIDE_LIMIT ?? '100', 10);
+  const MIN_DAILY_VOL = parseInt(process.env.MIN_DAILY_VOL ?? '250000', 10);
+  const LOOK_AHEAD = parseInt(process.env.LOOK_AHEAD ?? '120', 10);
+
   const alpacaClient = new AlpacaClient();
   const candleCache = new CandleCache();
-  const SCREENER_TOP_N = config.screenerML ? 40 : 40;
-  const WIDE_LIMIT = 100;
   const screener = new BacktestScreener(SCREENER_TOP_N, 500_000);
   const indicatorEngine = new IndicatorEngine();
   const predictorClient = new PredictorClient();
-  const tradeSimulator = new TradeSimulator(config.targetPct, config.stopLossPct, 120);
+  const tradeSimulator = new TradeSimulator(config.targetPct, config.stopLossPct, LOOK_AHEAD, config.direction);
   const logger = new SimLogger();
   logger.setThreshold(config.threshold);
-  const screenerMLClient = config.screenerML ? new ScreenerMLClient() : null;
   let redis: Awaited<ReturnType<typeof connectRedis>> | null = null;
 
   try {
@@ -176,7 +178,6 @@ async function main() {
     }
 
     // 4. Pre-index candles sorted by time + filter low-volume symbols
-    const MIN_DAILY_VOL = 250_000;
     const candlesBySymbol = new Map<string, import('../../collector/indicator.calculator').CollectorCandle[]>();
     let skippedLowVol = 0;
     for (const [sym, bars] of allBars) {
@@ -209,6 +210,8 @@ async function main() {
     console.log(chalk.cyan(`[Sim] Starting simulation from ${config.startTime} to ${config.endTime}...`));
 
     const everSeenSymbols = new Set<string>();
+    const symbolFirstSeenMin = new Map<string, number>(); // symbol → minute when first seen
+    const PAYLOAD_WINDOW = parseInt(process.env.PAYLOAD_WINDOW ?? '30', 10);
     const lastCandleCount = new Map<string, number>();
     const signalsPerStock = new Map<string, number>();
 
@@ -229,14 +232,80 @@ async function main() {
       payloads: { symbol: string; payload: import('./types').PredictPayload }[];
     }
 
-    const minuteDataList: MinuteData[] = [];
-    const SCREENER_INTERVAL = 5;
+    let minuteDataList: MinuteData[] = [];
 
-    // Screener ML state
-    const screenerScores = new Map<string, number>();
-    const wideEverSeen = new Set<string>();
+    // ── Try Redis cache for Phase 1 ──
+    const phase1CacheKey = `backtest:phase1:${config.date}:${config.startTime}:${config.endTime}:w${WIDE_LIMIT}`;
+    const PHASE1_TTL = 3 * 86_400; // 3 days
+    let phase1Cached = false;
+
+    if (redis) {
+      try {
+        const cached = await redis.get(phase1CacheKey);
+        if (cached) {
+          const parsed = JSON.parse(cached) as {
+            minutes: { min: number; time: string; timeMs: number; symbolsToPredict: string[];
+              reasons: Record<string, string[]>;
+              payloads: { symbol: string; payload: import('./types').PredictPayload }[];
+            }[];
+          };
+          minuteDataList = parsed.minutes.map(m => ({
+            ...m,
+            reasons: new Map(Object.entries(m.reasons).map(([k, v]) => [k, new Set(v as any)])),
+          }));
+          phase1Cached = true;
+          console.log(chalk.green(`  [Redis] Phase 1 cache hit (${minuteDataList.length} minutes, ${minuteDataList.reduce((s, m) => s + m.payloads.length, 0)} payloads)`));
+        }
+      } catch { /* ignore */ }
+    }
+    const SCREENER_INTERVAL = parseInt(process.env.SCREENER_INTERVAL ?? '5', 10);
+
+    if (!phase1Cached) {
+
+    // Track latest reasons from screener (for logger)
+    let currentReasons = new Map<string, Set<import('../../scanner/screener/persistence/screener.repository').ScreenerRankType>>();
 
     const totalMinutes = endMin - startMin + 1;
+
+    // Pre-compute incremental snapshots for screener (avoids recalculating HOD/LOD/vol each time)
+    // Track per-symbol running state
+    const symState = new Map<string, { open: number; hod: number; lod: number; vol: number; close: number; lastIdx: number }>();
+
+    function buildIncrementalSnapshots(upToMs: number): import('../../scanner/screener/alpaca/alpaca-screener.client').SnapshotsResponse {
+      const snapshots: import('../../scanner/screener/alpaca/alpaca-screener.client').SnapshotsResponse = {};
+      for (const [sym, candles] of candlesBySymbol) {
+        const n = bsearch(candles, upToMs);
+        if (n === 0) continue;
+
+        let state = symState.get(sym);
+        if (!state) {
+          // First time: init from first candle
+          state = { open: candles[0].o, hod: -Infinity, lod: Infinity, vol: 0, close: 0, lastIdx: 0 };
+          symState.set(sym, state);
+        }
+
+        // Update incrementally from where we left off
+        for (let i = state.lastIdx; i < n; i++) {
+          const c = candles[i];
+          if (c.h > state.hod) state.hod = c.h;
+          if (c.l < state.lod) state.lod = c.l;
+          state.vol += c.v;
+          state.close = c.c;
+        }
+        state.lastIdx = n;
+
+        const prevClose = prevCloseMap.get(sym);
+        const item: import('../../scanner/screener/alpaca/alpaca-screener.client').SnapshotItem = {
+          dailyBar: { t: '', o: state.open, h: state.hod, l: state.lod, c: state.close, v: state.vol },
+          latestTrade: { p: state.close },
+        };
+        if (prevClose != null) {
+          item.prevDailyBar = { t: '', o: 0, h: 0, l: 0, c: prevClose, v: 0 };
+        }
+        snapshots[sym] = item;
+      }
+      return snapshots;
+    }
 
     for (let min = startMin; min <= endMin; min++) {
       const currentTime = minutesToTime(min);
@@ -251,99 +320,30 @@ async function main() {
           console.log(chalk.dim(`    Screener ${currentTime} ${pct}% (${everSeenSymbols.size} sym)`));
         }
 
-        // Build snapshots only from pre-indexed symbols (fast binary search)
-        const filteredCandles = new Map<string, import('../../collector/indicator.calculator').CollectorCandle[]>();
-        for (const [sym, candles] of candlesBySymbol) {
-          const n = bsearch(candles, currentTimeMs);
-          if (n > 0) filteredCandles.set(sym, candles.slice(0, n));
+        const synthSnapshots = buildIncrementalSnapshots(currentTimeMs);
+
+        const wide = screener.computeCombinedListWide(
+          synthSnapshots, config.date, prevCloseMap, isAfterOpen, WIDE_LIMIT,
+        );
+        for (const sym of wide.symbols) {
+          if (!symbolFirstSeenMin.has(sym)) symbolFirstSeenMin.set(sym, min);
+          everSeenSymbols.add(sym);
         }
-
-        const synthSnapshots = screener.buildSyntheticSnapshots(filteredCandles, prevCloseMap);
-
-        if (config.screenerML && screenerMLClient) {
-          // ── Screener ML path ──
-          const wide = screener.computeCombinedListWide(
-            synthSnapshots, config.date, prevCloseMap, isAfterOpen, WIDE_LIMIT,
-          );
-
-          const newSymbols = wide.symbols.filter(s => !wideEverSeen.has(s));
-          if (newSymbols.length > 0) {
-            const profilesToScore: ScreenerProfile[] = [];
-            const validNewSymbols: string[] = [];
-            for (const sym of newSymbols) {
-              wideEverSeen.add(sym);
-              const history = filteredCandles.get(sym) ?? [];
-              if (history.length < 2) { screenerScores.set(sym, 0); continue; }
-              const prevClose = prevCloseMap.get(sym) ?? 0;
-              if (prevClose <= 0) { screenerScores.set(sym, 0); continue; }
-
-              const profile = profiles.get(sym);
-              const metadata = indicatorEngine.buildMetadata(history, prevClose, profile);
-              const row = indicatorEngine.buildRow(sym, history, metadata);
-              const last = history[history.length - 1];
-              const price = last.c;
-              const atrPct = (price > 0 && row.atr) ? (row.atr / price) * 100 : 0;
-              let volumeAtEntry = 0;
-              for (const c of history) volumeAtEntry += c.v;
-              let hod = -Infinity;
-              for (const c of history) if (c.h > hod) hod = c.h;
-              const distHodPct = hod > 0 ? ((price - hod) / hod) * 100 : 0;
-
-              const reasons = wide.reasons.get(sym) ?? new Set();
-              const rankPositions = wide.rankPositions.get(sym) ?? new Map();
-
-              validNewSymbols.push(sym);
-              profilesToScore.push({
-                price,
-                gap_pct: metadata.gapPct ?? 0,
-                premarket_volume: metadata.premarketVolume ?? 0,
-                shares_outstanding: profile?.shares_outstanding ?? 0,
-                market_cap: profile?.market_cap ?? 0,
-                atr_pct: atrPct,
-                volume_at_entry: volumeAtEntry,
-                dist_hod_pct: distHodPct,
-                time_of_first_entry_min: min,
-                in_gapper: reasons.has('gapper') ? 1 : 0,
-                in_gainer_session: reasons.has('gainer_session') ? 1 : 0,
-                in_gainer_intraday: reasons.has('gainer_intraday') ? 1 : 0,
-                in_high_session: reasons.has('high_session') ? 1 : 0,
-                in_high_current: reasons.has('high_current') ? 1 : 0,
-                rank_gapper: rankPositions.get('gapper') ?? -1,
-                rank_gainer_session: rankPositions.get('gainer_session') ?? -1,
-                rank_gainer_intraday: rankPositions.get('gainer_intraday') ?? -1,
-                rank_high_session: rankPositions.get('high_session') ?? -1,
-                rank_high_current: rankPositions.get('high_current') ?? -1,
-                num_ranking_types: reasons.size,
-                max_metric_value: wide.metricValues.get(sym) ?? 0,
-                combined_rank: wide.symbols.indexOf(sym),
-              });
-            }
-
-            if (profilesToScore.length > 0) {
-              const scores = await screenerMLClient.scoreBatch(profilesToScore);
-              for (let si = 0; si < validNewSymbols.length; si++) {
-                screenerScores.set(validNewSymbols[si], scores[si]);
-              }
-            }
-          }
-
-          // Pass ALL wide screener symbols
-          for (const sym of wide.symbols) everSeenSymbols.add(sym);
-
-        } else {
-          // ── Wide screener (top 100) ──
-          const wide = screener.computeCombinedListWide(
-            synthSnapshots, config.date, prevCloseMap, isAfterOpen, WIDE_LIMIT,
-          );
-          for (const sym of wide.symbols) everSeenSymbols.add(sym);
-        }
+        currentReasons = wide.reasons;
 
         logger.updateMarketData(synthSnapshots, [...everSeenSymbols]);
       }
 
-      // ── Build payloads every minute (only for discovered symbols) ──
-      const payloads: { symbol: string; payload: import('./types').PredictPayload }[] = [];
+      // ── Build active symbols: only stocks seen in last PAYLOAD_WINDOW minutes ──
+      const activeSymbols: string[] = [];
       for (const symbol of everSeenSymbols) {
+        const firstSeen = symbolFirstSeenMin.get(symbol) ?? 0;
+        if (min - firstSeen <= PAYLOAD_WINDOW) activeSymbols.push(symbol);
+      }
+
+      // ── Build payloads only for active symbols ──
+      const payloads: { symbol: string; payload: import('./types').PredictPayload }[] = [];
+      for (const symbol of activeSymbols) {
         const symCandles = candlesBySymbol.get(symbol);
         if (!symCandles) continue;
         const n = bsearch(symCandles, currentTimeMs);
@@ -360,8 +360,25 @@ async function main() {
         payloads.push({ symbol, payload });
       }
 
-      minuteDataList.push({ min, time: currentTime, timeMs: currentTimeMs, symbolsToPredict: [...everSeenSymbols], reasons: new Map(), payloads });
+      minuteDataList.push({ min, time: currentTime, timeMs: currentTimeMs, symbolsToPredict: [...everSeenSymbols], reasons: currentReasons, payloads });
     }
+
+    // Save Phase 1 to Redis
+    if (redis) {
+      try {
+        const serializable = minuteDataList.map(m => ({
+          min: m.min, time: m.time, timeMs: m.timeMs, symbolsToPredict: m.symbolsToPredict,
+          reasons: Object.fromEntries([...m.reasons.entries()].map(([k, v]) => [k, [...v]])),
+          payloads: m.payloads,
+        }));
+        await redis.setex(phase1CacheKey, PHASE1_TTL, JSON.stringify({ minutes: serializable }));
+        console.log(chalk.green('  [Redis] Phase 1 cached'));
+      } catch (err) {
+        console.log(chalk.yellow(`  [Redis] Cache save failed: ${(err as Error).message}`));
+      }
+    }
+
+    } // end if (!phase1Cached)
 
     console.log(chalk.green(`  Phase 1 done: ${minuteDataList.length} minutes, ${minuteDataList.reduce((s, m) => s + m.payloads.length, 0)} total payloads (${((Date.now() - t0Phase1) / 1000).toFixed(1)}s)`));
 
@@ -369,7 +386,7 @@ async function main() {
     console.log(chalk.cyan('  [Phase 2] Running predictions in parallel...'));
     const t0Phase2 = Date.now();
 
-    const PARALLEL_MINUTES = 20; // spawn this many Python processes at once
+    const PARALLEL_MINUTES = parseInt(process.env.PARALLEL_MINUTES ?? '20', 10);
     const minuteResults: { idx: number; predictions: import('./types').PredictResult[] }[] = [];
 
     for (let batch = 0; batch < minuteDataList.length; batch += PARALLEL_MINUTES) {
