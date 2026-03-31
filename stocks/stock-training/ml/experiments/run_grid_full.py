@@ -9,8 +9,6 @@ Usage:
 """
 
 from experiments.run_grid import run_grid
-import os
-os.environ["TRAINING_MAX_ROWS"] = "5000000"  # limit to ~5M rows to fit in memory
 
 # Best bullish targets
 BULLISH_TARGETS = [
