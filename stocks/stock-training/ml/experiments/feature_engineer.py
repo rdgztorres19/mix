@@ -88,12 +88,14 @@ def _stochastic(high: np.ndarray, low: np.ndarray, close: np.ndarray,
 
 
 def _cci(high: np.ndarray, low: np.ndarray, close: np.ndarray, period: int = 20) -> np.ndarray:
-    """Commodity Channel Index."""
+    """Commodity Channel Index (vectorized — no rolling apply lambda)."""
     tp = (high + low + close) / 3.0
-    tp_sma = pd.Series(tp).rolling(period, min_periods=1).mean().values
-    tp_mad = pd.Series(tp).rolling(period, min_periods=1).apply(
-        lambda x: np.mean(np.abs(x - np.mean(x))), raw=True
-    ).fillna(1e-8).values
+    tp_series = pd.Series(tp)
+    tp_sma = tp_series.rolling(period, min_periods=1).mean().values
+    # Mean absolute deviation: approximate with rolling std * 0.7979 (for normal dist)
+    # This avoids the extremely slow rolling().apply(lambda) on millions of rows
+    tp_std = tp_series.rolling(period, min_periods=1).std().fillna(1e-8).values
+    tp_mad = tp_std * 0.7979  # E[|X-μ|] ≈ σ * √(2/π) ≈ 0.7979σ for normal
     return _safe_div(tp - tp_sma, np.maximum(0.015 * tp_mad, 1e-8))
 
 
