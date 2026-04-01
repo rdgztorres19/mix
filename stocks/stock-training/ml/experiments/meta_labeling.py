@@ -44,7 +44,7 @@ from experiments.run_grid import compute_sample_weights
 # Primary model: high recall, catches most opportunities
 PRIMARY_TARGET = "bin_rr10m_ge_2"
 PRIMARY_FSET = "V3"
-PRIMARY_THRESHOLD = 0.40  # low threshold → high recall (~97%)
+PRIMARY_THRESHOLD = 0.50  # threshold for primary signal generation
 
 # Meta-model target: the actual trade target we care about
 META_TRADE_TARGET = "bin_rr10m_ge_2"  # same target, but meta-model decides sizing
@@ -68,8 +68,7 @@ def train_primary_model(X_train, y_train):
     """Train primary model with params that maximize RECALL."""
     n_pos = (y_train == 1).sum()
     n_neg = (y_train == 0).sum()
-    # High scale_pos_weight → model predicts more positives → higher recall
-    scale_pos = max(n_neg / max(n_pos, 1), 1.0) * 1.5  # boost positive weight
+    scale_pos = n_neg / max(n_pos, 1)
 
     model = LGBMClassifier(
         n_estimators=300, max_depth=6, num_leaves=31,
@@ -182,6 +181,12 @@ def run_meta_labeling(df, targets, fset_name=PRIMARY_FSET, primary_target=PRIMAR
     primary_model = train_primary_model(X_train_arr, y_train)
     primary_train_proba = primary_model.predict_proba(X_train_arr)[:, 1]
     primary_test_proba = primary_model.predict_proba(X_test_arr)[:, 1]
+
+    # Primary probability distribution
+    print(f"    Primary prob distribution (test):")
+    for pct in [10, 25, 50, 75, 90]:
+        print(f"      p{pct}: {np.percentile(primary_test_proba, pct):.3f}")
+    print(f"      mean: {primary_test_proba.mean():.3f}, std: {primary_test_proba.std():.3f}")
 
     # Primary model stats
     primary_signals_train = (primary_train_proba >= PRIMARY_THRESHOLD).sum()
@@ -419,7 +424,7 @@ def main():
     parser.add_argument("--target", default=PRIMARY_TARGET)
     args = parser.parse_args()
 
-    os.environ.setdefault("TRAINING_MAX_ROWS", "5000000")
+    os.environ.setdefault("TRAINING_MAX_ROWS", "2000000")
 
     print("Loading data...")
     t0 = time.time()
