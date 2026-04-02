@@ -324,7 +324,7 @@ export class SimLogger {
         ]);
       }
 
-      console.log(symTable.toString());
+      //console.log(symTable.toString());
     }
 
     // All scanned symbols — rich table
@@ -365,9 +365,9 @@ export class SimLogger {
       ]);
     }
 
-    console.log(scanTable.toString());
+    // console.log(scanTable.toString());
 
-    console.log(`\n${divider}`);
+    // console.log(`\n${divider}`);
   }
 
   private recordTrade(symbol: string, minute: string, prob: number, trade: TradeResult): void {

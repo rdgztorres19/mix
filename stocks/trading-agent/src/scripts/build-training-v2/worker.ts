@@ -18,7 +18,7 @@ const MARKET_OPEN_MINUTE = 9 * 60 + 30;
 const SCREENER_TOP_N = 40;
 const SCREENER_MIN_VOLUME = 500_000;
 const SIM_START = '09:30';
-const SIM_END = '16:00';
+const SIM_END = process.env.SIM_END ?? '12:00';
 const SCREENER_INTERVAL = 5;
 const MIN_DAILY_VOL = 250_000;
 
@@ -184,12 +184,19 @@ function processDate(
     const profile = profiles.get(sym);
     const metadata = buildMetadata(allCandles, prevClose, profile);
 
+    const simStartMs = etToUnixMs(date, SIM_START);
+    const simEndMs = etToUnixMs(date, SIM_END);
+
     for (let i = 0; i < allCandles.length; i++) {
+      // Only emit candles within the simulation window (skip premarket/late)
+      if (allCandles[i].t < simStartMs || allCandles[i].t > simEndMs) continue;
+
       const history = allCandles.slice(0, i + 1);
       const row = computeCandleRow(sym, history, metadata);
       const labels = computeLabels(allCandles, i);
       const { time } = timestampToET(allCandles[i].t);
-      const validForTraining = allCandles[i].t >= entryTimeMs ? 1 : 0;
+      const skipBiasFilter = process.env.SKIP_BIAS_FILTER === '1';
+      const validForTraining = skipBiasFilter ? 1 : (allCandles[i].t >= entryTimeMs ? 1 : 0);
 
       rows.push([
         sym, date, time, i,

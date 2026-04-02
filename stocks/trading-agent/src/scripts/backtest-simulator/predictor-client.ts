@@ -6,12 +6,13 @@ export class PredictorClient {
   private readonly batchScriptPath: string;
   private readonly pythonBin: string;
 
-  constructor() {
+  constructor(scriptName?: string) {
     const stockTraining = path.resolve(
       process.cwd(),
       process.env.STOCK_TRAINING_PATH ?? path.join('..', 'stock-training'),
     );
-    this.batchScriptPath = path.join(stockTraining, 'ml', 'experiments', 'predict_batch.py');
+    const script = scriptName ?? process.env.PREDICT_BATCH_SCRIPT ?? 'predict_batch.py';
+    this.batchScriptPath = path.join(stockTraining, 'ml', 'experiments', script);
 
     try {
       this.pythonBin = execSync('which python3', { encoding: 'utf-8' }).trim();

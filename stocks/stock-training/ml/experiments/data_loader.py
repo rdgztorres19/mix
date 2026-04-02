@@ -11,9 +11,11 @@ import numpy as np
 import pandas as pd
 
 # --- paths ----------------------------------------------------------------
+import os as _os
 ML_DIR = Path(__file__).resolve().parent.parent          # ml/
 STOCK_TRAINING_DIR = ML_DIR.parent                       # stock-training/
-CSV_PATH = STOCK_TRAINING_DIR / "data" / "training-v2.csv"  # V2: screener-based, no survivorship bias
+_csv_override = _os.environ.get("TRAINING_CSV")
+CSV_PATH = (STOCK_TRAINING_DIR / _csv_override) if _csv_override else (STOCK_TRAINING_DIR / "data" / "training-v2.csv")
 
 # 31 base columns (32 with valid_for_training)
 BASE_COLUMNS = [

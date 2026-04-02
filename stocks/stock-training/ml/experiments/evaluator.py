@@ -21,7 +21,9 @@ from sklearn.metrics import (
 
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
 RESULTS_DIR.mkdir(exist_ok=True)
-GRID_CSV = RESULTS_DIR / "grid_results.csv"
+import os as _os
+_grid_name = _os.environ.get("GRID_RESULTS", "grid_results.csv")
+GRID_CSV = RESULTS_DIR / _grid_name
 
 
 def precision_at_threshold(

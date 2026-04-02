@@ -424,7 +424,7 @@ def main():
     parser.add_argument("--target", default=PRIMARY_TARGET)
     args = parser.parse_args()
 
-    os.environ.setdefault("TRAINING_MAX_ROWS", "2000000")
+    os.environ.setdefault("TRAINING_MAX_ROWS", "0")  # 0 = load all rows
 
     print("Loading data...")
     t0 = time.time()

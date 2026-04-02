@@ -69,7 +69,7 @@ export const FILTERS: Record<string, FilterConfig> = {
   },
 
   maxPrice5: {
-    enabled: true,
+    enabled: false,
     name: 'Price <= $5',
     fn: (ctx) => ctx.price <= 5,
   },

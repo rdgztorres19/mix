@@ -480,6 +480,33 @@ def compute_target_variants(df: pd.DataFrame) -> dict[str, dict[str, np.ndarray]
     clean_entry_30m = ((mfr30m >= 0.030) & (minfr30m > -0.015)).astype(np.int32)
     valid_clean_entry_30m = valid_mfr30m & valid_minfr30m
 
+    # ── Morning session targets (optimized for 09:30-12:00) ────────────
+    # Shorter horizons match morning momentum dynamics
+    mfr5m, valid_mfr5m = _future_max_return(df, 5)
+    minfr5m, valid_minfr5m = _future_min_return(df, 5)
+    rr5m = _safe_div(mfr5m, np.maximum(np.abs(minfr5m), 1e-8), fill=np.nan)
+    valid_rr5m = valid_mfr5m & valid_minfr5m & np.isfinite(rr5m)
+
+    mfr15m, valid_mfr15m = _future_max_return(df, 15)
+    minfr15m, valid_minfr15m = _future_min_return(df, 15)
+
+    # R/R >= 2 in 5 candles (scalping)
+    rr5m_ge_2 = np.zeros(n, dtype=np.int32)
+    rr5m_ge_2[valid_rr5m] = (rr5m[valid_rr5m] >= 2.0).astype(np.int32)
+
+    # Triple barrier 5m: TP 2% before SL 1%
+    tb_5m_2p0_1p0, valid_tb_5m_2p0_1p0 = _hit_tp_before_sl(df, 0.020, 0.010, 5)
+
+    # Triple barrier 15m: TP 3% before SL 1.5%
+    tb_15m_3p0_1p5, valid_tb_15m_3p0_1p5 = _hit_tp_before_sl(df, 0.030, 0.015, 15)
+
+    # Morning breakout: break HOD + follow-through 1% in 5 candles
+    morning_breakout_5m, valid_morning_breakout_5m = _future_break_hod_followthrough(df, 5, 0.010)
+
+    # Clean morning entry: upside >= 2% AND drawdown < 1% in 15 candles
+    clean_morning_15m = ((mfr15m >= 0.020) & (minfr15m > -0.010)).astype(np.int32)
+    valid_clean_morning_15m = valid_mfr15m & valid_minfr15m
+
     # ── Bearish targets ──────────────────────────────────────────────────
     # Drop: min(low) falls X% below close within horizon
     drop_2p0_10m = (minfr10m <= -0.020).astype(np.int32)
@@ -592,6 +619,13 @@ def compute_target_variants(df: pd.DataFrame) -> dict[str, dict[str, np.ndarray]
         "bin_clean_entry_10m": {"y": clean_entry_10m, "valid": valid_clean_entry_10m},
         "bin_clean_entry_30m": {"y": clean_entry_30m, "valid": valid_clean_entry_30m},
 
+        # ── Morning session targets ──────────────────────────────────
+        "bin_rr5m_ge_2": {"y": rr5m_ge_2, "valid": valid_rr5m},
+        "bin_tb5m_tp2p0_sl1p0": {"y": np.nan_to_num(tb_5m_2p0_1p0, nan=0.0).astype(np.int32), "valid": valid_tb_5m_2p0_1p0},
+        "bin_tb15m_tp3p0_sl1p5": {"y": np.nan_to_num(tb_15m_3p0_1p5, nan=0.0).astype(np.int32), "valid": valid_tb_15m_3p0_1p5},
+        "bin_morning_breakout_5m": {"y": np.nan_to_num(morning_breakout_5m, nan=0.0).astype(np.int32), "valid": valid_morning_breakout_5m},
+        "bin_clean_morning_15m": {"y": clean_morning_15m, "valid": valid_clean_morning_15m},
+
         # ── Bearish targets ──────────────────────────────────────────
         "bin_drop_2p0_10m": {"y": drop_2p0_10m, "valid": valid_minfr10m},
         "bin_drop_4p0_10m": {"y": drop_4p0_10m, "valid": valid_minfr10m},
@@ -665,6 +699,13 @@ TARGET_META = {
     "bin_sustained_momentum_10m": (False, "Momentum sostenido: close[t+10] > close[t+5] > close[t]"),
     "bin_clean_entry_10m": (False, "Upside >= 3% y drawdown < 1.5% en 10 candles"),
     "bin_clean_entry_30m": (False, "Upside >= 3% y drawdown < 1.5% en 30 candles"),
+
+    # Morning session targets
+    "bin_rr5m_ge_2": (False, "Reward/Risk futuro 5m >= 2"),
+    "bin_tb5m_tp2p0_sl1p0": (False, "TP +2.0% antes SL -1.0% en 5 candles"),
+    "bin_tb15m_tp3p0_sl1p5": (False, "TP +3.0% antes SL -1.5% en 15 candles"),
+    "bin_morning_breakout_5m": (False, "Rompe HOD y extiende +1.0% en 5 candles"),
+    "bin_clean_morning_15m": (False, "Upside >= 2% y drawdown < 1% en 15 candles"),
 
     # Bearish targets
     "bin_drop_2p0_10m": (False, "Min low cae >= -2% en 10 candles"),

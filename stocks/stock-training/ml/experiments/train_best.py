@@ -376,15 +376,12 @@ def train_from_grid(configs: list[tuple[str, str, str]]):
     print(f"\nAll {len(cfg_list)} models saved to {BEST_MODELS_DIR}/")
 
 
-# Top configs from grid_results.csv to train with defaults
+# Top configs from grid_morning_nobias.csv (training-v2-morning.csv, filter_valid=True)
+# Run with: TRAINING_CSV=data/training-v2-morning.csv python -m experiments.train_best --from-grid
 GRID_TOP_CONFIGS = [
-    # Bullish: best per target
-    ("LightGBM", "V2_full_bear", "bin_rr10m_ge_2"),   # 65.0% P@0.70
-    ("XGBoost", "V2_full", "bin_rr10m_ge_3"),          # 57.6% P@0.70
-    # Bearish: best per target
-    ("XGBoost", "D_clean_ext", "bin_drop_2p0_30m"),    # 75.2% P@0.70
-    ("XGBoost", "V2_full", "bin_rr10m_bearish_ge_2"),  # 66.8% P@0.70
-    ("LightGBM", "V2_full", "bin_drop_2p0_10m"),       # 60.3% P@0.70
+    ("LightGBM", "V3", "bin_rr30m_ge_2"),    # P@0.80=0.869 (7679 signals) — best overall
+    ("LightGBM", "V3", "bin_rr10m_ge_2"),    # P@0.80=0.713 (9855 signals) — more signals
+    ("LightGBM", "V3", "bin_rr10m_ge_3"),    # P@0.80=0.632 (2470 signals) — higher bar
 ]
 
 
