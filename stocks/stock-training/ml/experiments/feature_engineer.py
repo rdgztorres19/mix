@@ -920,4 +920,29 @@ FEATURE_SETS = {
     "V3": FEATURE_SET_V3,
     "V3_bear": FEATURE_SET_V3_BEAR,
     "V3_tier1": FEATURE_SET_V3_TIER1,
+    # News features (require CSV with news columns from add-news-features.ts)
+    "V2_full_news": FEATURE_SET_V2_FULL + [
+        "has_news_premarket", "has_news_1h",
+        "news_count_today", "news_count_premarket",
+        "hours_since_news",
+        "catalyst_strength",
+        "catalyst_is_dilutive", "catalyst_is_earnings",
+        "catalyst_is_fda", "catalyst_is_buyout",
+    ],
+    "D_clean_ext_news": FEATURE_SET_D_CLEAN_EXT + [
+        "has_news_premarket", "has_news_1h",
+        "news_count_today", "news_count_premarket",
+        "hours_since_news",
+        "catalyst_strength",
+        "catalyst_is_dilutive", "catalyst_is_earnings",
+        "catalyst_is_fda", "catalyst_is_buyout",
+    ],
+    "news_only": [
+        "has_news_premarket", "has_news_1h",
+        "news_count_today", "news_count_premarket",
+        "hours_since_news",
+        "catalyst_strength",
+        "catalyst_is_dilutive", "catalyst_is_earnings",
+        "catalyst_is_fda", "catalyst_is_buyout",
+    ],
 }

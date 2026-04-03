@@ -76,7 +76,8 @@
       "Bash(cd /Users/rdgztorres19/Documents/Projects/node copy/stocks/stock-training/ml/experiments)",
       "Bash(chmod +x \"/Users/rdgztorres19/Documents/Projects/node copy/stocks/trading-agent/backtest_range.sh\")",
       "Bash(find /Users/rdgztorres19/Documents/Projects/node copy/stocks/trading-agent/src/scripts -type f -name *.ts)",
-      "Bash(find /Users/rdgztorres19/Documents/Projects/node copy/stocks/stock-training/scripts -type f -name *.ts)"
+      "Bash(find /Users/rdgztorres19/Documents/Projects/node copy/stocks/stock-training/scripts -type f -name *.ts)",
+      "Bash(ls -lh \"/Users/rdgztorres19/Documents/Projects/node copy/stocks/stock-training/data/\"*.csv)"
     ],
     "additionalDirectories": [
       "/Users/rdgztorres19/Documents/Projects/node copy/stocks",

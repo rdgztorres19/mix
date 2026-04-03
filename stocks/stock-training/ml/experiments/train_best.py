@@ -326,19 +326,38 @@ def _train_one(cfg: dict, rank: int = 1, shared_df=None, shared_targets=None, n_
     return result
 
 
-def train_from_grid(configs: list[tuple[str, str, str]]):
+def train_from_grid(configs: list[tuple[str, str, str]], csv_path: str | None = None):
     """
     Train models using DEFAULT hyperparameters (same as run_grid.py).
     No tuning needed — uses the combos that already performed well in the grid.
     """
     import os
+    import time
     os.environ.setdefault("TRAINING_MAX_ROWS", "5000000")
 
     print("Loading data (once)...")
-    import time
-    from experiments.data_loader import load_df_with_features
     t0 = time.time()
-    df = load_df_with_features(filter_valid=True)
+
+    if csv_path:
+        import pandas as pd
+        from experiments.feature_engineer import add_features as _add_features
+        csv_p = Path(csv_path)
+        if not csv_p.is_absolute():
+            csv_p = Path(__file__).resolve().parent.parent.parent / csv_path
+        print(f"  Loading custom CSV: {csv_p}")
+        df = pd.read_csv(csv_p, low_memory=False)
+        print(f"  Loaded {len(df)} rows")
+        print(f"  Adding features...")
+        df = _add_features(df)
+        print(f"  Features done ({df.shape[1]} cols)")
+        if "valid_for_training" in df.columns:
+            n_before = len(df)
+            df = df[df["valid_for_training"] == 1].reset_index(drop=True)
+            print(f"  Filtered valid: {n_before} → {len(df)}")
+    else:
+        from experiments.data_loader import load_df_with_features
+        df = load_df_with_features(filter_valid=True)
+
     targets = compute_target_variants(df)
     print(f"  Data ready: {len(df)} rows in {time.time() - t0:.1f}s")
 
@@ -376,12 +395,24 @@ def train_from_grid(configs: list[tuple[str, str, str]]):
     print(f"\nAll {len(cfg_list)} models saved to {BEST_MODELS_DIR}/")
 
 
-# Top configs from grid_morning_nobias.csv (training-v2-morning.csv, filter_valid=True)
-# Run with: TRAINING_CSV=data/training-v2-morning.csv python -m experiments.train_best --from-grid
+# Top configs from grid results
 GRID_TOP_CONFIGS = [
-    ("LightGBM", "V3", "bin_rr30m_ge_2"),    # P@0.80=0.869 (7679 signals) — best overall
-    ("LightGBM", "V3", "bin_rr10m_ge_2"),    # P@0.80=0.713 (9855 signals) — more signals
-    ("LightGBM", "V3", "bin_rr10m_ge_3"),    # P@0.80=0.632 (2470 signals) — higher bar
+    # Volatility expansion (predicts big moves — direction-agnostic)
+    ("XGBoost", "V2_full", "bin_vol_exp_10m_3pct"),    # P@0.80=0.812 (597K signals) — best vol predictor
+    ("XGBoost", "V2_full", "bin_vol_exp_10m_5pct"),    # P@0.80=0.641 (399K signals) — bigger moves
+    ("XGBoost", "V2_full", "bin_vol_exp_10m_2atr"),    # P@0.80=0.964 (70K signals) — ATR-scaled
+    ("XGBoost", "V2_full", "bin_vol_exp_10m_3atr"),    # P@0.80=0.858 (47K signals) — very big moves
+    ("XGBoost", "V2_full", "bin_vol_exp_5m_2atr"),     # P@0.80=0.802 (108K signals) — fast moves
+    ("XGBoost", "V2_full", "bin_vol_exp_30m_3atr"),    # P@0.80=0.974 (147K signals) — sustained
+    # Direction (R/R favorable)
+    ("XGBoost", "V2_full", "bin_rr10m_ge_2"),          # P@0.70=0.624 (2879 signals) — best direction
+    ("XGBoost", "V2_full", "bin_rr10m_ge_3"),          # P@0.70=0.546 (4257 signals)
+    ("XGBoost", "V2_full", "bin_rr30m_ge_2"),          # P@0.70=0.371 (1045 signals)
+    # Combined: big move + good R/R
+    ("XGBoost", "V2_full", "bin_vol_rr_10m"),           # P@0.70=0.408 (26K signals)
+    # Triple barrier (current backtest targets)
+    ("XGBoost", "V2_full", "bin_tb30m_tp4p0_sl2p0"),   # P@0.70=0.283 (588K signals)
+    ("XGBoost", "V2_full", "bin_tb30m_tp3p0_sl1p5"),   # P@0.70=0.318 (604K signals)
 ]
 
 
@@ -390,10 +421,11 @@ def main():
     parser.add_argument("--rank", type=int, default=None, help="Train only this rank (1=best cv_prec07)")
     parser.add_argument("--all", action="store_true", help="Train all configs from tuned_params.json")
     parser.add_argument("--from-grid", action="store_true", help="Train top configs with grid defaults (no tuning)")
+    parser.add_argument("--csv", default=None, help="Path to custom CSV (e.g. with news features)")
     args = parser.parse_args()
 
     if args.from_grid:
-        train_from_grid(GRID_TOP_CONFIGS)
+        train_from_grid(GRID_TOP_CONFIGS, csv_path=args.csv)
     elif args.all:
         train_best(rank=None, train_all=True)
     else:

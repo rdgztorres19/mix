@@ -450,6 +450,67 @@ def compute_target_variants(df: pd.DataFrame) -> dict[str, dict[str, np.ndarray]
 
     valid_atr_scaled = valid_mfr10m_final & atr_rel_valid
 
+    # ── Volatility expansion targets ────────────────────────────────────
+    # "Will the stock move a lot?" (either direction)
+    # future_range = max(high) - min(low) in next N candles / close
+    # Useful for: enter before big move, set dynamic TP/SL based on ATR
+
+    future_range_10m = np.full(n, np.nan, dtype=np.float64)
+    future_range_5m = np.full(n, np.nan, dtype=np.float64)
+    future_range_30m = np.full(n, np.nan, dtype=np.float64)
+    valid_frange_10m = np.zeros(n, dtype=bool)
+    valid_frange_5m = np.zeros(n, dtype=bool)
+    valid_frange_30m = np.zeros(n, dtype=bool)
+
+    for _key, grp in df.groupby(["symbol", "date"], sort=False):
+        idx = grp.index.values
+        h = grp["high"].values.astype(np.float64)
+        lo = grp["low"].values.astype(np.float64)
+        c = grp["close"].values.astype(np.float64)
+        ng = len(grp)
+
+        for horizon, out_arr, valid_arr in [
+            (5, future_range_5m, valid_frange_5m),
+            (10, future_range_10m, valid_frange_10m),
+            (30, future_range_30m, valid_frange_30m),
+        ]:
+            for i in range(ng):
+                if i + horizon >= ng or c[i] <= 0:
+                    continue
+                max_h = np.max(h[i + 1:i + horizon + 1])
+                min_l = np.min(lo[i + 1:i + horizon + 1])
+                out_arr[idx[i]] = (max_h - min_l) / c[i]
+                valid_arr[idx[i]] = True
+
+    # Vol expansion: range > N × ATR (adapts to regime)
+    if np.any(atr_rel_valid):
+        vol_exp_10m_2atr = ((future_range_10m >= 2.0 * atr_rel) & valid_frange_10m).astype(np.int32)
+        vol_exp_10m_3atr = ((future_range_10m >= 3.0 * atr_rel) & valid_frange_10m).astype(np.int32)
+        vol_exp_5m_2atr = ((future_range_5m >= 2.0 * atr_rel) & valid_frange_5m).astype(np.int32)
+        vol_exp_30m_3atr = ((future_range_30m >= 3.0 * atr_rel) & valid_frange_30m).astype(np.int32)
+    else:
+        vol_exp_10m_2atr = np.zeros(n, dtype=np.int32)
+        vol_exp_10m_3atr = np.zeros(n, dtype=np.int32)
+        vol_exp_5m_2atr = np.zeros(n, dtype=np.int32)
+        vol_exp_30m_3atr = np.zeros(n, dtype=np.int32)
+    valid_vol_exp_10m = valid_frange_10m & atr_rel_valid
+    valid_vol_exp_5m = valid_frange_5m & atr_rel_valid
+    valid_vol_exp_30m = valid_frange_30m & atr_rel_valid
+
+    # Fixed-pct range expansion (direction-agnostic)
+    vol_exp_10m_3pct = (future_range_10m >= 0.030).astype(np.int32)  # range > 3% in 10 candles
+    vol_exp_10m_5pct = (future_range_10m >= 0.050).astype(np.int32)  # range > 5% in 10 candles
+    vol_exp_30m_5pct = (future_range_30m >= 0.050).astype(np.int32)  # range > 5% in 30 candles
+
+    # Combined: big move + favorable R/R (the money target)
+    # "Will it move a lot AND with good upside vs downside?"
+    vol_rr_10m = (
+        (future_range_10m >= 2.0 * atr_rel) &
+        (rr10m >= 2.0) &
+        valid_frange_10m & valid_rr10m & atr_rel_valid
+    ).astype(np.int32) if np.any(atr_rel_valid) else np.zeros(n, dtype=np.int32)
+    valid_vol_rr_10m = valid_frange_10m & valid_rr10m & atr_rel_valid
+
     # ── V2 targets: longer horizons aligned with backtest strategy ────────
 
     # Triple barrier with longer horizons (match backtest lookAhead)
@@ -638,6 +699,16 @@ def compute_target_variants(df: pd.DataFrame) -> dict[str, dict[str, np.ndarray]
         "bin_fr10m_neg_1p0": {"y": bin_fr10m_neg_1p0, "valid": valid_fr10m},
         "bin_fr10m_neg_2p0": {"y": bin_fr10m_neg_2p0, "valid": valid_fr10m},
         "bin_clean_short_10m": {"y": clean_short_10m, "valid": valid_clean_short_10m},
+
+        # ── Volatility expansion targets ────────────────────────────────
+        "bin_vol_exp_10m_2atr": {"y": vol_exp_10m_2atr, "valid": valid_vol_exp_10m},
+        "bin_vol_exp_10m_3atr": {"y": vol_exp_10m_3atr, "valid": valid_vol_exp_10m},
+        "bin_vol_exp_5m_2atr": {"y": vol_exp_5m_2atr, "valid": valid_vol_exp_5m},
+        "bin_vol_exp_30m_3atr": {"y": vol_exp_30m_3atr, "valid": valid_vol_exp_30m},
+        "bin_vol_exp_10m_3pct": {"y": vol_exp_10m_3pct, "valid": valid_frange_10m},
+        "bin_vol_exp_10m_5pct": {"y": vol_exp_10m_5pct, "valid": valid_frange_10m},
+        "bin_vol_exp_30m_5pct": {"y": vol_exp_30m_5pct, "valid": valid_frange_30m},
+        "bin_vol_rr_10m": {"y": vol_rr_10m, "valid": valid_vol_rr_10m},
     }
 
     return targets
@@ -719,4 +790,14 @@ TARGET_META = {
     "bin_fr10m_neg_1p0": (False, "Close[t+10] cae >= -1%"),
     "bin_fr10m_neg_2p0": (False, "Close[t+10] cae >= -2%"),
     "bin_clean_short_10m": (False, "Caída >= 3% con max adverse (subida) < 1.5% en 10 candles"),
+
+    # Volatility expansion targets
+    "bin_vol_exp_10m_2atr": (False, "Rango futuro 10m >= 2x ATR (big move coming)"),
+    "bin_vol_exp_10m_3atr": (False, "Rango futuro 10m >= 3x ATR (very big move)"),
+    "bin_vol_exp_5m_2atr": (False, "Rango futuro 5m >= 2x ATR (fast move)"),
+    "bin_vol_exp_30m_3atr": (False, "Rango futuro 30m >= 3x ATR (sustained move)"),
+    "bin_vol_exp_10m_3pct": (False, "Rango futuro 10m >= 3% (direction-agnostic)"),
+    "bin_vol_exp_10m_5pct": (False, "Rango futuro 10m >= 5% (direction-agnostic)"),
+    "bin_vol_exp_30m_5pct": (False, "Rango futuro 30m >= 5% (direction-agnostic)"),
+    "bin_vol_rr_10m": (False, "Big move (2x ATR) + favorable R/R >= 2 en 10m"),
 }

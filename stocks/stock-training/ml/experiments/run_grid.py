@@ -90,14 +90,39 @@ def run_grid(
     fsets_filter: list[str] | None = None,
     targets_filter: list[str] | None = None,
     quick: bool = False,
+    csv_path: str | None = None,
+    max_rows: int = 0,
 ):
     print("=" * 70)
     print("  EXPERIMENT GRID — Loading data")
     print("=" * 70)
 
     # 1. Load CSV + features (filter valid rows if available)
-    from experiments.data_loader import load_df_with_features
-    df = load_df_with_features(filter_valid=True)
+    from experiments.data_loader import load_df_with_features, load_base_df
+    from experiments.feature_engineer import add_features as _add_features
+    import time as _time
+
+    if csv_path:
+        csv_p = Path(csv_path)
+        if not csv_p.is_absolute():
+            csv_p = Path(__file__).resolve().parent.parent.parent / csv_path
+        print(f"  Loading custom CSV: {csv_p}")
+        t0 = _time.time()
+        df = pd.read_csv(csv_p, low_memory=False)
+        if max_rows and len(df) > max_rows:
+            df = df.tail(max_rows).reset_index(drop=True)
+            print(f"  Trimmed to last {max_rows} rows")
+        print(f"  Loaded {len(df)} rows in {_time.time() - t0:.1f}s")
+        print(f"  Adding features...")
+        t0 = _time.time()
+        df = _add_features(df)
+        print(f"  Features done ({df.shape[1]} cols) in {_time.time() - t0:.1f}s")
+        if "valid_for_training" in df.columns:
+            n_before = len(df)
+            df = df[df["valid_for_training"] == 1].reset_index(drop=True)
+            print(f"  Filtered valid: {n_before} → {len(df)}")
+    else:
+        df = load_df_with_features(filter_valid=True)
 
     # 2. Compute all target variants
     import gc
@@ -308,15 +333,17 @@ def main():
     parser.add_argument("--fsets", nargs="+", help="Filter feature sets (e.g. D_all B_enriched)")
     parser.add_argument("--targets", nargs="+", help="Filter targets (e.g. mc_2p5 bin_mfr10m_1p5)")
     parser.add_argument("--quick", action="store_true", help="Quick test with reduced grid")
+    parser.add_argument("--csv", default=None, help="Path to custom CSV (e.g. with news features)")
+    parser.add_argument("--max-rows", type=int, default=0, help="Max rows to load (0=all)")
     args = parser.parse_args()
-
-    # _load_completed()
 
     run_grid(
         models_filter=args.models,
         fsets_filter=args.fsets,
         targets_filter=args.targets,
         quick=args.quick,
+        csv_path=args.csv,
+        max_rows=args.max_rows,
     )
 
 

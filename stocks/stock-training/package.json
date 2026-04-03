@@ -20,7 +20,9 @@
     "recompute-target": "tsx scripts/recompute-target-csv.ts",
     "add-features": "tsx scripts/add-features-csv.ts",
     "build-features": "tsx scripts/add-features-csv.ts",
-    "verify-predictions": "tsx scripts/verify-predictions.ts"
+    "verify-predictions": "tsx scripts/verify-predictions.ts",
+    "download-news": "tsx scripts/download-news.ts",
+    "add-news-features": "tsx scripts/add-news-features.ts"
   },
   "dependencies": {
     "axios": "^1.6.0",
