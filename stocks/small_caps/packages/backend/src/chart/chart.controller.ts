@@ -5,6 +5,11 @@ import { ChartService } from './chart.service';
 export class ChartController {
   constructor(private readonly chartService: ChartService) {}
 
+  @Get('profile/:symbol')
+  async getProfile(@Param('symbol') symbol: string) {
+    return this.chartService.getProfile(symbol);
+  }
+
   @Get(':symbol/:date')
   async getCandles(
     @Param('symbol') symbol: string,

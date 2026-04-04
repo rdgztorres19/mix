@@ -53,5 +53,11 @@ export function createDefaultRegistry(): StrategyRegistry {
   registry.register({ strategy: new VwapLateMorningStrategy(), source, category: 'trend', sessions: ['LATE_MORNING'] });
   registry.register({ strategy: new VwapMaTrendStrategy(), source, category: 'trend', sessions: ['MIDDAY', 'THE_CLOSE'] });
 
+  // Register Warrior Trading strategies
+  registerWarriorTradingStrategies(registry);
+
   return registry;
 }
+
+// Lazy import to avoid circular deps
+import { registerWarriorTradingStrategies } from './wt-registry';

@@ -1,6 +1,10 @@
 import type { IStrategy, StrategyContext, StrategyLevels } from '@small-caps/shared';
 import { isLateMorning, isMidday } from '../session.utils';
 
+/**
+ * VWAP False Breakout: stock that was strong (above VWAP) now lost VWAP = SHORT.
+ * Price is below VWAP → entry at current price, stop above VWAP, targets below.
+ */
 export class VwapFalseBreakoutStrategy implements IStrategy {
   readonly name = 'VWAP_FALSE_BREAKOUT';
 
@@ -10,11 +14,12 @@ export class VwapFalseBreakoutStrategy implements IStrategy {
 
   getLevels(ctx: StrategyContext): StrategyLevels {
     const { price, vwap, atr } = ctx;
+    const v = vwap ?? price;
     return {
-      entry: vwap ? vwap + 0.02 : price,
-      stop: vwap ? vwap - atr * 0.15 : price - atr * 0.2,
-      target1: price + atr * 0.4,
-      target2: price + atr * 0.8,
+      entry: price,
+      stop: v + atr * 0.15,
+      target1: price - atr * 0.4,
+      target2: price - atr * 0.8,
     };
   }
 }

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Candle1mEntity } from '../database/entities/candle-1m.entity';
 import { StockNewsEntity } from '../database/entities/stock-news.entity';
+import { StockProfileEntity } from '../database/entities/stock-profile.entity';
 import { aggregate1mTo5m, VwapCalculator, EmaCalculator, SmaCalculator, RsiCalculator } from '@small-caps/core';
 import type { Candle, IndicatorValues } from '@small-caps/shared';
 
@@ -13,6 +14,8 @@ export class ChartService {
     private readonly candleRepo: Repository<Candle1mEntity>,
     @InjectRepository(StockNewsEntity)
     private readonly newsRepo: Repository<StockNewsEntity>,
+    @InjectRepository(StockProfileEntity)
+    private readonly profileRepo: Repository<StockProfileEntity>,
   ) {}
 
   async getCandles(symbol: string, date: string, timeframe: '1m' | '5m' = '1m') {
@@ -69,7 +72,29 @@ export class ChartService {
       }
     }
 
-    return { candles, indicators };
+    // Get key levels directly from DB using session field (fast, no timezone calc)
+    const sym = symbol.toUpperCase();
+    const [pmLevels] = await this.candleRepo.query(
+      `SELECT MAX(high) as pm_high, MIN(low) as pm_low, MAX(gap_pct) as gap_pct
+       FROM candle_1m WHERE symbol = ? AND date = ? AND session = 'PRE_MARKET'`,
+      [sym, date],
+    );
+
+    const firstOpen = candles.length > 0 ? candles[0].o : 0;
+    const gapPct = Number(pmLevels?.gap_pct) || 0;
+    const prevClose = gapPct !== 0 ? firstOpen / (1 + gapPct / 100) : firstOpen;
+    const preMarketHigh = Number(pmLevels?.pm_high) || null;
+    const preMarketLow = Number(pmLevels?.pm_low) || null;
+
+    return {
+      candles,
+      indicators,
+      levels: {
+        prevClose: prevClose > 0 ? prevClose : null,
+        preMarketHigh,
+        preMarketLow,
+      },
+    };
   }
 
   async getNews(symbol: string, date: string) {
@@ -77,5 +102,9 @@ export class ChartService {
       where: { symbol: symbol.toUpperCase(), date },
       order: { created_at: 'DESC' },
     });
+  }
+
+  async getProfile(symbol: string) {
+    return this.profileRepo.findOneBy({ symbol: symbol.toUpperCase() });
   }
 }

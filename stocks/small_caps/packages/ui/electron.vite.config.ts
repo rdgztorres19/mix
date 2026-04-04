@@ -1,36 +1,47 @@
-import { defineConfig } from 'electron-vite';
+import { resolve } from 'node:path';
+import { defineConfig, externalizeDepsPlugin } from 'electron-vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
-import { resolve } from 'path';
+
+const root = process.cwd();
 
 export default defineConfig({
   main: {
+    plugins: [externalizeDepsPlugin({ exclude: ['electron'] })],
     build: {
-      outDir: 'out/main',
+      lib: {
+        entry: {
+          index: resolve(root, 'electron/main.ts'),
+        },
+      },
       rollupOptions: {
-        input: resolve(__dirname, 'src/main/index.ts'),
+        external: ['electron'],
       },
     },
   },
   preload: {
+    plugins: [externalizeDepsPlugin({ exclude: ['electron'] })],
     build: {
-      outDir: 'out/preload',
+      lib: {
+        entry: resolve(root, 'electron/preload.ts'),
+      },
       rollupOptions: {
-        input: resolve(__dirname, 'src/preload/index.ts'),
+        external: ['electron'],
       },
     },
   },
   renderer: {
-    root: resolve(__dirname, 'src/renderer'),
+    root: '.',
     build: {
-      outDir: 'out/renderer',
       rollupOptions: {
-        input: resolve(__dirname, 'src/renderer/index.html'),
+        input: {
+          index: resolve(root, 'index.html'),
+        },
       },
     },
     resolve: {
       alias: {
-        '@': resolve(__dirname, 'src/renderer'),
+        '@': resolve(root, 'src'),
       },
     },
     plugins: [react(), tailwindcss()],

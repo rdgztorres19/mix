@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Param, Query, ParseIntPipe } from '@nestjs/common';
 import { SimulatorService } from './simulator.service';
 
 @Controller('simulator')
@@ -10,7 +10,8 @@ export class SimulatorController {
     @Param('symbol') symbol: string,
     @Param('date') date: string,
     @Param('candleIdx', ParseIntPipe) candleIdx: number,
+    @Query('source') source?: string,
   ) {
-    return this.simulatorService.getSimulationState(symbol, date, candleIdx);
+    return this.simulatorService.getSimulationState(symbol, date, candleIdx, source);
   }
 }

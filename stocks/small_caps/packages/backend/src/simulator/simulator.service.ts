@@ -4,6 +4,7 @@ import {
   TradingRulesEngine,
   CandlestickPatternsDetector,
   SupportResistanceDetector,
+  StrategyGuidanceGenerator,
   createDefaultRegistry,
   VwapCalculator,
   EmaCalculator,
@@ -21,6 +22,7 @@ export class SimulatorService {
   private readonly rulesEngine = new TradingRulesEngine();
   private readonly candlestickDetector = new CandlestickPatternsDetector();
   private readonly srDetector = new SupportResistanceDetector();
+  private readonly guidanceGen = new StrategyGuidanceGenerator();
   private readonly registry = createDefaultRegistry();
 
   constructor(private readonly chartService: ChartService) {}
@@ -29,6 +31,7 @@ export class SimulatorService {
     symbol: string,
     date: string,
     candleIdx: number,
+    source?: string,
   ): Promise<SimulationState> {
     // Load all candles for the day
     const allCandles = await this.chartService.getCandles(symbol, date, '1m');
@@ -60,7 +63,10 @@ export class SimulatorService {
     const lastIndicator = indicators[indicators.length - 1];
     const lastCandle = candles[candles.length - 1];
 
-    // Build market context for rules engine
+    // Build market context — pass only recent candles to detectors (last 30)
+    // Detectors look at last 20 candles anyway, this prevents stale pattern detection
+    const recentCandles = candles.slice(-30);
+
     const ctx: MarketContext = {
       ticker: symbol,
       price: lastCandle.c,
@@ -73,7 +79,7 @@ export class SimulatorService {
       session: this.getSession(lastCandle.t),
       pre_market_high: this.getPreMarketHigh(candles),
       account_size: 25000,
-      candles,
+      candles: recentCandles,
     };
 
     // Run rules engine
@@ -88,34 +94,53 @@ export class SimulatorService {
       preMarketHigh: ctx.pre_market_high ?? undefined,
     });
 
-    // Evaluate strategy registry for active strategies
+    // Compute WT-specific detection flags
+    const hod = candles.reduce((max, c) => Math.max(max, c.h), 0);
+    const nearHod = hod > 0 && ctx.price >= hod * 0.99;
+
+    // Build extended strategy context with all flags
     const strategyCtx = {
       ...ctx,
+      // Advanced Trading
       bullFlagDetected: rulesResult.detected_patterns.some((p) => p.name === 'BULL_FLAG'),
       abcdDetected: rulesResult.detected_patterns.some((p) => p.name === 'ABCD'),
       orbDetected: rulesResult.detected_patterns.some((p) => p.name === 'ORB'),
       vwapReversalDetected: rulesResult.detected_patterns.some((p) => p.name === 'VWAP_REVERSAL'),
       fallenAngelDetected: rulesResult.detected_patterns.some((p) => p.name === 'FALLEN_ANGEL'),
+      // Warrior Trading (reuse existing detectors + simple inline checks)
+      flatTopDetected: rulesResult.detected_patterns.some((p) => p.name === 'BULL_FLAG') && nearHod,
+      redToGreenDetected: this.isRedToGreen(candles),
+      halfWholeDollarDetected: this.isNearHalfWholeDollar(ctx.price),
+      microPullbackDetected: this.isMicroPullback(recentCandles, ctx.ema9),
+      hodBreakDetected: nearHod,
+      // Computed
       aboveVwap: !!(ctx.vwap && ctx.price > ctx.vwap),
       aboveEma9: !!(ctx.ema9 && ctx.price > ctx.ema9),
       aboveEma20: !!(ctx.ema20 && ctx.price > ctx.ema20),
+      nearHod,
       detectedPatterns: rulesResult.detected_patterns,
     };
 
-    const matchingRegs = this.registry.evaluateAll(strategyCtx);
-    const activeStrategies: ActiveStrategy[] = matchingRegs.map((reg) => ({
-      name: reg.strategy.name,
-      source: reg.source,
-      guidance: rulesResult.strategy_guidance ?? {
+    // Filter registry by source if specified, then evaluate first match
+    let candidates = this.registry.getAll();
+    if (source && source !== 'All') {
+      candidates = this.registry.getBySource(source);
+    }
+    const firstMatch = candidates.find((reg) => reg.strategy.matches(strategyCtx)) ?? null;
+
+    const activeStrategies: ActiveStrategy[] = firstMatch ? [{
+      name: firstMatch.strategy.name,
+      source: firstMatch.source,
+      guidance: this.guidanceGen.generate(firstMatch.strategy.name) ?? {
         what_to_watch: '',
         confirmation_signals: [],
         invalidation: '',
         session_context: '',
         knowledge_summary: '',
       },
-      levels: reg.strategy.getLevels(strategyCtx),
-      category: reg.category,
-    }));
+      levels: firstMatch.strategy.getLevels(strategyCtx),
+      category: firstMatch.category,
+    }] : [];
 
     return {
       symbol,
@@ -184,5 +209,40 @@ export class SimulatorService {
     if (min < 840) return 'MIDDAY';
     if (min < 960) return 'THE_CLOSE';
     return 'AFTER_HOURS';
+  }
+
+  /** Red to Green: stock opened red (first candle was red), now price is above the open of first candle. */
+  private isRedToGreen(candles: Candle[]): boolean {
+    if (candles.length < 5) return false;
+    const firstCandle = candles[0];
+    const wasRed = firstCandle.c < firstCandle.o;
+    if (!wasRed) return false;
+    const current = candles[candles.length - 1];
+    return current.c > firstCandle.o;
+  }
+
+  /** Price within 5 cents of a half or whole dollar. */
+  private isNearHalfWholeDollar(price: number): boolean {
+    const nearestHalf = Math.ceil(price * 2) / 2;
+    return nearestHalf - price > 0 && nearestHalf - price <= 0.05;
+  }
+
+  /** Micro pullback: 1-2 red candles after 3+ green, still above EMA9. */
+  private isMicroPullback(candles: Candle[], ema9: number | null): boolean {
+    if (candles.length < 5 || !ema9) return false;
+    const last = candles[candles.length - 1];
+    const prev = candles[candles.length - 2];
+    // Last 1-2 candles red or doji
+    const lastRed = last.c <= last.o;
+    const prevRed = prev.c <= prev.o;
+    if (!lastRed && !prevRed) return false;
+    // Previous 3+ green
+    let greenCount = 0;
+    for (let i = candles.length - 3; i >= Math.max(0, candles.length - 6); i--) {
+      if (candles[i].c > candles[i].o) greenCount++;
+    }
+    if (greenCount < 3) return false;
+    // Still above ema9
+    return last.c > ema9;
   }
 }

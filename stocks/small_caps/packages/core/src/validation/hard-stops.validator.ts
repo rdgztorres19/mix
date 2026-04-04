@@ -15,7 +15,7 @@ export class HardStopsValidator {
     if (ctx.session === 'AFTER_HOURS' || ctx.session.startsWith('AFTER_HOURS'))
       failures.push('After hours: no live trading');
     if (ctx.price < 1) failures.push('Price < $1: penny stock risk, skip');
-    if (ctx.price > 30) failures.push('Price > $30: outside low-float small cap zone');
+    if (ctx.price > 50) failures.push('Price > $50: outside small cap zone');
     if (!ctx.vwap) failures.push('VWAP unavailable: cannot assess directional bias');
 
     return { passed: failures.length === 0, failures };

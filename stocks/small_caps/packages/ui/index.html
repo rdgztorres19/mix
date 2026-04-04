@@ -1,0 +1,50 @@
+<!doctype html>
+<html class="h-full" lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Small Caps Signal Generator</title>
+    <link
+      rel="preload"
+      href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700&display=swap"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700&display=swap" /></noscript>
+    <style>
+      .dark body { background-color: hsl(240 10% 4%); }
+      #splash-loader {
+        position: fixed; inset: 0; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; z-index: 9999; gap: 16px;
+      }
+      .dark #splash-loader { background-color: hsl(240 10% 4%); color: hsl(240 5% 65%); }
+      #splash-loader:not(.dark *) { background-color: hsl(0 0% 96%); color: hsl(240 5% 35%); }
+      #splash-loader .spinner {
+        width: 32px; height: 32px; border: 3px solid currentColor;
+        border-top-color: transparent; border-radius: 50%;
+        animation: spin 0.8s linear infinite; opacity: 0.6;
+      }
+      #splash-loader .text { font-family: Inter, system-ui, sans-serif; font-size: 13px; opacity: 0.5; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+    <script>
+      (function () {
+        try {
+          const theme = localStorage.getItem('vite-theme') || 'dark';
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (theme === 'dark' || (theme === 'system' && prefersDark))
+            document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body class="text-foreground bg-background flex h-full text-base antialiased">
+    <div class="flex grow" id="root">
+      <div id="splash-loader">
+        <div class="spinner"></div>
+        <div class="text">Loading Small Caps...</div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -103,7 +103,13 @@
       "Bash(python3 -m json.tool)",
       "Bash(zcat \"/Users/rdgztorres19/Documents/Projects/node copy/stocks/sp500-prediction/data/raw/2023-01-03/bars-1m.json.gz\")",
       "Bash(pip3 install:*)",
-      "WebFetch(domain:docs.alpaca.markets)"
+      "WebFetch(domain:docs.alpaca.markets)",
+      "Bash(ls -la \"/Users/rdgztorres19/Documents/Projects/node copy/stocks/stock-training/ml/data/\"*.csv)",
+      "Bash(python3)",
+      "Bash(find \"/Users/rdgztorres19/Documents/Projects/node copy/stocks/stock-training/ml/experiments/results\" -name \"*.csv\" -exec ls -la {} \\\\;)",
+      "Bash(python3 -c \"import pandas, numpy, joblib, xgboost, lightgbm, sklearn; print\\('deps OK'\\)\")",
+      "Bash(npm run:*)",
+      "Read(//Library/Frameworks/Python.framework/Versions/3.12/bin/**)"
     ],
     "additionalDirectories": [
       "/Users/rdgztorres19/Documents/Projects/node copy/stocks",

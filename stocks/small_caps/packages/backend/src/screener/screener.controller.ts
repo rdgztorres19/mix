@@ -10,7 +10,14 @@ export class ScreenerController {
     return this.screenerService.getAvailableDates();
   }
 
-  @Get(':date')
+  /** Returns symbols already in DB for this date (pre-computed during sync). */
+  @Get('stocks/:date')
+  async getStocksForDate(@Param('date') date: string) {
+    return this.screenerService.getStocksForDate(date);
+  }
+
+  /** Full screener computation (used by sync and future real-time). */
+  @Get('compute/:date')
   async getScreener(@Param('date') date: string) {
     return this.screenerService.getScreener(date);
   }

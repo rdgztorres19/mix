@@ -361,7 +361,7 @@ def train_from_grid(configs: list[tuple[str, str, str]], csv_path: str | None = 
     targets = compute_target_variants(df)
     print(f"  Data ready: {len(df)} rows in {time.time() - t0:.1f}s")
 
-    MAX_PARALLEL = 4
+    MAX_PARALLEL = 2
     n_cores = __import__('os').cpu_count() or 8
     jobs_per_model = max(1, n_cores // MAX_PARALLEL)
 
@@ -395,26 +395,23 @@ def train_from_grid(configs: list[tuple[str, str, str]], csv_path: str | None = 
     print(f"\nAll {len(cfg_list)} models saved to {BEST_MODELS_DIR}/")
 
 
-# Top configs from grid results
+# Top configs from grid results (2026-04-04)
 GRID_TOP_CONFIGS = [
-    # Volatility expansion (predicts big moves — direction-agnostic)
-    ("XGBoost", "V2_full", "bin_vol_exp_10m_3pct"),    # P@0.80=0.812 (597K signals) — best vol predictor
-    ("XGBoost", "V2_full", "bin_vol_exp_10m_5pct"),    # P@0.80=0.641 (399K signals) — bigger moves
-    ("XGBoost", "V2_full", "bin_vol_exp_10m_2atr"),    # P@0.80=0.964 (70K signals) — ATR-scaled
-    ("XGBoost", "V2_full", "bin_vol_exp_10m_3atr"),    # P@0.80=0.858 (47K signals) — very big moves
-    ("XGBoost", "V2_full", "bin_vol_exp_5m_2atr"),     # P@0.80=0.802 (108K signals) — fast moves
-    ("XGBoost", "V2_full", "bin_vol_exp_30m_3atr"),    # P@0.80=0.974 (147K signals) — sustained
-    # Direction (R/R favorable)
-    ("XGBoost", "V2_full", "bin_rr10m_ge_2"),          # P@0.70=0.624 (2879 signals)
-    ("XGBoost", "V2_core", "bin_rr10m_ge_2"),          # P@0.80=0.819 (94 signals) — highest precision
-    ("XGBoost", "D_clean", "bin_rr10m_ge_2"),          # P@0.70=0.602 (5783 signals) — best balance
-    ("XGBoost", "V2_full", "bin_rr10m_ge_3"),          # P@0.70=0.546 (4257 signals)
-    ("XGBoost", "V2_full", "bin_rr30m_ge_2"),          # P@0.70=0.371 (1045 signals)
-    # Combined: big move + good R/R
-    ("XGBoost", "V2_full", "bin_vol_rr_10m"),           # P@0.70=0.408 (26K signals)
-    # Triple barrier (current backtest targets)
-    ("XGBoost", "V2_full", "bin_tb30m_tp4p0_sl2p0"),   # P@0.70=0.283 (588K signals)
-    ("XGBoost", "V2_full", "bin_tb30m_tp3p0_sl1p5"),   # P@0.70=0.318 (604K signals)
+    # ── SHORT (top 4 — bin_drop targets, usable for real trades) ──
+    ("LightGBM", "F_price_vol_time",  "bin_drop_4p0_30m"),        # P@0.70=0.638 (55K sig)
+    ("XGBoost",  "V2_momentum",       "bin_drop_4p0_30m"),        # P@0.70=0.637 (56K sig)
+    ("LightGBM", "V2_momentum",       "bin_drop_2p0_30m"),        # P@0.70=0.804 (65K sig)
+    ("XGBoost",  "V2_momentum",       "bin_drop_2p0_30m"),        # P@0.70=0.804 (65K sig)
+    # ── LONG (top 4) ──
+    ("LightGBM", "V4_orderflow",      "bin_rr10m_ge_2"),          # P@0.70=0.682 (494 sig)
+    ("XGBoost",  "V2_full",           "bin_rr10m_ge_2"),          # P@0.70=0.646 (732 sig)
+    ("LightGBM", "V2_core",           "bin_rr10m_ge_3"),          # P@0.70=0.613 (318 sig)
+    ("XGBoost",  "V2_core",           "bin_rr10m_ge_3"),          # P@0.70=0.559 (678 sig)
+    # ── VOLATILITY (top 4) ──
+    ("LightGBM", "V3_bear",           "bin_vol_exp_30m_3atr"),    # P@0.70=0.961 (103K sig)
+    ("XGBoost",  "V3_bear",           "bin_vol_exp_30m_3atr"),    # P@0.70=0.960 (106K sig)
+    ("LightGBM", "V3_bear",           "bin_vol_exp_10m_2atr"),    # P@0.70=0.935 (68K sig)
+    ("XGBoost",  "V2_full_news",      "bin_vol_exp_10m_2atr"),    # P@0.70=0.933 (72K sig)
 ]
 
 

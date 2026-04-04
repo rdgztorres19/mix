@@ -7,7 +7,7 @@ export class FallenAngelDetector {
     const empty: PatternResult = { detected: false, name: 'FALLEN_ANGEL', anchor_points: [], description: '' };
     if (candles.length < this.MIN_CANDLES) return empty;
 
-    const earlyCandles = candles.slice(0, Math.min(3, candles.length));
+    const earlyCandles = candles.slice(0, Math.min(15, candles.length));
     const hodCandle = earlyCandles.reduce((max, c) => (c.h > max.h ? c : max), earlyCandles[0]);
     const hod = hodCandle.h;
 
