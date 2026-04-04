@@ -44,6 +44,66 @@ def precision_at_threshold(
     return precision, n_signals
 
 
+def deflated_sharpe_ratio(
+    sharpe_observed: float,
+    n_trials: int,
+    n_samples: int,
+    skewness: float = 0.0,
+    kurtosis: float = 3.0,
+) -> float:
+    """
+    Bailey & López de Prado (2014) Deflated Sharpe Ratio.
+    Adjusts for multiple testing: given n_trials strategies tested,
+    what is the probability that the best observed Sharpe is genuine?
+
+    Returns: p-value (lower = more likely genuine edge).
+    """
+    from scipy.stats import norm
+
+    if n_trials <= 1 or n_samples <= 1:
+        return 1.0
+
+    # Expected max Sharpe under null (Euler-Mascheroni)
+    euler_mascheroni = 0.5772156649
+    e_max_sr = (1 - euler_mascheroni) * norm.ppf(1 - 1 / n_trials) + \
+               euler_mascheroni * norm.ppf(1 - 1 / (n_trials * np.e))
+
+    # Variance of Sharpe ratio estimator
+    sr_var = (1 - skewness * sharpe_observed +
+              (kurtosis - 1) / 4 * sharpe_observed ** 2) / (n_samples - 1)
+    sr_std = np.sqrt(max(sr_var, 1e-10))
+
+    # DSR: probability that observed SR exceeds expected max under null
+    dsr = norm.cdf((sharpe_observed - e_max_sr) / sr_std)
+    return round(1 - dsr, 4)  # p-value
+
+
+def calibration_metrics(
+    y_true: np.ndarray,
+    y_proba: np.ndarray,
+    n_bins: int = 10,
+) -> dict:
+    """
+    Expected Calibration Error (ECE) and reliability data.
+    Measures how well predicted probabilities match actual frequencies.
+    ECE close to 0 = well calibrated. ECE > 0.1 = poorly calibrated.
+    """
+    bin_edges = np.linspace(0, 1, n_bins + 1)
+    ece = 0.0
+    total = len(y_true)
+
+    for i in range(n_bins):
+        mask = (y_proba >= bin_edges[i]) & (y_proba < bin_edges[i + 1])
+        n_bin = mask.sum()
+        if n_bin == 0:
+            continue
+        avg_pred = y_proba[mask].mean()
+        avg_true = y_true[mask].mean()
+        ece += (n_bin / total) * abs(avg_pred - avg_true)
+
+    return {"ece": round(ece, 4)}
+
+
 def evaluate_model(
     y_true: np.ndarray,
     y_pred: np.ndarray,

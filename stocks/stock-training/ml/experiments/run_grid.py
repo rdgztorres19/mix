@@ -335,6 +335,10 @@ def main():
     parser.add_argument("--quick", action="store_true", help="Quick test with reduced grid")
     parser.add_argument("--csv", default=None, help="Path to custom CSV (e.g. with news features)")
     parser.add_argument("--max-rows", type=int, default=0, help="Max rows to load (0=all)")
+    parser.add_argument("--cpcv", action="store_true", help="Use CPCV instead of temporal split (López de Prado)")
+    parser.add_argument("--calibrate", action="store_true", help="Calibrate probabilities with Platt scaling")
+    parser.add_argument("--cluster-features", action="store_true", help="Reduce correlated features via clustering")
+    parser.add_argument("--cpcv-splits", type=int, default=10, help="Number of CPCV splits (default 10, quick=5)")
     args = parser.parse_args()
 
     run_grid(

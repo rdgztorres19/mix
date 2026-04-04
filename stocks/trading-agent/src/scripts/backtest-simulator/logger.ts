@@ -73,6 +73,8 @@ export class SimLogger {
   private wins = 0;
   private losses = 0;
   private neutrals = 0;
+  private volExpHits = 0;
+  private volExpTotal = 0;
   private readonly perSymbol = new Map<string, SymbolStats>();
   private previousList: string[] = [];
   private isFirstMinute = true;
@@ -288,6 +290,14 @@ export class SimLogger {
     console.log(`\n  ${bar(this.wins, this.losses, this.neutrals, 50)}`);
     console.log(`  ${chalk.green(`${this.wins}W`)} ${chalk.dim('/')} ${chalk.red(`${this.losses}L`)} ${chalk.dim('/')} ${chalk.gray(`${this.neutrals}N`)}`);
 
+    // Vol expansion accuracy
+    if (this.volExpTotal > 0) {
+      const volPct = (this.volExpHits / this.volExpTotal) * 100;
+      const volColor = volPct >= 70 ? chalk.green.bold : volPct >= 50 ? chalk.yellow : chalk.red;
+      console.log(`\n  ${chalk.cyan.bold('Vol Expansion Accuracy')} (range >= 2×ATR in 10 candles)`);
+      console.log(`  ${volColor(`${this.volExpHits}/${this.volExpTotal} = ${volPct.toFixed(1)}%`)} correct predictions`);
+    }
+
     // Per-symbol breakdown table
     if (this.perSymbol.size > 0) {
       console.log(`\n${chalk.cyan.bold('  Per-Symbol Breakdown')}`);
@@ -394,5 +404,18 @@ export class SimLogger {
       this.tradeLog.set(symbol, log);
     }
     log.push(`${minute}(${trade.result === 'win' ? 1 : 0})(${(prob * 100).toFixed(0)}%)`);
+  }
+
+  recordVolExp(hit: boolean): void {
+    this.volExpTotal++;
+    if (hit) this.volExpHits++;
+  }
+
+  getVolExpStats(): { hits: number; total: number; pct: number } {
+    return {
+      hits: this.volExpHits,
+      total: this.volExpTotal,
+      pct: this.volExpTotal > 0 ? (this.volExpHits / this.volExpTotal) * 100 : 0,
+    };
   }
 }

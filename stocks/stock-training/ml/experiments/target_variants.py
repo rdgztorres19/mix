@@ -502,6 +502,25 @@ def compute_target_variants(df: pd.DataFrame) -> dict[str, dict[str, np.ndarray]
     vol_exp_10m_5pct = (future_range_10m >= 0.050).astype(np.int32)  # range > 5% in 10 candles
     vol_exp_30m_5pct = (future_range_30m >= 0.050).astype(np.int32)  # range > 5% in 30 candles
 
+    # BIGGER fixed-pct targets (harder to predict = more useful if it works)
+    vol_exp_10m_8pct = (future_range_10m >= 0.080).astype(np.int32)   # range > 8% in 10 candles
+    vol_exp_10m_10pct = (future_range_10m >= 0.100).astype(np.int32)  # range > 10% in 10 candles
+    vol_exp_30m_8pct = (future_range_30m >= 0.080).astype(np.int32)   # range > 8% in 30 candles
+    vol_exp_30m_10pct = (future_range_30m >= 0.100).astype(np.int32)  # range > 10% in 30 candles
+    vol_exp_30m_15pct = (future_range_30m >= 0.150).astype(np.int32)  # range > 15% in 30 candles
+
+    # ATR-scaled bigger moves
+    if np.any(atr_rel_valid):
+        vol_exp_10m_5atr = ((future_range_10m >= 5.0 * atr_rel) & valid_frange_10m).astype(np.int32)
+        vol_exp_10m_8atr = ((future_range_10m >= 8.0 * atr_rel) & valid_frange_10m).astype(np.int32)
+        vol_exp_30m_5atr = ((future_range_30m >= 5.0 * atr_rel) & valid_frange_30m).astype(np.int32)
+        vol_exp_30m_8atr = ((future_range_30m >= 8.0 * atr_rel) & valid_frange_30m).astype(np.int32)
+    else:
+        vol_exp_10m_5atr = np.zeros(n, dtype=np.int32)
+        vol_exp_10m_8atr = np.zeros(n, dtype=np.int32)
+        vol_exp_30m_5atr = np.zeros(n, dtype=np.int32)
+        vol_exp_30m_8atr = np.zeros(n, dtype=np.int32)
+
     # Combined: big move + favorable R/R (the money target)
     # "Will it move a lot AND with good upside vs downside?"
     vol_rr_10m = (
@@ -708,6 +727,15 @@ def compute_target_variants(df: pd.DataFrame) -> dict[str, dict[str, np.ndarray]
         "bin_vol_exp_10m_3pct": {"y": vol_exp_10m_3pct, "valid": valid_frange_10m},
         "bin_vol_exp_10m_5pct": {"y": vol_exp_10m_5pct, "valid": valid_frange_10m},
         "bin_vol_exp_30m_5pct": {"y": vol_exp_30m_5pct, "valid": valid_frange_30m},
+        "bin_vol_exp_10m_8pct": {"y": vol_exp_10m_8pct, "valid": valid_frange_10m},
+        "bin_vol_exp_10m_10pct": {"y": vol_exp_10m_10pct, "valid": valid_frange_10m},
+        "bin_vol_exp_30m_8pct": {"y": vol_exp_30m_8pct, "valid": valid_frange_30m},
+        "bin_vol_exp_30m_10pct": {"y": vol_exp_30m_10pct, "valid": valid_frange_30m},
+        "bin_vol_exp_30m_15pct": {"y": vol_exp_30m_15pct, "valid": valid_frange_30m},
+        "bin_vol_exp_10m_5atr": {"y": vol_exp_10m_5atr, "valid": valid_vol_exp_10m},
+        "bin_vol_exp_10m_8atr": {"y": vol_exp_10m_8atr, "valid": valid_vol_exp_10m},
+        "bin_vol_exp_30m_5atr": {"y": vol_exp_30m_5atr, "valid": valid_vol_exp_30m},
+        "bin_vol_exp_30m_8atr": {"y": vol_exp_30m_8atr, "valid": valid_vol_exp_30m},
         "bin_vol_rr_10m": {"y": vol_rr_10m, "valid": valid_vol_rr_10m},
     }
 
@@ -799,5 +827,14 @@ TARGET_META = {
     "bin_vol_exp_10m_3pct": (False, "Rango futuro 10m >= 3% (direction-agnostic)"),
     "bin_vol_exp_10m_5pct": (False, "Rango futuro 10m >= 5% (direction-agnostic)"),
     "bin_vol_exp_30m_5pct": (False, "Rango futuro 30m >= 5% (direction-agnostic)"),
+    "bin_vol_exp_10m_8pct": (False, "Rango futuro 10m >= 8% (big move)"),
+    "bin_vol_exp_10m_10pct": (False, "Rango futuro 10m >= 10% (very big move)"),
+    "bin_vol_exp_30m_8pct": (False, "Rango futuro 30m >= 8% (big sustained)"),
+    "bin_vol_exp_30m_10pct": (False, "Rango futuro 30m >= 10% (very big sustained)"),
+    "bin_vol_exp_30m_15pct": (False, "Rango futuro 30m >= 15% (explosive move)"),
+    "bin_vol_exp_10m_5atr": (False, "Rango futuro 10m >= 5x ATR"),
+    "bin_vol_exp_10m_8atr": (False, "Rango futuro 10m >= 8x ATR"),
+    "bin_vol_exp_30m_5atr": (False, "Rango futuro 30m >= 5x ATR"),
+    "bin_vol_exp_30m_8atr": (False, "Rango futuro 30m >= 8x ATR"),
     "bin_vol_rr_10m": (False, "Big move (2x ATR) + favorable R/R >= 2 en 10m"),
 }

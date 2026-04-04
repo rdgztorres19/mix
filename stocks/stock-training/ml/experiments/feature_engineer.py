@@ -187,6 +187,80 @@ def _parse_minute_of_day(time_str) -> int:
 
 
 # ---------------------------------------------------------------------------
+# VPIN / Order Flow features (Easley, López de Prado & O'Hara)
+# ---------------------------------------------------------------------------
+
+def _tick_rule_classify(close: np.ndarray) -> np.ndarray:
+    """
+    Tick rule: classify each bar's volume as buy (+1) or sell (-1).
+    If close > prev_close: buy (uptick). If close < prev_close: sell (downtick).
+    If equal: carry forward previous classification.
+    """
+    n = len(close)
+    signs = np.ones(n)
+    for i in range(1, n):
+        if close[i] > close[i - 1]:
+            signs[i] = 1.0
+        elif close[i] < close[i - 1]:
+            signs[i] = -1.0
+        else:
+            signs[i] = signs[i - 1]
+    return signs
+
+
+def _vpin_features(
+    close: np.ndarray,
+    volume: np.ndarray,
+    window: int = 20,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Compute VPIN and order flow features.
+
+    VPIN = sum(|buy_vol - sell_vol|) / sum(total_vol) over rolling window.
+    Higher VPIN = more informed trading (institutional activity).
+
+    Returns: (vpin, vpin_zscore, order_imbalance, trade_intensity)
+    """
+    n = len(close)
+    signs = _tick_rule_classify(close)
+
+    buy_vol = np.where(signs > 0, volume, 0.0)
+    sell_vol = np.where(signs < 0, volume, 0.0)
+    imbalance = buy_vol - sell_vol
+
+    # Order imbalance per bar (normalized)
+    total_vol = np.maximum(volume, 1.0)
+    order_imbalance = imbalance / total_vol
+
+    # VPIN: rolling sum of |imbalance| / rolling sum of volume
+    vpin = np.zeros(n)
+    for i in range(window, n):
+        abs_imb_sum = np.sum(np.abs(imbalance[i - window:i]))
+        vol_sum = np.sum(volume[i - window:i])
+        vpin[i] = abs_imb_sum / max(vol_sum, 1.0)
+    vpin[:window] = vpin[window] if n > window else 0
+
+    # VPIN z-score (rolling 50-bar)
+    vpin_zscore = np.zeros(n)
+    zwindow = 50
+    for i in range(zwindow, n):
+        seg = vpin[i - zwindow:i]
+        mu = seg.mean()
+        std = seg.std()
+        vpin_zscore[i] = (vpin[i] - mu) / max(std, 1e-8)
+    vpin_zscore[:zwindow] = 0
+
+    # Trade intensity: volume per unit price change (Kyle's lambda proxy)
+    price_change = np.abs(np.diff(close, prepend=close[0]))
+    trade_intensity = volume / np.maximum(price_change * close, 1.0)
+    # Normalize to rolling mean
+    ti_mean = pd.Series(trade_intensity).rolling(20, min_periods=1).mean().values
+    trade_intensity = trade_intensity / np.maximum(ti_mean, 1.0)
+
+    return vpin, vpin_zscore, order_imbalance, trade_intensity
+
+
+# ---------------------------------------------------------------------------
 # Main: add features to a DataFrame grouped by (symbol, date)
 # ---------------------------------------------------------------------------
 
@@ -464,6 +538,13 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
         # Volume concentration: % of cumulative vol in last 5 bars
         vol_5 = _rolling_sum(gv, 5)
         grp["vol_concentration_5"] = _safe_div(vol_5, np.maximum(cum_vol, 1.0))
+
+        # ── VPIN / Order flow features ──────────────────────────────
+        vpin, vpin_z, oi, ti = _vpin_features(gc, gv, window=20)
+        grp["vpin"] = vpin
+        grp["vpin_zscore"] = vpin_z
+        grp["order_imbalance"] = oi
+        grp["trade_intensity"] = ti
 
         # Close position within candle range (0=at low, 1=at high)
         bar_range_raw = gh - gl
@@ -944,5 +1025,17 @@ FEATURE_SETS = {
         "catalyst_strength",
         "catalyst_is_dilutive", "catalyst_is_earnings",
         "catalyst_is_fda", "catalyst_is_buyout",
+    ],
+    # V4: Order flow (VPIN) features
+    "V4_orderflow": list(FEATURE_SET_V2_FULL) + [
+        "vpin", "vpin_zscore", "order_imbalance", "trade_intensity",
+    ],
+    "V4_orderflow_lean": list(FEATURE_SET_V2_CORE) + [
+        "vpin", "vpin_zscore", "order_imbalance",
+    ],
+    "V4_orderflow_only": [
+        "vpin", "vpin_zscore", "order_imbalance", "trade_intensity",
+        "volume_rel", "buy_volume_ratio", "atr_rel", "rsi",
+        "dist_vwap_pct", "dist_hod_pct", "minute_of_day",
     ],
 }

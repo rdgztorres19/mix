@@ -31,6 +31,17 @@ export interface PredictResult {
   error?: string;
   ignored?: boolean;
   ignore_reason?: string;
+  // Dual-model fields (from predict_batch_dual.py)
+  prob_vol?: number;
+  prob_rr?: number;
+  vol_pass?: boolean;
+  rr_pass?: boolean;
+  atr?: number;
+  close?: number;
+  suggested_tp_pct?: number;
+  suggested_sl_pct?: number;
+  threshold_vol?: number;
+  threshold_rr?: number;
 }
 
 export type TpSlResult = 'win' | 'loss' | 'neutral';

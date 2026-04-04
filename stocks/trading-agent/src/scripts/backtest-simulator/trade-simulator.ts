@@ -21,8 +21,11 @@ export class TradeSimulator {
    * Evaluate a trade signal by looking ahead in the candle history.
    * Long: TP = price goes UP, SL = price goes DOWN
    * Short: TP = price goes DOWN, SL = price goes UP
+   *
+   * @param dynamicTpPct - override TP% (e.g. from ATR-based dual model)
+   * @param dynamicSlPct - override SL% (e.g. from ATR-based dual model)
    */
-  evaluate(allCandles: CollectorCandle[], entryIdx: number): TradeResult {
+  evaluate(allCandles: CollectorCandle[], entryIdx: number, dynamicTpPct?: number, dynamicSlPct?: number): TradeResult {
     const entryCandle = allCandles[entryIdx];
     if (!entryCandle) {
       return { result: 'neutral', entryPrice: 0, pnlPct: 0 };
@@ -33,8 +36,8 @@ export class TradeSimulator {
       return { result: 'neutral', entryPrice, pnlPct: 0 };
     }
 
-    const tpDec = this.targetPct / 100;
-    const slDec = this.stopLossPct / 100;
+    const tpDec = (dynamicTpPct ?? this.targetPct) / 100;
+    const slDec = (dynamicSlPct ?? this.stopLossPct) / 100;
 
     // Long: TP above, SL below. Short: TP below, SL above.
     const tpLevel = this.direction === 'long'

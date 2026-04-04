@@ -4,8 +4,107 @@
  * Each filter can be enabled/disabled independently.
  */
 
+import { readFileSync, existsSync } from 'fs';
+import { resolve, join } from 'path';
+import { gunzipSync } from 'zlib';
 import type { CollectorCandle } from '../../collector/indicator.calculator';
 import { timestampToET } from '../../collector/indicator.calculator';
+
+// ── News cache (reads from trading-agent/data/{date}/news.json.gz) ──────────
+
+interface NewsArticle {
+  id: number;
+  headline: string;
+  created_at: string;
+  symbols: string[];
+  source: string;
+  summary: string;
+}
+
+const STRONG_KEYWORDS = [
+  'buyout', 'acquisition', 'merger', 'takeover', 'acquired',
+  'fda approv', 'approved', 'fda clearance', 'breakthrough therapy',
+  'earnings beat', 'beat estimates', 'exceeds expectations',
+  'contract award', 'government contract',
+  'short squeeze', 'halted',
+];
+const MODERATE_KEYWORDS = [
+  'partnership', 'major partnership', 'exclusive deal', 'collaboration',
+  'nasdaq uplisting', 'nyse uplisting', 'uplist',
+  'phase 3', 'pivotal trial', 'trial success', 'clinical trial',
+  'stock split',
+];
+const DILUTIVE_KEYWORDS = [
+  'offering', 'dilution', 'shares offered', 'secondary offering',
+  'atm offering', 'registered direct', 'public offering', 'shelf registration',
+];
+
+// Cache: date -> Map<symbol, { strength, isDilutive }>
+const newsCache = new Map<string, Map<string, { strength: 'STRONG' | 'MODERATE' | 'WEAK' | 'NONE'; isDilutive: boolean }>>();
+
+function loadNewsForDate(dateStr: string): Map<string, { strength: 'STRONG' | 'MODERATE' | 'WEAK' | 'NONE'; isDilutive: boolean }> {
+  const cached = newsCache.get(dateStr);
+  if (cached) return cached;
+
+  const result = new Map<string, { strength: 'STRONG' | 'MODERATE' | 'WEAK' | 'NONE'; isDilutive: boolean }>();
+  const newsPath = join(resolve(__dirname, '../../../data'), dateStr, 'news.json.gz');
+
+  if (!existsSync(newsPath)) {
+    newsCache.set(dateStr, result);
+    return result;
+  }
+
+  try {
+    const compressed = readFileSync(newsPath);
+    const raw = gunzipSync(compressed).toString('utf-8');
+    const articles: NewsArticle[] = JSON.parse(raw);
+
+    // Group by symbol, classify headlines, keep strongest
+    for (const article of articles) {
+      const text = article.headline.toLowerCase();
+
+      let strength: 'STRONG' | 'MODERATE' | 'WEAK' | 'NONE' = 'NONE';
+      if (STRONG_KEYWORDS.some(k => text.includes(k))) strength = 'STRONG';
+      else if (MODERATE_KEYWORDS.some(k => text.includes(k))) strength = 'MODERATE';
+
+      const isDilutive = DILUTIVE_KEYWORDS.some(k => text.includes(k));
+
+      for (const sym of article.symbols) {
+        const existing = result.get(sym);
+        const strengthRank = { STRONG: 3, MODERATE: 2, WEAK: 1, NONE: 0 };
+        if (!existing || strengthRank[strength] > strengthRank[existing.strength]) {
+          result.set(sym, { strength, isDilutive: existing?.isDilutive || isDilutive });
+        } else if (isDilutive && existing) {
+          existing.isDilutive = true;
+        }
+      }
+    }
+  } catch {
+    // Corrupted file — skip
+  }
+
+  newsCache.set(dateStr, result);
+  return result;
+}
+
+/**
+ * Check if a symbol has a strong/moderate catalyst for the given date.
+ * Returns true if catalyst found, false if no news or weak/none.
+ */
+export function hasStrongCatalyst(symbol: string, dateStr: string): boolean {
+  const news = loadNewsForDate(dateStr);
+  const info = news.get(symbol);
+  if (!info) return false;
+  return info.strength === 'STRONG' || info.strength === 'MODERATE';
+}
+
+/**
+ * Check if a symbol has a dilutive offering headline (bearish signal).
+ */
+export function isDilutiveOffering(symbol: string, dateStr: string): boolean {
+  const news = loadNewsForDate(dateStr);
+  return news.get(symbol)?.isDilutive ?? false;
+}
 
 // ── ETF / Leveraged / Inverse blacklist ──────────────────────────────────────
 // These have poor momentum prediction — model wasn't trained on ETF patterns
@@ -31,6 +130,7 @@ const ETF_BLACKLIST = new Set([
 
 export interface TradeContext {
   symbol: string;
+  date: string;               // YYYY-MM-DD (for news lookup)
   prob: number;
   price: number;              // current close
   gapPct: number;             // gap % from prev close
@@ -137,8 +237,19 @@ export const FILTERS: Record<string, FilterConfig> = {
     fn: (ctx) => ctx.prob >= 0.70,
   },
 
-  // Max signals per stock per day (avoid SYNX with 26 signals)
-  // This is handled separately in main.ts, not here
+  // Require strong/moderate news catalyst (from news.json.gz)
+  requireCatalyst: {
+    enabled: false,
+    name: 'Has Catalyst (STRONG/MODERATE)',
+    fn: (ctx) => ctx.date ? hasStrongCatalyst(ctx.symbol, ctx.date) : true,
+  },
+
+  // Block dilutive offerings (bearish signal)
+  noDilution: {
+    enabled: false,
+    name: 'No Dilutive Offering',
+    fn: (ctx) => ctx.date ? !isDilutiveOffering(ctx.symbol, ctx.date) : true,
+  },
 };
 
 // ── Apply all enabled filters ────────────────────────────────────────────────
@@ -162,6 +273,7 @@ export function buildTradeContext(
   sharesOutstanding: number,
   premarketVolume: number,
   gapPct: number,
+  date?: string,
 ): TradeContext {
   const last = history[history.length - 1];
   const price = last.c;
@@ -197,7 +309,7 @@ export function buildTradeContext(
   const maxDayGainPct = dayOpen > 0 ? ((hod - dayOpen) / dayOpen) * 100 : 0;
 
   return {
-    symbol, prob, price, gapPct, atrPct,
+    symbol, date: date ?? '', prob, price, gapPct, atrPct,
     sharesOutstanding, floatRotation, rvol,
     premarketVolume, minuteOfDay, distHodPct, maxDayGainPct,
     history,

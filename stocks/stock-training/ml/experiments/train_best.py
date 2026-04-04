@@ -405,7 +405,9 @@ GRID_TOP_CONFIGS = [
     ("XGBoost", "V2_full", "bin_vol_exp_5m_2atr"),     # P@0.80=0.802 (108K signals) — fast moves
     ("XGBoost", "V2_full", "bin_vol_exp_30m_3atr"),    # P@0.80=0.974 (147K signals) — sustained
     # Direction (R/R favorable)
-    ("XGBoost", "V2_full", "bin_rr10m_ge_2"),          # P@0.70=0.624 (2879 signals) — best direction
+    ("XGBoost", "V2_full", "bin_rr10m_ge_2"),          # P@0.70=0.624 (2879 signals)
+    ("XGBoost", "V2_core", "bin_rr10m_ge_2"),          # P@0.80=0.819 (94 signals) — highest precision
+    ("XGBoost", "D_clean", "bin_rr10m_ge_2"),          # P@0.70=0.602 (5783 signals) — best balance
     ("XGBoost", "V2_full", "bin_rr10m_ge_3"),          # P@0.70=0.546 (4257 signals)
     ("XGBoost", "V2_full", "bin_rr30m_ge_2"),          # P@0.70=0.371 (1045 signals)
     # Combined: big move + good R/R

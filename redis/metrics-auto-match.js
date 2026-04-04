@@ -6,12 +6,12 @@
  */
 
 const apiUrl = 'http://localhost:8089/api/v2';
-const rootID = 4032475185949696;
+const rootID = 4789228967625728;
 
 // Construir array de métricas T1, T2, ... T100
 const metrics = [];
-for (let i = 11; i <= 5000; i++) {
-  metrics.push(`GLOBAL.US.FLORIDA.JACKSONVILLE.PLANT01.LINE03.GATEWAY_AZURE_EDGE01.CAR1.CAR2.V4.GLOBAL.US.FLORIDA.JACKSONVILLE.PLANT01.LINE03.GATEWAY_AZURE_EDGE01.CAR1.CAR2.V4.T${i}`);
+for (let i = 1; i <= 50000; i++) {
+  metrics.push(`FDFF.AG_1_ASSET_1.GROUP_1.TAG_${i}`);
 }
 
 async function callAutoMatch() {
@@ -57,6 +57,7 @@ async function main() {
     let json;
     try {
       json = JSON.parse(result.body);
+      // console.log(json[0].matching);
     } catch {
       console.log('   Body (raw):', result.body?.substring(0, 500));
       return;

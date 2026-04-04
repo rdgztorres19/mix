@@ -1,0 +1,18 @@
+{
+  "name": "small-caps",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build:shared": "npm run build -w @small-caps/shared",
+    "build:core": "npm run build -w @small-caps/core",
+    "build:backend": "npm run build -w @small-caps/backend",
+    "build:ui": "npm run build -w @small-caps/ui",
+    "build": "npm run build:shared && npm run build:core && npm run build:backend",
+    "dev:backend": "npm run start:dev -w @small-caps/backend",
+    "dev:ui": "npm run dev -w @small-caps/ui",
+    "sync": "npm run sync -w @small-caps/backend"
+  }
+}

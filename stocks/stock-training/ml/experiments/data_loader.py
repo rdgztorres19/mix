@@ -164,6 +164,102 @@ def walk_forward_splits(
     return splits
 
 
+def cpcv_split(
+    X: pd.DataFrame,
+    y: np.ndarray,
+    n_splits: int = 10,
+    n_test_groups: int = 2,
+    embargo_pct: float = 0.01,
+) -> list[tuple[np.ndarray, np.ndarray]]:
+    """
+    Combinatorial Purged Cross-Validation (CPCV).
+    López de Prado (2018) — Advances in Financial Machine Learning.
+
+    Splits data into n_splits chronological groups. Tests each combination
+    of n_test_groups groups. Purges train rows near test boundaries.
+
+    Total paths = C(n_splits, n_test_groups).
+    n_splits=10, n_test_groups=2 → 45 paths
+    n_splits=5, n_test_groups=2 → 10 paths (quick mode)
+    """
+    from itertools import combinations
+
+    n = len(X)
+    embargo_size = max(1, int(n * embargo_pct))
+
+    # Split into chronological groups
+    group_size = n // n_splits
+    group_boundaries = []
+    for g in range(n_splits):
+        start = g * group_size
+        end = (g + 1) * group_size if g < n_splits - 1 else n
+        group_boundaries.append((start, end))
+
+    indices = np.arange(n)
+    splits = []
+
+    for test_groups in combinations(range(n_splits), n_test_groups):
+        # Test indices: union of selected groups
+        test_idx = np.concatenate([
+            indices[group_boundaries[g][0]:group_boundaries[g][1]]
+            for g in test_groups
+        ])
+
+        # Train indices: everything else, with purging + embargo
+        test_set = set(test_idx)
+        purge_set = set()
+
+        for g in test_groups:
+            g_start, g_end = group_boundaries[g]
+            # Purge: embargo_size rows before and after each test group
+            for i in range(max(0, g_start - embargo_size), min(n, g_end + embargo_size)):
+                purge_set.add(i)
+
+        train_idx = np.array([i for i in indices if i not in test_set and i not in purge_set])
+
+        if len(train_idx) > 0 and len(test_idx) > 0:
+            splits.append((train_idx, test_idx))
+
+    return splits
+
+
+def cluster_features(
+    X: pd.DataFrame,
+    corr_threshold: float = 0.85,
+) -> list[str]:
+    """
+    Hierarchical clustering of features by Spearman correlation.
+    Returns one representative feature per cluster (highest variance).
+    Reduces ~86 redundant features to ~15-20 independent signals.
+    """
+    from scipy.cluster.hierarchy import linkage, fcluster
+    from scipy.spatial.distance import squareform
+
+    # Spearman correlation
+    corr = X.corr(method='spearman').fillna(0)
+    # Convert to distance matrix
+    distance = 1 - corr.abs()
+    np.fill_diagonal(distance.values, 0)
+    distance = distance.clip(lower=0)
+
+    # Hierarchical clustering
+    condensed = squareform(distance.values)
+    Z = linkage(condensed, method='average')
+    clusters = fcluster(Z, t=1 - corr_threshold, criterion='distance')
+
+    # Select one feature per cluster: highest variance
+    selected = []
+    for cluster_id in np.unique(clusters):
+        mask = clusters == cluster_id
+        cluster_cols = [X.columns[i] for i, m in enumerate(mask) if m]
+        # Pick feature with highest variance
+        variances = {col: X[col].var() for col in cluster_cols}
+        best = max(variances, key=variances.get)
+        selected.append(best)
+
+    return sorted(selected)
+
+
 def prepare_Xy(
     df: pd.DataFrame,
     feature_cols: list[str],

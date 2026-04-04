@@ -441,6 +441,7 @@ async function main() {
             profile?.shares_outstanding ?? 0,
             metadata.premarketVolume,
             metadata.gapPct,
+            config.date,
           );
           const { pass } = applyFilters(ctx);
 
@@ -458,7 +459,31 @@ async function main() {
 
           const allCandles = candleCache.getAllCandles(symbol);
           const entryIdx = history.length - 1;
-          const trade = tradeSimulator.evaluate(allCandles, entryIdx);
+          // Use dynamic TP/SL from dual model if available, otherwise use fixed config
+          const dynTp = pred.suggested_tp_pct && pred.suggested_tp_pct > 0 ? pred.suggested_tp_pct : undefined;
+          const dynSl = pred.suggested_sl_pct && pred.suggested_sl_pct > 0 ? pred.suggested_sl_pct : undefined;
+          if (dynTp || dynSl) {
+            console.log(`    [Dynamic TP/SL] ${symbol}: TP=${dynTp?.toFixed(2)}% SL=${dynSl?.toFixed(2)}% (ATR=${(pred as any).atr ?? '?'}) prob_vol=${(pred as any).prob_vol ?? '?'} prob_rr=${(pred as any).prob_rr ?? '?'}`);
+          }
+          const trade = tradeSimulator.evaluate(allCandles, entryIdx, dynTp, dynSl);
+
+          // Verify vol_exp prediction: did the stock actually move >= 2×ATR in next 10 candles?
+          let volExpHit = false;
+          const atrVal = (pred as any).atr ?? 0;
+          if (atrVal > 0 && entryIdx + 10 < allCandles.length) {
+            let maxH = -Infinity;
+            let minL = Infinity;
+            for (let k = 1; k <= Math.min(10, allCandles.length - entryIdx - 1); k++) {
+              const fc = allCandles[entryIdx + k];
+              if (fc.h > maxH) maxH = fc.h;
+              if (fc.l < minL) minL = fc.l;
+            }
+            const futureRange = maxH - minL;
+            const atrThreshold = atrVal * 2;
+            volExpHit = futureRange >= atrThreshold;
+          }
+          logger.recordVolExp(volExpHit);
+
           minuteSignals.push({ symbol, prob: pred.prob, tradeable: true, trade });
         } else {
           minuteSignals.push({ symbol, prob: pred.prob, tradeable: false });
