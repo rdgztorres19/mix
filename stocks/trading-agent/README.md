@@ -1,5 +1,8 @@
 # Trading RAG Agent
 
+npm run download-data -- 2026-01-02 2026-03-27
+npm run download-news -- 2023-03-28 2026-04-27
+
 AI-powered day trading assistant using LangChain, RAG (Qdrant), momoscreener.com, and NestJS.
 
 ## Architecture
