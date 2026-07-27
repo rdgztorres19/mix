@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@sorbotics/api-sdk": "^9.2.30",
     "@langchain/core": "^1.1.26",
     "@langchain/openai": "^1.2.8",
     "@modelcontextprotocol/sdk": "^1.17.5",
